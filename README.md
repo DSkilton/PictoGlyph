@@ -2,9 +2,9 @@
 PictoGlyph is an experimental platform for modelling and, eventually, helping to decode pictographic writing systems.
 
 ## Status
-WIP
+Work in progress - working towards MVP
 
-The project combines:
+## Project Details
 - **Java (Spring Boot)** – core API, domain model, data ingestion
 - **Python (FastAPI + ML)** – image embeddings and language prediction
 - **MySQL** – storage for languages, symbols, places, trade routes, and model outputs
@@ -74,55 +74,54 @@ No Docker, Kafka, or heavy infra required for the MVP – just local Java, Pytho
 > This is a *work in progress*. Commands and paths will evolve as the codebase grows.
 
 ### 1. Clone the repo
-git clone https://github.com/<your-username>/<your-repo-name>.git
-cd <your-repo-name>
+git clone https://github.com/your-username/your-repo-name.git<br>
+cd your-repo-name
 
 ### 2. Create the database
-CREATE DATABASE pictoglyph CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+`CREATE DATABASE pictoglyph CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`
 
 ### 3. Java backend
-cd pictoglyph-api
+`cd pictoglyph-api`
 
 #### Planned endpoints (MVP):
-POST /languages
-GET /languages/{id}
-POST /symbols
-GET /symbols/{id}
-POST /symbols/{id}/predict-language
-GET /symbols/{id}/predictions
+`POST /languages`<br>
+`GET /languages/{id}`<br>
+`POST /symbols`<br>
+`GET /symbols/{id}`<br>
+`POST /symbols/{id}/predict-language`<br>
+`GET /symbols/{id}/predictions`<br>
 
 ### 4. Python ML service
-cd pictoglyph-ml
-python -m venv .venv
-.\.venv\Scripts\activate
-pip install -r requirements.txt
-uvicorn main:app --reload --port 8000
-
+`cd pictoglyph-ml`<br>
+`python -m venv .venv`<br>
+`.\.venv\Scripts\activate`<br>
+`pip install -r requirements.txt`<br>
+`uvicorn main:app --reload --port 8000`<br>
 
 ## Planned Repo Structure
 .
-├── pictoglyph-api/            # Java Spring Boot service
-│   ├── build.gradle
-│   ├── src/main/java/...
-│   └── src/main/resources/...
-├── pictoglyph-ml/             # Python ML service 
-│   ├── main.py
-│   ├── requirements.txt
-│   └── ml/...
-├── db/
-│   └── schema.sql             # MySQL 
-├── docs/
-│   ├── erd/                   # ERD, UML, Design notes
-│   └── notes.md
-├── data/
-│   ├── images/                # Raw Symbol Images
-│   └── samples/               # Sample scripts/ datasets
-└── README.md
+├── pictoglyph-api/            # Java Spring Boot service<br>
+│   ├── build.gradle<br>
+│   ├── src/main/java/...<br>
+│   └── src/main/resources/...<br>
+├── pictoglyph-ml/             # Python ML service<br> 
+│   ├── main.py<br>
+│   ├── requirements.txt<br>
+│   └── ml/...<br>
+├── db/<br>
+│   └── schema.sql             # MySQL <br>
+├── docs/<br>
+│   ├── erd/                   # ERD, UML, Design notes<br>
+│   └── notes.md<br>
+├── data/<br>
+│   ├── images/                # Raw Symbol Images<br>
+│   └── samples/               # Sample scripts/ datasets<br>
+└── README.md<br>
 
 ## Future Developments
-After the MVP is working end-to-end:
-Add attention/transformer-based models to capture symbol sequences and text sentiment
-Introduce Kafka for asynchronous ingestion and prediction
-Containerise services with Docker and optionally Kubernetes
-Add CI/CD with Jenkins and quality checks with SonarQube
+After the MVP is working end-to-end:<br>
+Add attention/transformer-based models to capture symbol sequences and text sentiment<br>
+Introduce Kafka for asynchronous ingestion and prediction<br>
+Containerise services with Docker and optionally Kubernetes<br>
+Add CI/CD with Jenkins and quality checks with SonarQube<br>
 Integrate richer datasets (cuneiform, hieroglyphs, oracle bone scripts, etc.)
