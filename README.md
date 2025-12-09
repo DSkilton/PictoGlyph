@@ -99,7 +99,7 @@ cd your-repo-name
 `uvicorn main:app --reload --port 8000`<br>
 
 ## Planned Repo Structure
-.<br>
+.<br> 
 ├── pictoglyph-api/            # Java Spring Boot service<br>
 │   ├── build.gradle<br>
 │   ├── src/main/java/...<br>
@@ -119,9 +119,9 @@ cd your-repo-name
 └── README.md<br>
 
 ## Future Developments
-After the MVP is working end-to-end:<br>
-Add attention/transformer-based models to capture symbol sequences and text sentiment<br>
-Introduce Kafka for asynchronous ingestion and prediction<br>
-Containerise services with Docker and optionally Kubernetes<br>
-Add CI/CD with Jenkins and quality checks with SonarQube<br>
-Integrate richer datasets (cuneiform, hieroglyphs, oracle bone scripts, etc.)
+- After the MVP is working end-to-end:
+- Add attention/transformer-based models to capture symbol sequences and text sentiment
+- Introduce Kafka for asynchronous ingestion and prediction
+- Containerise services with Docker and optionally Kubernetes
+- Add CI/CD with Jenkins and quality checks with SonarQube
+- Integrate richer datasets (cuneiform, hieroglyphs, oracle bone scripts, etc.)
