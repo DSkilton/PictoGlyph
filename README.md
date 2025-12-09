@@ -99,7 +99,7 @@ cd your-repo-name
 `uvicorn main:app --reload --port 8000`<br>
 
 ## Planned Repo Structure
-.
+.<br>
 ├── pictoglyph-api/            # Java Spring Boot service<br>
 │   ├── build.gradle<br>
 │   ├── src/main/java/...<br>
