@@ -119,7 +119,7 @@ cd your-repo-name
 └── README.md<br>
 
 ## Future Developments
-- After the MVP is working end-to-end:
+After the MVP is working end-to-end:
 - Add attention/transformer-based models to capture symbol sequences and text sentiment
 - Introduce Kafka for asynchronous ingestion and prediction
 - Containerise services with Docker and optionally Kubernetes
