@@ -1,6 +1,6 @@
 package com.pictoglyph.pictoglyphapi.entities.core;
 
-public enum PortKind {
+public enum TravelMode {
 	SEA,
 	RIVER,
 	LAND

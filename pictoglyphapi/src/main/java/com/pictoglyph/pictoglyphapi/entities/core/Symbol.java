@@ -1,4 +1,4 @@
-package com.pictoglyph.pictoglyphapi.entities.mlentities;
+package com.pictoglyph.pictoglyphapi.entities.core;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.persistence.Column;
@@ -18,6 +18,11 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
+import static com.pictoglyph.pictoglyphapi.utils.Constants.IMAGE_PATH;
+import static com.pictoglyph.pictoglyphapi.utils.Constants.SYMBOL_CODE;
+import static com.pictoglyph.pictoglyphapi.utils.Constants.JSON;
+import static com.pictoglyph.pictoglyphapi.utils.Constants.LANGUAGE_ID;
+
 @Entity
 @Table(name = "symbol")
 @Getter
@@ -34,20 +39,20 @@ public class Symbol {
 	@EqualsAndHashCode.Include
 	private Long id;
 
-	@Column(name = "image_path", nullable = false)
+	@Column(name = IMAGE_PATH, nullable = false)
 	private String imagePath;
 
-	@Column(name = "symbol_code", nullable = false)
+	@Column(name = SYMBOL_CODE, nullable = false)
 	private String symbolCode;
 
-	@Column(columnDefinition = "JSON")
+	@Column(columnDefinition = JSON)
 	private JsonNode features;
 
-	@Column(columnDefinition = "JSON")
+	@Column(columnDefinition = JSON)
 	private JsonNode meta;
 
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
-	@JoinColumn(name = "language_id", nullable = false)
+	@JoinColumn(name = LANGUAGE_ID, nullable = false)
 	@ToString.Exclude
 	@EqualsAndHashCode.Exclude
 	private Language language;

@@ -1,4 +1,4 @@
-package com.pictoglyph.pictoglyphapi.entities.mlentities;
+package com.pictoglyph.pictoglyphapi.entities.core;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.persistence.Column;

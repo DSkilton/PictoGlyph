@@ -1,4 +1,4 @@
-package com.pictoglyph.pictoglyphapi.entities.mlentities;
+package com.pictoglyph.pictoglyphapi.entities.core;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.persistence.Column;
@@ -16,6 +16,8 @@ import lombok.Setter;
 import lombok.ToString;
 
 import java.math.BigDecimal;
+
+import static com.pictoglyph.pictoglyphapi.utils.Constants.JSON;
 
 @Entity
 @Table(name = "place")
@@ -44,6 +46,6 @@ public class Place {
 	@Column(nullable = false, precision = 10, scale = 7)
 	private BigDecimal latitude;
 
-	@Column(columnDefinition = "JSON")
+	@Column(columnDefinition = JSON)
 	private JsonNode meta;
 }

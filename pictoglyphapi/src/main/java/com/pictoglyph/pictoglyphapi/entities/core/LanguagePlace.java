@@ -1,4 +1,4 @@
-package com.pictoglyph.pictoglyphapi.entities.mlentities;
+package com.pictoglyph.pictoglyphapi.entities.core;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -17,6 +17,10 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
+import static com.pictoglyph.pictoglyphapi.utils.Constants.DATE_START;
+import static com.pictoglyph.pictoglyphapi.utils.Constants.DATE_END;
+
+
 @Entity
 @Table(name = "language_place")
 @Getter @Setter
@@ -32,13 +36,13 @@ public class LanguagePlace {
 	@EqualsAndHashCode.Include
 	private Long id;
 
-	@Column(name = "date_start")
+	@Column(name = DATE_START)
 	private Integer dateStart;
 
-	@Column(name = "date_end")
+	@Column(name = DATE_END)
 	private Integer dateEnd;
 
-	private Integer confidence;  // safer than primitive int
+	private Integer confidence;
 
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "language_id", nullable = false)
