@@ -46,14 +46,11 @@ public class LanguagePlace {
 
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "language_id", nullable = false)
-	@ToString.Exclude
-	@EqualsAndHashCode.Exclude
 	private Language language;
 
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "place_id", nullable = false)
 	@ToString.Exclude
-	@EqualsAndHashCode.Exclude
 	private Place place;
 
 }

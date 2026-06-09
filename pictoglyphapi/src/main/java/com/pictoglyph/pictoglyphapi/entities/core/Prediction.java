@@ -61,18 +61,15 @@ public class Prediction {
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = MODEL_VERSION_ID, nullable = false)
 	@ToString.Exclude
-	@EqualsAndHashCode.Exclude
 	private ModelVersion modelVersion;
 
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = SYMBOL_ID, nullable = false)
 	@ToString.Exclude
-	@EqualsAndHashCode.Exclude
 	private Symbol symbol;
 
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = LANGUAGE_ID, nullable = false)
 	@ToString.Exclude
-	@EqualsAndHashCode.Exclude
 	private Language language;
 }

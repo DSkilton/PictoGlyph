@@ -6,10 +6,11 @@ import com.pictoglyph.pictoglyphapi.agent.Evidence;
 
 import java.util.List;
 
-public class PlaceTool implements AgentTool {
+public class LanguageTool implements AgentTool {
+
 	@Override
 	public String getName() {
-		return "PlaceTool";
+		return "Language Tools";
 	}
 
 	@Override
@@ -17,8 +18,8 @@ public class PlaceTool implements AgentTool {
 		return List.of(
 				Evidence.builder()
 						.source(getName())
-						.description("Mock place evidence")
-						.confidence(0.65)
+						.description("Mock Language evidence.")
+						.confidence(0.70)
 						.build()
 		);
 	}

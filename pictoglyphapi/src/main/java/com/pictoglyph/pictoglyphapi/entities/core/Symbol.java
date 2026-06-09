@@ -54,7 +54,6 @@ public class Symbol {
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = LANGUAGE_ID, nullable = false)
 	@ToString.Exclude
-	@EqualsAndHashCode.Exclude
 	private Language language;
 
 

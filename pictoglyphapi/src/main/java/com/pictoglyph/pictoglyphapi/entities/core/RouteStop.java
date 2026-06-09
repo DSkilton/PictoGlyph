@@ -43,12 +43,10 @@ public class RouteStop {
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "trade_route_id", nullable = false)
 	@ToString.Exclude
-	@EqualsAndHashCode.Exclude
 	private TradeRoute tradeRoute;
 
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "place_id", nullable = false)
 	@ToString.Exclude
-	@EqualsAndHashCode.Exclude
 	private Place place;
 }

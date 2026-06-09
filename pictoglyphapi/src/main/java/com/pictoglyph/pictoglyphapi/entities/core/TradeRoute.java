@@ -51,12 +51,10 @@ public class TradeRoute {
 	@OrderBy("orderIndex ASC")
 	@Builder.Default
 	@ToString.Exclude
-	@EqualsAndHashCode.Exclude
 	private List<RouteStop> stops = new ArrayList<>();
 
 	@OneToMany(mappedBy = "tradeRoute", cascade = CascadeType.ALL, orphanRemoval = true)
 	@Builder.Default
 	@ToString.Exclude
-	@EqualsAndHashCode.Exclude
 	private List<RouteLeg> legs = new ArrayList<>();
 }

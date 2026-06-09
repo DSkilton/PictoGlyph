@@ -46,18 +46,15 @@ public class RouteLeg {
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "trade_route_id", nullable = false)
 	@ToString.Exclude
-	@EqualsAndHashCode.Exclude
 	private TradeRoute tradeRoute;
 
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "from_stop_id", nullable = false)
 	@ToString.Exclude
-	@EqualsAndHashCode.Exclude
 	private RouteStop fromStop;
 
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "to_stop_id", nullable = false)
 	@ToString.Exclude
-	@EqualsAndHashCode.Exclude
 	private RouteStop toStop;
 }

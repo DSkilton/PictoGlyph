@@ -5,6 +5,6 @@ import lombok.Builder;
 import java.util.List;
 
 @Builder
-public record AgentResult (List<Hypothesis> hypotheses){
+public record AgentResult (List<Hypothesis> hypotheses, List<Evidence> evidence){
 
 }

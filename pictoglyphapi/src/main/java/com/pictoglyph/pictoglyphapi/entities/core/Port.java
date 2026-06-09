@@ -57,6 +57,5 @@ public class Port {
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "place_id", nullable = false)
 	@ToString.Exclude
-	@EqualsAndHashCode.Exclude
 	private Place place;
 }
