@@ -30,8 +30,6 @@ The initial MVP focuses on a very small, robust pipeline:
    - Python returns the top candidate languages for a symbol
    - Java stores these in `prediction` along with a `model_version`
 
-No Docker, Kafka, or heavy infra required for the MVP – just local Java, Python, and MySQL.
-
 ## Tech Stack
 **Backend (API)**
 - Java 21
@@ -74,7 +72,7 @@ No Docker, Kafka, or heavy infra required for the MVP – just local Java, Pytho
 > This is a *work in progress*. Commands and paths will evolve as the codebase grows.
 
 ### 1. Clone the repo
-git clone https://github.com/your-username/your-repo-name.git<br>
+git clone https://github.com/dskilton/pictoglpyh.git<br>
 cd your-repo-name
 
 ### 2. Create the database
