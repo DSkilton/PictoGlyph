@@ -19,6 +19,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
 
@@ -55,6 +57,7 @@ public class Prediction {
 	@Column(name = Constants.CREATED_AT, nullable = false, updatable = false)
 	private Instant createdAt;
 
+	@JdbcTypeCode(SqlTypes.JSON)
 	@Column(columnDefinition = JSON)
 	private JsonNode details;
 

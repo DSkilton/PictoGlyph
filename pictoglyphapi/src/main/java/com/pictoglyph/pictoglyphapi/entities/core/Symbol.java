@@ -17,6 +17,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import static com.pictoglyph.pictoglyphapi.utils.Constants.IMAGE_PATH;
 import static com.pictoglyph.pictoglyphapi.utils.Constants.SYMBOL_CODE;
@@ -45,9 +47,11 @@ public class Symbol {
 	@Column(name = SYMBOL_CODE, nullable = false)
 	private String symbolCode;
 
+	@JdbcTypeCode(SqlTypes.JSON)
 	@Column(columnDefinition = JSON)
 	private JsonNode features;
 
+	@JdbcTypeCode(SqlTypes.JSON)
 	@Column(columnDefinition = JSON)
 	private JsonNode meta;
 

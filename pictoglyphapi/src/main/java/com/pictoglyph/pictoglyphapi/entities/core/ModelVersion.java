@@ -15,6 +15,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
 
@@ -49,6 +51,7 @@ public class ModelVersion {
 	@Column(nullable = false, unique = true)
 	private String version;
 
+	@JdbcTypeCode(SqlTypes.JSON)
 	@Column(columnDefinition = JSON)
 	private JsonNode notes;
 

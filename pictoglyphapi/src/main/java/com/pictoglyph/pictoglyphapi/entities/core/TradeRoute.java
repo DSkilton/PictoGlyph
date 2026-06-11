@@ -17,6 +17,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 
 import java.util.ArrayList;
@@ -44,6 +46,7 @@ public class TradeRoute {
 	@Column(length = 100)
 	private String era;
 
+	@JdbcTypeCode(SqlTypes.JSON)
 	@Column(columnDefinition = "JSON")
 	private JsonNode meta;
 

@@ -14,6 +14,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
 
@@ -46,6 +48,7 @@ public class Place {
 	@Column(nullable = false, precision = 10, scale = 7)
 	private BigDecimal latitude;
 
+	@JdbcTypeCode(SqlTypes.JSON)
 	@Column(columnDefinition = JSON)
 	private JsonNode meta;
 }

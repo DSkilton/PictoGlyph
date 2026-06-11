@@ -20,6 +20,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import static com.pictoglyph.pictoglyphapi.utils.Constants.NAME;
 import static com.pictoglyph.pictoglyphapi.utils.Constants.KIND;
@@ -51,6 +53,7 @@ public class Port {
 	@Column(name = KIND, nullable = false)
 	private TravelMode kind;
 
+	@JdbcTypeCode(SqlTypes.JSON)
 	@Column(name = META_DATA, columnDefinition = "JSON")
 	private JsonNode metaData;
 
