@@ -4,4 +4,6 @@ import com.pictoglyph.pictoglyphapi.entities.core.Place;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface PlaceRepository extends JpaRepository<Place, Long> {
+
+	boolean existsByNameIgnoreCaseAndCountryIgnoreCase(String name, String country);
 }
