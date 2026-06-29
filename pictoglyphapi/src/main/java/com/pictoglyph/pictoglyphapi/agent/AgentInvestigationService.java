@@ -62,7 +62,7 @@ public class AgentInvestigationService {
 	}
 
 	public Optional<AgentInvestigationDetailResponse> findInvestigationById(Long investigationId) {
-		return agentInvestigationRepository.findBy(investigationId)
+		return agentInvestigationRepository.findById(investigationId)
 				.map(this::toDetailResponse);
 	}
 
