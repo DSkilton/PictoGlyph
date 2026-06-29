@@ -1,6 +1,6 @@
-.venv/
+.msc_venv/
 .idea/
 __pycache__/
 *.pyc
 .env
-.pytest_cache/
+.pytest_cache/stat
