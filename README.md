@@ -1,5 +1,9 @@
 # PictoGlyph
-PictoGlyph is an experimental platform for modelling and, eventually, helping to decode pictographic writing systems.
+PictoGlyph is an experimental platform for modelling pictographic writing systems and, eventually, supporting research into dead or undeciphered languages.
+
+The long-term aim is to help explore how symbols, language families, places, time periods, trade routes and cultural context may relate to one another. The project is not intended to provide a simple automatic translation. Instead, it aims to support human investigation by producing evidence-based suggestions, comparisons and possible interpretations.
+
+Good data is central to the project. Before any meaningful AI or ML work can happen, PictoGlyph needs a strong foundation for storing languages, symbols, inscriptions, places, routes, metadata and model outputs in a structured and traceable way.
 
 ## Status
 Work in progress - working towards MVP
@@ -11,24 +15,30 @@ Work in progress - working towards MVP
 
 The long-term vision is to link symbol appearance with historical context (place, time, trade routes, goods) and use modern ML (CNNs, transformers/attention) to explore relationships between known and unknown scripts.
 
+The project is especially interested in whether known pictographic scripts can provide useful context for investigating symbols from unknown, damaged or poorly understood writing systems.
+
 ## MVP Goals
 The initial MVP focuses on a very small, robust pipeline:
 
 1. **Register languages and symbols**
    - Create languages with metadata (name, script, date range, notes)
    - Register symbols tied to languages, with `image_path` references
+   - Prepare for symbol variants where the same symbol appears in different visual forms
 
 2. **Ingest images**
    - From local folders
    - From remote URLs (later)
+   - Store enough source information to make the data traceable
 
 3. **Generate simple embeddings**
    - Python service loads images, preprocesses them, and produces numeric feature vectors
+   - Embeddings allow symbols to be compared by visual similarity
 
 4. **Get “most similar language” predictions**
    - Java calls the Python ML API
    - Python returns the top candidate languages for a symbol
    - Java stores these in `prediction` along with a `model_version`
+   - Predictions are treated as hypotheses, not final answers
 
 ## Tech Stack
 **Backend (API)**
@@ -67,13 +77,14 @@ The initial MVP focuses on a very small, robust pipeline:
 3. **MySQL**
    - Stores all domain data and prediction outputs
    - `model_version` table tracks which model produced which predictions
+   - Historical and geographical metadata can be linked to languages and symbols
 
 ## Getting Started (planned workflow)
 > This is a *work in progress*. Commands and paths will evolve as the codebase grows.
 
 ### 1. Clone the repo
 git clone https://github.com/dskilton/pictoglpyh.git<br>
-cd your-repo-name
+cd PictoGlyph
 
 ### 2. Create the database
 `CREATE DATABASE pictoglyph CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`
@@ -118,8 +129,11 @@ cd your-repo-name
 
 ## Future Developments
 After the MVP is working end-to-end:
-- Add attention/transformer-based models to capture symbol sequences and text sentiment
+- Add attention/transformer-based models to explore symbol sequences, context and relationships between scripts
+- - Use dimensionality reduction techniques such as PCA, t-SNE and UMAP to visualise embedding spaces and explore whether symbols, scripts or languages form meaningful clusters
+- Add support for symbol variants and multiple possible interpretations
+- Explore vector search for visually or semantically similar symbols
 - Introduce Kafka for asynchronous ingestion and prediction
 - Containerise services with Docker and optionally Kubernetes
 - Add CI/CD with Jenkins and quality checks with SonarQube
-- Integrate richer datasets (cuneiform, hieroglyphs, oracle bone scripts, etc.)
+- Integrate richer datasets, such as cuneiform, Egyptian hieroglyphs, Maya glyphs, oracle bone script and other relevant writing systems
