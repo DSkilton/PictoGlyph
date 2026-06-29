@@ -1,7 +1,9 @@
 package com.pictoglyph.pictoglyphapi.config;
 
 import com.pictoglyph.pictoglyphapi.entities.core.Language;
+import com.pictoglyph.pictoglyphapi.entities.core.LanguagePlace;
 import com.pictoglyph.pictoglyphapi.entities.core.Place;
+import com.pictoglyph.pictoglyphapi.repositories.core.LanguagePlaceRepository;
 import com.pictoglyph.pictoglyphapi.repositories.core.LanguageRepository;
 import com.pictoglyph.pictoglyphapi.repositories.core.PlaceRepository;
 import lombok.RequiredArgsConstructor;
@@ -20,11 +22,13 @@ public class DevelopmentDataSeeder implements ApplicationRunner {
 
 	private final LanguageRepository languageRepository;
 	private final PlaceRepository placeRepository;
+	private final LanguagePlaceRepository languagePlaceRepository;
 
 	@Override
 	public void run(ApplicationArguments args) {
 		seedLanguages();
 		seedPlaces();
+		seedLanguagePlaces();
 	}
 
 	private void seedLanguages() {
@@ -115,5 +119,42 @@ public class DevelopmentDataSeeder implements ApplicationRunner {
 				placeRepository.save(place);
 			}
 		}
+	}
+
+	private void seedLanguagePlaces() {
+		createLanguagePlace("Ancient Egyptian", "Memphis", "Egypt", -3200, 400, 90);
+		createLanguagePlace("Latin", "Rome", "Italy", -700, null, 85);
+		createLanguagePlace("Classical Chinese", "Xi'an", "China", -1200, null, 80);
+		createLanguagePlace("Japanese", "Nara", "Japan", 700, null, 75);
+		createLanguagePlace("Maya", "Tikal", "Guatemala", -300, 1700, 80);
+	}
+
+	private void createLanguagePlace(
+			String languageName,
+			String placeName,
+			String country,
+			Integer dateStart,
+			Integer dateEnd,
+			Integer confidence
+	) {
+		Language language = languageRepository.findByNameIgnoreCase(languageName)
+				.orElseThrow(() -> new IllegalStateException("Missing seeded language: " + languageName));
+
+		Place place = placeRepository.findByNameIgnoreCaseAndCountryIgnoreCase(placeName, country)
+				.orElseThrow(() -> new IllegalStateException("Missing seeded place: " + placeName + ", " + country));
+
+		if (languagePlaceRepository.existsByLanguage_IdAndPlace_Id(language.getId(), place.getId())) {
+			return;
+		}
+
+		LanguagePlace languagePlace = LanguagePlace.builder()
+				.language(language)
+				.place(place)
+				.dateStart(dateStart)
+				.dateEnd(dateEnd)
+				.confidence(confidence)
+				.build();
+
+		languagePlaceRepository.save(languagePlace);
 	}
 }
