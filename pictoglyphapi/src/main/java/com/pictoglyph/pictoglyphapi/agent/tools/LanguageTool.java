@@ -15,6 +15,11 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class LanguageTool implements AgentTool {
 
+	private static final double LANGUAGE_NOT_FOUND_CONFIDENCE = 0.10;
+	private static final double LANGUAGE_WITH_SCRIPT_AND_DATE_CONFIDENCE = 0.75;
+	private static final double LANGUAGE_WITH_SCRIPT_CONFIDENCE = 0.65;
+	private static final double PARTIAL_LANGUAGE_CONFIDENCE = 0.40;
+
 	private final LanguageRepository languageRepository;
 
 	@Override
@@ -28,16 +33,11 @@ public class LanguageTool implements AgentTool {
 			return List.of();
 		}
 
-		Optional<Language> optionalLanguage = languageRepository.findById(context.languageId());
+		Optional<Language> optionalLanguage =
+				languageRepository.findById(context.languageId());
 
 		if (optionalLanguage.isEmpty()) {
-			return List.of(
-					Evidence.builder()
-							.source(getName())
-							.description("No language found for id: " + context.languageId())
-							.confidence(0.10)
-							.build()
-			);
+			return List.of(buildNotFoundEvidence(context.languageId()));
 		}
 
 		Language language = optionalLanguage.get();
@@ -49,6 +49,14 @@ public class LanguageTool implements AgentTool {
 						.confidence(calculateConfidence(language))
 						.build()
 		);
+	}
+
+	private Evidence buildNotFoundEvidence(Long languageId) {
+		return Evidence.builder()
+				.source(getName())
+				.description("No language found for id: " + languageId)
+				.confidence(LANGUAGE_NOT_FOUND_CONFIDENCE)
+				.build();
 	}
 
 	private String buildLanguageEvidenceDescription(Language language) {
@@ -69,7 +77,10 @@ public class LanguageTool implements AgentTool {
 		}
 
 		if (dateStart != null && dateEnd != null) {
-			return " and has an estimated date range from " + dateStart + " to " + dateEnd;
+			return " and has an estimated date range from "
+					+ dateStart
+					+ " to "
+					+ dateEnd;
 		}
 
 		if (dateStart != null) {
@@ -80,18 +91,26 @@ public class LanguageTool implements AgentTool {
 	}
 
 	private double calculateConfidence(Language language) {
-		boolean hasName = language.getName() != null && !language.getName().isBlank();
-		boolean hasScript = language.getScriptName() != null && !language.getScriptName().isBlank();
-		boolean hasDateRange = language.getDateStart() != null || language.getDateEnd() != null;
+		boolean hasName = hasText(language.getName());
+		boolean hasScript = hasText(language.getScriptName());
+		boolean hasDateEvidence = hasDateEvidence(language);
 
-		if (hasName && hasScript && hasDateRange) {
-			return 0.75;
+		if (hasName && hasScript && hasDateEvidence) {
+			return LANGUAGE_WITH_SCRIPT_AND_DATE_CONFIDENCE;
 		}
 
 		if (hasName && hasScript) {
-			return 0.65;
+			return LANGUAGE_WITH_SCRIPT_CONFIDENCE;
 		}
 
-		return 0.40;
+		return PARTIAL_LANGUAGE_CONFIDENCE;
+	}
+
+	private boolean hasText(String value) {
+		return value != null && !value.isBlank();
+	}
+
+	private boolean hasDateEvidence(Language language) {
+		return language.getDateStart() != null || language.getDateEnd() != null;
 	}
 }

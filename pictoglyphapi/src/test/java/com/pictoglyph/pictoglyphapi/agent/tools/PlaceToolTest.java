@@ -37,7 +37,7 @@ public class PlaceToolTest {
 
 		List<Evidence> evidence = placeTool.execute(context);
 
-		assertThat(evidence.isEmpty());
+		assertThat(evidence).isEmpty();
 
 		verifyNoInteractions(placeRepository);
 	}

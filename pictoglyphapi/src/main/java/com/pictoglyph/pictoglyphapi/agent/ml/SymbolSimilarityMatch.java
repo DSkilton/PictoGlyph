@@ -1,7 +1,7 @@
 package com.pictoglyph.pictoglyphapi.agent.ml;
 
 public record SymbolSimilarityMatch(
-		Long symbolid,
+		Long symbolId,
 		Double similarity
 ) {
 }

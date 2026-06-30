@@ -11,25 +11,15 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ContextAgent {
 
+	private static final double NO_EVIDENCE_CONFIDENCE = 0.0;
+	private static final String DEFAULT_HYPOTHESIS_CONCLUSION = "Most likely interpretation requires further evidence.";
+
 	private final List<AgentTool> tools;
 
 	public AgentResult investigate(AgentContext context) {
-		List<Evidence> evidence = new ArrayList<>();
-
-		for (AgentTool tool : tools) {
-			evidence.addAll(tool.execute(context));
-		}
-
-		List<Evidence> sortedEvidence = evidence.stream()
-				.sorted(Comparator.comparingDouble(Evidence::confidence).reversed())
-				.toList();
-
-		Hypothesis hypothesis = Hypothesis.builder()
-				.conclusion("Most likely interpretation requires further evidence.")
-				.confidence(calculateAverageConfidence(sortedEvidence))
-				.supportingEvidence(sortedEvidence)
-				.contradictingEvidence(List.of())
-				.build();
+		List<Evidence> evidence = collectEvidence(context);
+		List<Evidence> sortedEvidence = sortEvidenceByConfidence(evidence);
+		Hypothesis hypothesis = buildHypothesis(sortedEvidence);
 
 		return AgentResult.builder()
 				.evidence(sortedEvidence)
@@ -37,14 +27,39 @@ public class ContextAgent {
 				.build();
 	}
 
+	private List<Evidence> collectEvidence(AgentContext context) {
+		List<Evidence> evidence = new ArrayList<>();
+
+		for (AgentTool tool : tools) {
+			evidence.addAll(tool.execute(context));
+		}
+
+		return evidence;
+	}
+
+	private List<Evidence> sortEvidenceByConfidence(List<Evidence> evidence) {
+		return evidence.stream()
+				.sorted(Comparator.comparingDouble(Evidence::confidence).reversed())
+				.toList();
+	}
+
+	private Hypothesis buildHypothesis(List<Evidence> sortedEvidence) {
+		return Hypothesis.builder()
+				.conclusion(DEFAULT_HYPOTHESIS_CONCLUSION)
+				.confidence(calculateAverageConfidence(sortedEvidence))
+				.supportingEvidence(sortedEvidence)
+				.contradictingEvidence(List.of())
+				.build();
+	}
+
 	private double calculateAverageConfidence(List<Evidence> evidence) {
 		if (evidence.isEmpty()) {
-			return 0.0;
+			return NO_EVIDENCE_CONFIDENCE;
 		}
 
 		return evidence.stream()
 				.mapToDouble(Evidence::confidence)
 				.average()
-				.orElse(0.0);
+				.orElse(NO_EVIDENCE_CONFIDENCE);
 	}
 }
