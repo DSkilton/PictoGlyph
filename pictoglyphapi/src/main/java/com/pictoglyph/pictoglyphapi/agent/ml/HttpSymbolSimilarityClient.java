@@ -9,7 +9,7 @@ import org.springframework.web.client.RestTemplate;
 @RequiredArgsConstructor
 public class HttpSymbolSimilarityClient implements SymbolSimilarityClient {
 
-	private static final String SYMBOLS_PATH = "/symbols";
+	private static final String SYMBOLS_PATH = "/symbols/";
 	public static final String SIMILAR_PATH = "/similar";
 
 	private final RestTemplate restTemplate;
