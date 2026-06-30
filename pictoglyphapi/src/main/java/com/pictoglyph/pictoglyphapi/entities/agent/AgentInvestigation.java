@@ -8,6 +8,8 @@ import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 
+import static com.pictoglyph.pictoglyphapi.utils.Constants.JSON;
+
 @Entity
 @Table(name = "agent_investigation")
 @Getter
@@ -37,7 +39,7 @@ public class AgentInvestigation {
 	private String question;
 
 	@JdbcTypeCode(SqlTypes.JSON)
-	@Column(name = "result_json", columnDefinition = "JSON")
+	@Column(name = "result_json", columnDefinition = JSON)
 	private JsonNode resultJson;
 
 	@Column(name = "created_at", nullable = false)

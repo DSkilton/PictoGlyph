@@ -17,6 +17,8 @@ import lombok.ToString;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import static com.pictoglyph.pictoglyphapi.utils.Constants.JSON;
+
 
 @Entity
 @Table(name = "language")
@@ -46,7 +48,7 @@ public class Language {
 	private Integer dateEnd;
 
 	@JdbcTypeCode(SqlTypes.JSON)
-	@Column(columnDefinition = "JSON")
+	@Column(columnDefinition = JSON)
 	private JsonNode notes;
 
 }

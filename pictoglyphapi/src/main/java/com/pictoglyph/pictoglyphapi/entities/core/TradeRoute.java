@@ -24,6 +24,8 @@ import org.hibernate.type.SqlTypes;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.pictoglyph.pictoglyphapi.utils.Constants.JSON;
+
 @Entity
 @Table(name = "trade_route")
 @Getter
@@ -47,7 +49,7 @@ public class TradeRoute {
 	private String era;
 
 	@JdbcTypeCode(SqlTypes.JSON)
-	@Column(columnDefinition = "JSON")
+	@Column(columnDefinition = JSON)
 	private JsonNode meta;
 
 	@OneToMany(mappedBy = "tradeRoute", cascade = CascadeType.ALL, orphanRemoval = true)
