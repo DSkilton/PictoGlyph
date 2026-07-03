@@ -1,5 +1,5 @@
 services:
-  mysql:
+  postgres:
     image: postgres:16
     container_name: pictoglyph_postgres
     restart: unless-stopped

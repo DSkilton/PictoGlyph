@@ -11,7 +11,7 @@ Work in progress - working towards MVP
 ## Project Details
 - **Java (Spring Boot)** – core API, domain model, data ingestion
 - **Python (FastAPI + ML)** – image embeddings and language prediction
-- **MySQL** – storage for languages, symbols, places, trade routes, and model outputs
+- **Postgres** – storage for languages, symbols, places, trade routes, and model outputs
 
 The long-term vision is to link symbol appearance with historical context (place, time, trade routes, goods) and use modern ML (CNNs, transformers/attention) to explore relationships between known and unknown scripts.
 
@@ -43,9 +43,9 @@ The initial MVP focuses on a very small, robust pipeline:
 ## Tech Stack
 **Backend (API)**
 - Java 21
-- Spring Boot (Web, JPA, MySQL, Jackson)
+- Spring Boot (Web, JPA, Postgres, Jackson)
 - Gradle
-- MySQL 8
+- Postgres 16
 
 **ML Service**
 - Python 3.11+
@@ -55,7 +55,7 @@ The initial MVP focuses on a very small, robust pipeline:
 - Later: PyTorch / transformer-based models
 
 **Database**
-- MySQL schema based on:
+- Postgres schema based on:
   - `language`, `symbol`
   - `place`, `port`, `lang_place`
   - `trade_route`, `route_stop`, `trade_good`, `route_good`
@@ -74,7 +74,7 @@ The initial MVP focuses on a very small, robust pipeline:
      - `POST /predict/language` – given an `image_path`, returns top-k language candidates
    - Loads a saved model and embedding index on startup so no retraining on each request
 
-3. **MySQL**
+3. **Postgres**
    - Stores all domain data and prediction outputs
    - `model_version` table tracks which model produced which predictions
    - Historical and geographical metadata can be linked to languages and symbols
@@ -87,10 +87,10 @@ git clone https://github.com/dskilton/pictoglpyh.git<br>
 cd PictoGlyph
 
 ### 2. Create the database
-`CREATE DATABASE pictoglyph CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`
+`CREATE DATABASE pictoglyph;`
 
 ### 3. Java backend
-`cd pictoglyph-api`
+`cd pictoglyphapi`
 
 #### Planned endpoints (MVP):
 `POST /languages`<br>
@@ -101,7 +101,7 @@ cd PictoGlyph
 `GET /symbols/{id}/predictions`<br>
 
 ### 4. Python ML service
-`cd pictoglyph-ml`<br>
+`cd pictoglypmll`<br>
 `python -m venv .venv`<br>
 `.\.venv\Scripts\activate`<br>
 `pip install -r requirements.txt`<br>
@@ -109,16 +109,16 @@ cd PictoGlyph
 
 ## Planned Repo Structure
 .<br> 
-├── pictoglyph-api/            # Java Spring Boot service<br>
+├── pictoglyphapi/            # Java Spring Boot service<br>
 │   ├── build.gradle<br>
 │   ├── src/main/java/...<br>
 │   └── src/main/resources/...<br>
-├── pictoglyph-ml/             # Python ML service<br> 
+├── pictoglypmll/             # Python ML service<br> 
 │   ├── main.py<br>
 │   ├── requirements.txt<br>
 │   └── ml/...<br>
 ├── db/<br>
-│   └── schema.sql             # MySQL <br>
+│   └── schema.sql             # Postgres <br>
 ├── docs/<br>
 │   ├── erd/                   # ERD, UML, Design notes<br>
 │   └── notes.md<br>
