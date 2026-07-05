@@ -23,10 +23,10 @@ public class FolderSymbolIngestionService {
 
 	private static final String SOURCE_TYPE = "FOLDER";
 	private static final String PNG = ".png";
-	private final String JPG = ".jpg";
-	private final String JPEG = ".jpeg";
-	private final String WEBP = ".webp";
-	private final String SVG = ".svg";
+	private static final String JPG = ".jpg";
+	private static final String JPEG = ".jpeg";
+	private static final String WEBP = ".webp";
+	private static final String SVG = ".svg";
 
 	private final LanguageRepository languageRepository;
 	private final SymbolRepository symbolRepository;
