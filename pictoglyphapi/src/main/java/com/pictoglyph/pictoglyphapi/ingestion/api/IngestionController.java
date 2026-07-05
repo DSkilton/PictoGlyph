@@ -1,8 +1,6 @@
-package com.pictoglyph.pictoglyphapi.ingestion.api.ingestion.api;
+package com.pictoglyph.pictoglyphapi.ingestion.api;
 
-import com.pictoglyph.pictoglyphapi.ingestion.api.FolderIngestionRequest;
-import com.pictoglyph.pictoglyphapi.ingestion.api.FolderSymbolIngestionService;
-import com.pictoglyph.pictoglyphapi.ingestion.api.IngestionResultResponse;
+import com.pictoglyph.pictoglyphapi.ingestion.FolderSymbolIngestionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

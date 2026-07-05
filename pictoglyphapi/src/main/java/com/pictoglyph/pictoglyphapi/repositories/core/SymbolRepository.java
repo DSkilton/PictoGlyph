@@ -11,6 +11,6 @@ public interface SymbolRepository extends JpaRepository<Symbol, Long> {
 	boolean existsByLanguageIdAndSymbolCodeIgnoreCase(Long languageId, String symbolCode);
 
 	@Override
-	@EntityGraph
+	@EntityGraph(attributePaths = "language")
 	Optional<Symbol> findById(Long Id);
 }

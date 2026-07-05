@@ -1,7 +1,8 @@
-package com.pictoglyph.pictoglyphapi.ingestion.api;
+package com.pictoglyph.pictoglyphapi.ingestion;
 
 import com.pictoglyph.pictoglyphapi.entities.core.Language;
 import com.pictoglyph.pictoglyphapi.entities.core.Symbol;
+import com.pictoglyph.pictoglyphapi.ingestion.api.IngestionResultResponse;
 import com.pictoglyph.pictoglyphapi.repositories.core.LanguageRepository;
 import com.pictoglyph.pictoglyphapi.repositories.core.SymbolRepository;
 import jakarta.transaction.Transactional;
@@ -21,11 +22,11 @@ import java.util.stream.Stream;
 public class FolderSymbolIngestionService {
 
 	private static final String SOURCE_TYPE = "FOLDER";
-	public static final String PNG = ".png";
-	public static final String JPG = ".jpg";
-	public static final String JPEG = ".jpeg";
-	public static final String WEBP = ".webp";
-	public static final String SVG = ".svg";
+	private static final String PNG = ".png";
+	private final String JPG = ".jpg";
+	private final String JPEG = ".jpeg";
+	private final String WEBP = ".webp";
+	private final String SVG = ".svg";
 
 	private final LanguageRepository languageRepository;
 	private final SymbolRepository symbolRepository;
@@ -109,7 +110,7 @@ public class FolderSymbolIngestionService {
 				: filename;
 
 		return filenameWithoutExtension
-				.toLowerCase(Locale.ROOT)
+				.toUpperCase(Locale.ROOT)
 				.replaceAll("[^A-Z0-9_-]", "_")
 				.replaceAll("_+", "_");
 	}
