@@ -33,6 +33,8 @@ public class FolderSymbolIngestionService {
 	private static final String JPEG = ".jpeg";
 	private static final String WEBP = ".webp";
 	private static final String SVG = ".svg";
+	private static final String TIF = ".tif";
+	private static final String TIFF = ".TIFF";
 	public static final String FOLDER_INGESTION_FAILED_FOR = "Folder ingestion failed for: ";
 	public static final String UNSUPPORTED_FILE_TYPE = "Unsupported file type";
 	public static final String COULD_NOT_SAVE_SYMBOL = "Could not save symbol: ";
@@ -223,7 +225,9 @@ public class FolderSymbolIngestionService {
 				|| filename.endsWith(JPG)
 				|| filename.endsWith(JPEG)
 				|| filename.endsWith(WEBP)
-				|| filename.endsWith(SVG);
+				|| filename.endsWith(SVG)
+				|| filename.endsWith(TIF)
+				|| filename.endsWith(TIFF);
 	}
 
 	private String buildSymbolCode(Path path) {

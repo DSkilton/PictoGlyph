@@ -5,7 +5,7 @@ import com.pictoglyph.pictoglyphapi.entities.ingestion.IngestionStatus;
 import java.time.LocalDateTime;
 
 public record IngestionJobSummaryResponse (
-		Long Id,
+		Long id,
 		String sourceType,
 		String sourcePath,
 		IngestionStatus status,
