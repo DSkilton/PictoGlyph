@@ -12,5 +12,5 @@ public interface SymbolRepository extends JpaRepository<Symbol, Long> {
 
 	@Override
 	@EntityGraph(attributePaths = "language")
-	Optional<Symbol> findById(Long Id);
+	Optional<Symbol> findById(Long id);
 }

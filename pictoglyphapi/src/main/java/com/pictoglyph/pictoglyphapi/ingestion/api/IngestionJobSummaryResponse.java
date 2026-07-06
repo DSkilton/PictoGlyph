@@ -2,18 +2,17 @@ package com.pictoglyph.pictoglyphapi.ingestion.api;
 
 import com.pictoglyph.pictoglyphapi.entities.ingestion.IngestionStatus;
 
-import java.util.List;
+import java.time.LocalDateTime;
 
-public record IngestionResultResponse(
-		Long ingestionJobId,
+public record IngestionJobSummaryResponse (
+		Long Id,
 		String sourceType,
 		String sourcePath,
 		IngestionStatus status,
 		int importedCount,
 		int skippedCount,
 		int manualProcessingCount,
-		String manualProcessingFolder,
-		List<Long> createdSymbolIds,
-		List<ManualProcessingFileResponse> manualProcessingFiles
-) {
+		LocalDateTime createdAt,
+		LocalDateTime completedAt
+){
 }

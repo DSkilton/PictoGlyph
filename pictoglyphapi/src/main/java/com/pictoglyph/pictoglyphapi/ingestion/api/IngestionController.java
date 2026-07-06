@@ -1,13 +1,17 @@
 package com.pictoglyph.pictoglyphapi.ingestion.api;
 
 import com.pictoglyph.pictoglyphapi.ingestion.FolderSymbolIngestionService;
+import com.pictoglyph.pictoglyphapi.ingestion.IngestionJobService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/ingestion")
@@ -15,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class IngestionController {
 
 	private final FolderSymbolIngestionService folderSymbolIngestionService;
+	private final IngestionJobService ingestionJobService;
 
 	@PostMapping("/folders")
 	public ResponseEntity<IngestionResultResponse> ingestFolder(@Valid @RequestBody FolderIngestionRequest request) {
@@ -24,6 +29,11 @@ public class IngestionController {
 		);
 
 		return ResponseEntity.ok(response);
+	}
+
+	@GetMapping("/jobs")
+	public ResponseEntity<List<IngestionJobSummaryResponse>> getRecentJobs() {
+		return ResponseEntity.ok(ingestionJobService.findRecentJobs());
 	}
 
 
