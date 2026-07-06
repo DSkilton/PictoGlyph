@@ -1,5 +1,6 @@
 package com.pictoglyph.pictoglyphapi.ingestion.api;
 
+import com.pictoglyph.pictoglyphapi.ingestion.ApiSymbolIngestionService;
 import com.pictoglyph.pictoglyphapi.ingestion.FolderSymbolIngestionService;
 import com.pictoglyph.pictoglyphapi.ingestion.IngestionJobService;
 import jakarta.validation.Valid;
@@ -20,6 +21,7 @@ public class IngestionController {
 
 	private final FolderSymbolIngestionService folderSymbolIngestionService;
 	private final IngestionJobService ingestionJobService;
+	private final ApiSymbolIngestionService apiSymbolIngestionService;
 
 	@PostMapping("/folders")
 	public ResponseEntity<IngestionResultResponse> ingestFolder(@Valid @RequestBody FolderIngestionRequest request) {
@@ -31,10 +33,16 @@ public class IngestionController {
 		return ResponseEntity.ok(response);
 	}
 
+	@PostMapping("/apis")
+	public ResponseEntity<ApiIngestionResultResponse> ingestApi(@Valid @RequestBody ApiIngestionRequest request) {
+		ApiIngestionResultResponse response = apiSymbolIngestionService.ingestApi(request);
+
+		return ResponseEntity.ok(response);
+	}
+
 	@GetMapping("/jobs")
 	public ResponseEntity<List<IngestionJobSummaryResponse>> getRecentJobs() {
 		return ResponseEntity.ok(ingestionJobService.findRecentJobs());
 	}
-
 
 }
