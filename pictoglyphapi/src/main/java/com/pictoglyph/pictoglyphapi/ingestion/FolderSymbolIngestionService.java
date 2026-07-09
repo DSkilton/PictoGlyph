@@ -21,6 +21,15 @@ import java.util.List;
 import java.util.Locale;
 import java.util.stream.Stream;
 
+import static com.pictoglyph.pictoglyphapi.utils.Constants.JPEG;
+import static com.pictoglyph.pictoglyphapi.utils.Constants.JPG;
+import static com.pictoglyph.pictoglyphapi.utils.Constants.PNG;
+import static com.pictoglyph.pictoglyphapi.utils.Constants.SVG;
+import static com.pictoglyph.pictoglyphapi.utils.Constants.TIF;
+import static com.pictoglyph.pictoglyphapi.utils.Constants.TIFF;
+import static com.pictoglyph.pictoglyphapi.utils.Constants.WEBP;
+import static com.pictoglyph.pictoglyphapi.utils.StringUtils.cleanString;
+
 @Service
 @RequiredArgsConstructor
 public class FolderSymbolIngestionService {
@@ -28,13 +37,6 @@ public class FolderSymbolIngestionService {
 	private static final String SOURCE_TYPE = "FOLDER";
 	private static final String MANUAL_PROCESSING_FOLDER_NAME = "_manual_processing";
 
-	private static final String PNG = ".png";
-	private static final String JPG = ".jpg";
-	private static final String JPEG = ".jpeg";
-	private static final String WEBP = ".webp";
-	private static final String SVG = ".svg";
-	private static final String TIF = ".tif";
-	private static final String TIFF = ".TIFF";
 	public static final String FOLDER_INGESTION_FAILED_FOR = "Folder ingestion failed for: ";
 	public static final String UNSUPPORTED_FILE_TYPE = "Unsupported file type";
 	public static final String COULD_NOT_SAVE_SYMBOL = "Could not save symbol: ";
@@ -238,10 +240,7 @@ public class FolderSymbolIngestionService {
 				? filename.substring(0, extensionIndex)
 				: filename;
 
-		return filenameWithoutExtension
-				.toUpperCase(Locale.ROOT)
-				.replaceAll("[^A-Z0-9_-]", "_")
-				.replaceAll("_+", "_");
+		return cleanString(filenameWithoutExtension);
 	}
 
 	private IngestionResultResponse buildResponse(

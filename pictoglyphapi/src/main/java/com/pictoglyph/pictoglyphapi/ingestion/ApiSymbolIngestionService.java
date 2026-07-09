@@ -2,6 +2,7 @@ package com.pictoglyph.pictoglyphapi.ingestion;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.pictoglyph.pictoglyphapi.entities.core.Language;
 import com.pictoglyph.pictoglyphapi.entities.core.Symbol;
 import com.pictoglyph.pictoglyphapi.entities.ingestion.IngestionJob;
@@ -20,7 +21,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Locale;
+
+import static com.pictoglyph.pictoglyphapi.utils.StringUtils.*;
 
 @Service
 @RequiredArgsConstructor
@@ -33,6 +35,7 @@ public class ApiSymbolIngestionService {
 	private final IngestionJobRepository ingestionJobRepository;
 	private final RestTemplate restTemplate;
 	private final ObjectMapper objectMapper;
+	private final RemoteImageStorageService remoteImageStorageService;
 
 	public ApiIngestionResultResponse ingestApi(ApiIngestionRequest request) {
 		IngestionJob ingestJob = createRunningJob(request);
@@ -103,7 +106,7 @@ public class ApiSymbolIngestionService {
 				continue;
 			}
 
-			String symbolCode = cleanSymbolCode(rawSymbolCode);
+			String symbolCode = cleanString(rawSymbolCode);
 
 			if (symbolRepository.existsByLanguageIdAndSymbolCodeIgnoreCase(languageId, symbolCode)) {
 				skippedCount++;
@@ -111,15 +114,26 @@ public class ApiSymbolIngestionService {
 			}
 
 			try {
+				DownloadedImage downloadedImage = remoteImageStorageService.downloadedImage(imagePath, SOURCE_TYPE, languageId, symbolCode);
+
+				ObjectNode meta = objectMapper.createObjectNode();
+				meta.set("sourceItem", item);
+				meta.put("originalImageUrl", downloadedImage.originalUrl());
+				meta.put("downloadedImagePath", downloadedImage.localPath());
+				meta.put("sourceType", SOURCE_TYPE);
+				meta.put("sourceName", request.sourceName());
+				meta.put("apiIrl", request.apiUrl());
+
 				Symbol symbol = Symbol.builder()
 						.language(language)
 						.symbolCode(symbolCode)
-						.imagePath(imagePath)
+						.imagePath(downloadedImage.localPath())
 						.meta(item)
 						.build();
 
 				Symbol savedSymbol = symbolRepository.save(symbol);
 				createdSymbolIds.add(savedSymbol.getId());
+
 			} catch (RuntimeException exception) {
 				manualProcessingItems.add(
 						new ApiManualProcessingItemResponse(index, "Could not save symbol: " + exception.getMessage(), item.toString())
@@ -235,14 +249,6 @@ public class ApiSymbolIngestionService {
 		}
 
 		return null;
-	}
-
-	private String cleanSymbolCode(String rawSymbolCode) {
-		return rawSymbolCode
-				.trim()
-				.toUpperCase(Locale.ROOT)
-				.replaceAll("[^A-Z0-9_-]", "_")
-				.replaceAll("_+", "_");
 	}
 
 	private IngestionJob createRunningJob(ApiIngestionRequest request) {

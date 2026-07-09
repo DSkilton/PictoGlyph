@@ -16,4 +16,13 @@ public class Constants {
 	public static final String KIND = "kind";
 	public static final String META_DATA = "meta_data";
 
+	// SUPPORTED FILE TYPES
+	public static final String IMG = ".img";
+	public static final String PNG = ".png";
+	public static final String JPG = ".jpg";
+	public static final String JPEG = ".jpeg";
+	public static final String WEBP = ".webp";
+	public static final String SVG = ".svg";
+	public static final String TIF = ".tif";
+	public static final String TIFF = ".tiff";
 }
