@@ -3,6 +3,7 @@ package com.pictoglyph.pictoglyphapi.ingestion.api;
 import com.pictoglyph.pictoglyphapi.ingestion.ApiSymbolIngestionService;
 import com.pictoglyph.pictoglyphapi.ingestion.FolderSymbolIngestionService;
 import com.pictoglyph.pictoglyphapi.ingestion.IngestionJobService;
+import com.pictoglyph.pictoglyphapi.ingestion.SourceMappingProposalService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +23,7 @@ public class IngestionController {
 	private final FolderSymbolIngestionService folderSymbolIngestionService;
 	private final IngestionJobService ingestionJobService;
 	private final ApiSymbolIngestionService apiSymbolIngestionService;
+	private final SourceMappingProposalService sourceMappingProposalService;
 
 	@PostMapping("/folders")
 	public ResponseEntity<IngestionResultResponse> ingestFolder(@Valid @RequestBody FolderIngestionRequest request) {
@@ -43,6 +45,13 @@ public class IngestionController {
 	@GetMapping("/jobs")
 	public ResponseEntity<List<IngestionJobSummaryResponse>> getRecentJobs() {
 		return ResponseEntity.ok(ingestionJobService.findRecentJobs());
+	}
+
+	@PostMapping("/mappings/propose")
+	public ResponseEntity<SourceMappingProposalResponse> proposeMapping(@Valid @RequestBody SourceMappingProposalRequest request){
+		SourceMappingProposalResponse response = sourceMappingProposalService.proposeMapping(request);
+
+		return ResponseEntity.ok(response);
 	}
 
 }
