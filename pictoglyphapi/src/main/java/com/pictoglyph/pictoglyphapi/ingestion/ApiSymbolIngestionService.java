@@ -122,7 +122,7 @@ public class ApiSymbolIngestionService {
 				meta.put("downloadedImagePath", downloadedImage.localPath());
 				meta.put("sourceType", SOURCE_TYPE);
 				meta.put("sourceName", request.sourceName());
-				meta.put("apiIrl", request.apiUrl());
+				meta.put("apiUrl", request.apiUrl());
 
 				Symbol symbol = Symbol.builder()
 						.language(language)
