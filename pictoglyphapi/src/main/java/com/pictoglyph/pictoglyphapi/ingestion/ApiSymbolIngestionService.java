@@ -10,6 +10,10 @@ import com.pictoglyph.pictoglyphapi.entities.ingestion.IngestionStatus;
 import com.pictoglyph.pictoglyphapi.ingestion.api.ApiIngestionRequest;
 import com.pictoglyph.pictoglyphapi.ingestion.api.ApiIngestionResultResponse;
 import com.pictoglyph.pictoglyphapi.ingestion.api.ApiManualProcessingItemResponse;
+import com.pictoglyph.pictoglyphapi.ingestion.api.SourceFieldMapping;
+import com.pictoglyph.pictoglyphapi.ingestion.mapping.SourceFieldValueReader;
+import com.pictoglyph.pictoglyphapi.ingestion.mapping.SourceMappingValidationResult;
+import com.pictoglyph.pictoglyphapi.ingestion.mapping.SourceMappingValidator;
 import com.pictoglyph.pictoglyphapi.repositories.core.LanguageRepository;
 import com.pictoglyph.pictoglyphapi.repositories.core.SymbolRepository;
 import com.pictoglyph.pictoglyphapi.repositories.ingestion.IngestionJobRepository;
@@ -22,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import static com.pictoglyph.pictoglyphapi.ingestion.mapping.JsonNodePathReader.read;
 import static com.pictoglyph.pictoglyphapi.utils.StringUtils.*;
 
 @Service
@@ -36,6 +41,8 @@ public class ApiSymbolIngestionService {
 	private final RestTemplate restTemplate;
 	private final ObjectMapper objectMapper;
 	private final RemoteImageStorageService remoteImageStorageService;
+	private final SourceMappingValidator sourceMappingValidator;
+	private final SourceFieldValueReader sourceFieldValueReader;
 
 	public ApiIngestionResultResponse ingestApi(ApiIngestionRequest request) {
 		IngestionJob ingestJob = createRunningJob(request);
@@ -52,7 +59,13 @@ public class ApiSymbolIngestionService {
 			}
 
 			JsonNode rootNode = objectMapper.readTree(apiResponse);
-			List<JsonNode> candidateItems = findCandidateItems(rootNode, request.itemArrayField());
+			SourceFieldMapping mapping = request.sourceFieldMapping();
+			List<JsonNode> candidateItems = findCandidateItems(rootNode, mapping.itemArrayField());
+
+			SourceMappingValidationResult validationResult = sourceMappingValidator.validate(mapping, candidateItems);
+			if (!validationResult.valid()) {
+				throw new IllegalArgumentException("Invalid source field mapping: " + validationResult.errors());
+			}
 
 			ApiIngestionStats stats = processCandidateItems(
 					language,
@@ -82,6 +95,7 @@ public class ApiSymbolIngestionService {
 	}
 
 	private ApiIngestionStats processCandidateItems(Language language, Long languageId, ApiIngestionRequest request, List<JsonNode> candidateItems) {
+		SourceFieldMapping mapping = request.sourceFieldMapping();
 		List<Long> createdSymbolIds = new ArrayList<>();
 		List<ApiManualProcessingItemResponse> manualProcessingItems = new ArrayList<>();
 		int skippedCount = 0;
@@ -89,8 +103,8 @@ public class ApiSymbolIngestionService {
 		for (int index = 0; index < candidateItems.size(); index++) {
 			JsonNode item = candidateItems.get(index);
 
-			String rawSymbolCode = extractSymbolCode(item, request.symbolCodeField());
-			String imagePath = extractImagePath(item, request.imagePathField());
+			String rawSymbolCode = sourceFieldValueReader.readText(item, mapping.symbolCodeField());
+			String imagePath = sourceFieldValueReader.readText(item, mapping.imagePathField());
 
 			if (rawSymbolCode == null || rawSymbolCode.isBlank()) {
 				manualProcessingItems.add(
@@ -115,20 +129,28 @@ public class ApiSymbolIngestionService {
 
 			try {
 				DownloadedImage downloadedImage = remoteImageStorageService.downloadedImage(imagePath, SOURCE_TYPE, languageId, symbolCode);
-
 				ObjectNode meta = objectMapper.createObjectNode();
-				meta.set("sourceItem", item);
+
+				meta.set("sourceItem", item.deepCopy());
+				meta.set("sourceFieldMapping", objectMapper.valueToTree(mapping));
 				meta.put("originalImageUrl", downloadedImage.originalUrl());
 				meta.put("downloadedImagePath", downloadedImage.localPath());
 				meta.put("sourceType", SOURCE_TYPE);
 				meta.put("sourceName", request.sourceName());
 				meta.put("apiUrl", request.apiUrl());
 
+				putMappedValue(meta, "title", item, mapping.titleField());
+				putMappedValue(meta, "description", item, mapping.descriptionField());
+				putMappedValue(meta, "place", item, mapping.placeField());
+				putMappedValue(meta, "period", item, mapping.periodField());
+				putMappedValue(meta, "dateStart", item, mapping.dateStartField());
+				putMappedValue(meta, "dateEnd", item, mapping.dateEndField());
+
 				Symbol symbol = Symbol.builder()
 						.language(language)
 						.symbolCode(symbolCode)
 						.imagePath(downloadedImage.localPath())
-						.meta(item)
+						.meta(meta)
 						.build();
 
 				Symbol savedSymbol = symbolRepository.save(symbol);
@@ -136,7 +158,7 @@ public class ApiSymbolIngestionService {
 
 			} catch (RuntimeException exception) {
 				manualProcessingItems.add(
-						new ApiManualProcessingItemResponse(index, "Could not save symbol: " + exception.getMessage(), item.toString())
+						new ApiManualProcessingItemResponse(index, "Could not ingest symbol: " + exception.getMessage(), item.toString())
 				);
 			}
 		}
@@ -148,6 +170,14 @@ public class ApiSymbolIngestionService {
 		);
 	}
 
+	private void putMappedValue(ObjectNode meta, String targetField, JsonNode sourceItem, String sourceFieldPath) {
+		String value = sourceFieldValueReader.readText(sourceItem, sourceFieldPath);
+
+		if (value != null) {
+			meta.put(targetField, value);
+		}
+	}
+
 	private List<JsonNode> findCandidateItems(JsonNode rootNode,String itemArrayField) {
 		if (rootNode == null || rootNode.isNull()) {
 			return List.of();
@@ -157,23 +187,21 @@ public class ApiSymbolIngestionService {
 			return arrayNodeToList(rootNode);
 		}
 
-		if (itemArrayField != null && !itemArrayField.isBlank()) {
-			JsonNode requestedArray = rootNode.get(itemArrayField);
-
-			if (requestedArray != null && requestedArray.isArray()) {
-				return arrayNodeToList(requestedArray);
-			}
+		if (itemArrayField == null && itemArrayField.isBlank()) {
+			return rootNode.isObject() ? List.of(rootNode) : List.of();
 		}
 
-		for (String defaultField : List.of("symbols", "items", "results", "data")) {
-			JsonNode possibleArray = rootNode.get(defaultField);
+		JsonNode requestedArray = read(rootNode, itemArrayField);
 
-			if (possibleArray != null && possibleArray.isArray()) {
-				return arrayNodeToList(possibleArray);
-			}
+		if (requestedArray == null && requestedArray.isNull()) {
+			throw new IllegalArgumentException("Item array field was not found: " + itemArrayField);
 		}
 
-		return List.of(rootNode);
+		if (!requestedArray.isArray()) {
+			throw new IllegalArgumentException("Mapped item array field is not an array: " + itemArrayField);
+		}
+
+		return arrayNodeToList(requestedArray);
 	}
 
 	private List<JsonNode> arrayNodeToList(JsonNode arrayNode) {
@@ -185,70 +213,6 @@ public class ApiSymbolIngestionService {
 		}
 
 		return nodes;
-	}
-
-	private String extractSymbolCode(JsonNode item, String preferredField) {
-		String preferredValue = extractText(item, preferredField);
-
-		List<String> values = List.of("symbolCode", "symbol_code", "code", "id", "name", "title", "gardinerCode");
-
-		if (preferredValue != null) {
-			return preferredValue;
-		}
-
-		for (String field : values) {
-			String value = extractText(item, field);
-
-			if (value != null) {
-				return value;
-			}
-		}
-
-		return null;
-	}
-
-	private String extractImagePath(JsonNode item, String preferredField) {
-		String preferredValue = extractText(item, preferredField);
-
-		List<String> values = List.of("imagePath", "image_path", "imageUrl", "image_url", "image", "thumbnailUrl", "thumbnail_url", "url");
-
-		if (preferredValue != null) {
-			return preferredValue;
-		}
-
-		for (String field : values) {
-			String value = extractText(item, field);
-
-			if (value != null) {
-				return value;
-			}
-		}
-
-		return null;
-	}
-
-	private String extractText(JsonNode item, String fieldName) {
-		if (item == null || fieldName == null || fieldName.isBlank()) {
-			return null;
-		}
-
-		JsonNode valueNode = item.get(fieldName);
-
-		if (valueNode == null || valueNode.isNull()) {
-			return null;
-		}
-
-		if (valueNode.isTextual()) {
-			String value = valueNode.asText();
-
-			return value.isBlank() ? null : value;
-		}
-
-		if (valueNode.isNumber()) {
-			return valueNode.asText();
-		}
-
-		return null;
 	}
 
 	private IngestionJob createRunningJob(ApiIngestionRequest request) {

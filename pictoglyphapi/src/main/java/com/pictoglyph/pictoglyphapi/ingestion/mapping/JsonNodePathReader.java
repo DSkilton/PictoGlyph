@@ -14,7 +14,7 @@ public final class JsonNodePathReader {
 		JsonNode current = node;
 
 		for (String pathPart : path.split("\\.")) {
-			if (current == null || current.isNull() | !current.isObject()) {
+			if (current == null || current.isNull() || !current.isObject()) {
 				return null;
 			}
 
