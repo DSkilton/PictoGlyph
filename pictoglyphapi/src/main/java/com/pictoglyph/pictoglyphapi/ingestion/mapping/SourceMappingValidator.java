@@ -101,7 +101,8 @@ public class SourceMappingValidator {
 		double coverage = (double) populatedCount / candidateItems.size();
 
 		if (coverage < LOW_COVERAGE_THRESHOLD) {
-			warnings.add(targetField + " maps to " + sourceField + ", but no sample records contain a usable value");
+			long coveragePercentage = Math.round(coverage * 100);
+			warnings.add(targetField + " maps to " + sourceField + ", but only " + coveragePercentage + "% of sampled records contain a usable value");
 		}
 	}
 

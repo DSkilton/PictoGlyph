@@ -198,4 +198,38 @@ class SourceMappingValidatorTest {
 				.stream(arrayNode.spliterator(), false)
 				.toList();
 	}
+
+	@Test
+	void shouldReportActualPercentageWhenOptionalFieldHasLowCoverage() throws Exception {
+		SourceFieldMapping mapping = new SourceFieldMapping("items", "code", "imageUrl", null, null, "place", null, null, null);
+
+		List<JsonNode> items = itemsFrom("""
+			[
+			  {
+			    "code": "A1",
+			    "imageUrl": "https://example.org/a1.png",
+			    "place": "Thebes"
+			  },
+			  {
+			    "code": "A2",
+			    "imageUrl": "https://example.org/a2.png"
+			  },
+			  {
+			    "code": "A3",
+			    "imageUrl": "https://example.org/a3.png"
+			  }
+			]
+			""");
+
+		SourceMappingValidationResult result = validator.validate(mapping, items);
+
+		assertThat(result.valid()).isTrue();
+		assertThat(result.errors()).isEmpty();
+
+		assertThat(result.warnings())
+				.containsExactly(
+						"placeField maps to place, but only 33% "
+								+ "of sampled records contain a usable value"
+				);
+	}
 }
