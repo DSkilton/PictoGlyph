@@ -63,29 +63,18 @@ public class ApiSymbolIngestionService {
 			List<JsonNode> candidateItems = findCandidateItems(rootNode, mapping.itemArrayField());
 
 			SourceMappingValidationResult validationResult = sourceMappingValidator.validate(mapping, candidateItems);
+
 			if (!validationResult.valid()) {
 				throw new IllegalArgumentException("Invalid source field mapping: " + validationResult.errors());
 			}
 
-			ApiIngestionStats stats = processCandidateItems(
-					language,
-					request.languageId(),
-					request,
-					candidateItems
-			);
+			ApiIngestionStats stats = processCandidateItems(language, request.languageId(), request, candidateItems);
 
 			IngestionStatus finalStatus = stats.manualProcessingItems().isEmpty()
 					? IngestionStatus.COMPLETED
 					: IngestionStatus.COMPLETED_WITH_MANUAL_PROCESSING;
 
-			completeJob(
-					ingestJob,
-					finalStatus,
-					stats.createdSymbolsIds().size(),
-					stats.skippedCount(),
-					stats.manualProcessingItems().size(),
-					null
-			);
+			completeJob(ingestJob, finalStatus, stats.createdSymbolsIds().size(), stats.skippedCount(), stats.manualProcessingItems().size(), null);
 
 			return buildResponse(request,ingestJob, stats);
 		} catch (Exception exception) {
@@ -187,13 +176,13 @@ public class ApiSymbolIngestionService {
 			return arrayNodeToList(rootNode);
 		}
 
-		if (itemArrayField == null && itemArrayField.isBlank()) {
+		if (itemArrayField == null || itemArrayField.isBlank()) {
 			return rootNode.isObject() ? List.of(rootNode) : List.of();
 		}
 
 		JsonNode requestedArray = read(rootNode, itemArrayField);
 
-		if (requestedArray == null && requestedArray.isNull()) {
+		if (requestedArray == null || requestedArray.isNull()) {
 			throw new IllegalArgumentException("Item array field was not found: " + itemArrayField);
 		}
 

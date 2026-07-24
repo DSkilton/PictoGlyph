@@ -159,13 +159,9 @@ class ApiSymbolIngestionServiceTest {
 
 		assertThatThrownBy(() -> service.ingestApi(request))
 				.isInstanceOf(IllegalStateException.class)
-				.hasMessageContaining(
-						"API ingestion failed for: " + API_URL
-				)
+				.hasMessageContaining("API ingestion failed for: " + API_URL)
 				.hasRootCauseInstanceOf(IllegalArgumentException.class)
-				.hasRootCauseMessage(
-						"Item array field was not found: missing.items"
-				);
+				.hasRootCauseMessage("Item array field was not found: missing.items");
 	}
 
 	private void stubIngestionJobRepository() {

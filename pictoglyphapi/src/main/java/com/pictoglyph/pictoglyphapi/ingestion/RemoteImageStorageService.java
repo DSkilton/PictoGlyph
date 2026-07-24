@@ -31,7 +31,7 @@ public class RemoteImageStorageService {
 		byte[] imageBytes = restTemplate.getForObject(imageUrl, byte[].class);
 
 		if (imageBytes == null || imageBytes.length ==0) {
-			throw new IllegalStateException("Image download returned no date: " + imageUrl);
+			throw new IllegalStateException("Image download returned no data: " + imageUrl);
 		}
 
 		Path targetFolder = Path.of(imageStorageRoot)
