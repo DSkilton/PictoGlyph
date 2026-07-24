@@ -191,22 +191,16 @@ public class SourceFieldMatcher {
 	private boolean looksLikeImageReference(String value) {
 		String lowerValue = value.trim().toLowerCase(Locale.ROOT);
 
-		if (lowerValue.startsWith("http://") || lowerValue.startsWith("https://")) {
-
-			try {
+		try {
+			if (lowerValue.startsWith("http://") || lowerValue.startsWith("https://")) {
 				String path = URI.create(lowerValue).getPath();
 
-				if (path == null) {
-					return true;
-				}
-
-				return hasSupportedImageExtension(path) || !path.isBlank();
-			} catch (IllegalArgumentException exception) {
-				return false;
+				return path != null && hasSupportedImageExtension(path);
 			}
+				return hasSupportedImageExtension(lowerValue);
+		} catch (IllegalArgumentException exception) {
+			return false;
 		}
-
-		return hasSupportedImageExtension(lowerValue);
 	}
 
 	private boolean hasSupportedImageExtension(String value) {
