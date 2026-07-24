@@ -38,4 +38,27 @@ class SourceFieldMatcherTest {
 		assertThat(imageMatch.confidence()).isEqualTo(0.85);
 		assertThat(imageMatch.reason()).isEqualTo("Exact field-name match");
 	}
+
+	@Test
+	void shouldAwardImageValueBonusToUrlWithImageExtension() throws Exception {
+		JsonNode item = objectMapper.readTree("""
+			{
+			  "url": "https://example.org/images/a1.png"
+			}
+			""");
+
+		Map<SourceMappingTarget, FieldMatch> matches =
+				matcher.matchFields(
+						Set.of("url"),
+						List.of(item)
+				);
+
+		FieldMatch imageMatch = matches.get(SourceMappingTarget.IMAGE_PATH);
+
+		assertThat(imageMatch.sourceField()).isEqualTo("url");
+		assertThat(imageMatch.confidence()).isEqualTo(1.0);
+
+		assertThat(imageMatch.reason()).isEqualTo("Exact field-name match; Sample values match expected pattern"
+				);
+	}
 }

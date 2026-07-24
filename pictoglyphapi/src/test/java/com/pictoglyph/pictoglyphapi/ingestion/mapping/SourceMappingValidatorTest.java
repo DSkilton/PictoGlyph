@@ -18,7 +18,6 @@ class SourceMappingValidatorTest {
 	@BeforeEach
 	void setUp() {
 		objectMapper = new ObjectMapper();
-
 		validator = new SourceMappingValidator(new SourceFieldValueReader());
 	}
 
