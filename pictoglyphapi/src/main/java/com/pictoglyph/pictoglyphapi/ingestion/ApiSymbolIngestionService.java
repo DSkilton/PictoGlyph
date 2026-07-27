@@ -55,7 +55,7 @@ public class ApiSymbolIngestionService {
 			String apiResponse = restTemplate.getForObject(request.apiUrl(), String.class);
 
 			if (apiResponse == null || apiResponse.isBlank()) {
-				throw new IllegalStateException("API returned an emtpy response");
+				throw new IllegalStateException("API returned an empty response");
 			}
 
 			JsonNode rootNode = objectMapper.readTree(apiResponse);
