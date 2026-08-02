@@ -1,6 +1,6 @@
 package com.pictoglyph.pictoglyphapi.ingestion.api;
 
-import com.pictoglyph.pictoglyphapi.entities.ingestion.ApiSourceProfileStatus;
+import com.pictoglyph.pictoglyphapi.entities.enums.ApiSourceProfileStatus;
 
 import java.time.LocalDateTime;
 

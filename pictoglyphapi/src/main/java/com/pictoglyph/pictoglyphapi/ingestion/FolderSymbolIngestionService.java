@@ -3,7 +3,7 @@ package com.pictoglyph.pictoglyphapi.ingestion;
 import com.pictoglyph.pictoglyphapi.entities.core.Language;
 import com.pictoglyph.pictoglyphapi.entities.core.Symbol;
 import com.pictoglyph.pictoglyphapi.entities.ingestion.IngestionJob;
-import com.pictoglyph.pictoglyphapi.entities.ingestion.IngestionStatus;
+import com.pictoglyph.pictoglyphapi.entities.enums.IngestionStatus;
 import com.pictoglyph.pictoglyphapi.ingestion.api.IngestionResultResponse;
 import com.pictoglyph.pictoglyphapi.ingestion.api.ManualProcessingFileResponse;
 import com.pictoglyph.pictoglyphapi.repositories.core.LanguageRepository;

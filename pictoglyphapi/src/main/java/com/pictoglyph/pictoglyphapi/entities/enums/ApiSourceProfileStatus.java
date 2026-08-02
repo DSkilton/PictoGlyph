@@ -1,4 +1,4 @@
-package com.pictoglyph.pictoglyphapi.entities.ingestion;
+package com.pictoglyph.pictoglyphapi.entities.enums;
 
 public enum ApiSourceProfileStatus {
 	DRAFT,

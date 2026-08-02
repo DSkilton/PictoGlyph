@@ -6,10 +6,12 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.pictoglyph.pictoglyphapi.entities.core.Language;
 import com.pictoglyph.pictoglyphapi.entities.core.Symbol;
 import com.pictoglyph.pictoglyphapi.entities.ingestion.IngestionJob;
-import com.pictoglyph.pictoglyphapi.entities.ingestion.IngestionStatus;
+import com.pictoglyph.pictoglyphapi.entities.enums.IngestionStatus;
+import com.pictoglyph.pictoglyphapi.entities.ingestion.IngestionReviewItem;
 import com.pictoglyph.pictoglyphapi.ingestion.api.ApiIngestionRequest;
 import com.pictoglyph.pictoglyphapi.ingestion.api.ApiIngestionResultResponse;
 import com.pictoglyph.pictoglyphapi.ingestion.api.ApiManualProcessingItemResponse;
+import com.pictoglyph.pictoglyphapi.ingestion.api.ManualProcessingFileResponse;
 import com.pictoglyph.pictoglyphapi.ingestion.api.SourceFieldMapping;
 import com.pictoglyph.pictoglyphapi.ingestion.mapping.SourceFieldValueReader;
 import com.pictoglyph.pictoglyphapi.ingestion.mapping.SourceMappingValidationResult;
@@ -17,6 +19,7 @@ import com.pictoglyph.pictoglyphapi.ingestion.mapping.SourceMappingValidator;
 import com.pictoglyph.pictoglyphapi.repositories.core.LanguageRepository;
 import com.pictoglyph.pictoglyphapi.repositories.core.SymbolRepository;
 import com.pictoglyph.pictoglyphapi.repositories.ingestion.IngestionJobRepository;
+import com.pictoglyph.pictoglyphapi.repositories.ingestion.IngestionReviewItemRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -43,6 +46,7 @@ public class ApiSymbolIngestionService {
 	private final RemoteImageStorageService remoteImageStorageService;
 	private final SourceMappingValidator sourceMappingValidator;
 	private final SourceFieldValueReader sourceFieldValueReader;
+	private final IngestionReviewItemRepository ingestionReviewItemRepository;
 
 	public ApiIngestionResultResponse ingestApi(ApiIngestionRequest request) {
 		IngestionJob ingestJob = createRunningJob(request);
@@ -68,7 +72,7 @@ public class ApiSymbolIngestionService {
 				throw new IllegalArgumentException("Invalid source field mapping: " + validationResult.errors());
 			}
 
-			ApiIngestionStats stats = processCandidateItems(language, request.languageId(), request, candidateItems);
+			ApiIngestionStats stats = processCandidateItems(ingestJob, language, request.languageId(), request, candidateItems);
 
 			IngestionStatus finalStatus = stats.manualProcessingItems().isEmpty()
 					? IngestionStatus.COMPLETED
@@ -83,7 +87,7 @@ public class ApiSymbolIngestionService {
 		}
 	}
 
-	private ApiIngestionStats processCandidateItems(Language language, Long languageId, ApiIngestionRequest request, List<JsonNode> candidateItems) {
+	private ApiIngestionStats processCandidateItems(IngestionJob ingestionJob, Language language, Long languageId, ApiIngestionRequest request, List<JsonNode> candidateItems) {
 		SourceFieldMapping mapping = request.sourceFieldMapping();
 		List<Long> createdSymbolIds = new ArrayList<>();
 		List<ApiManualProcessingItemResponse> manualProcessingItems = new ArrayList<>();
@@ -96,16 +100,12 @@ public class ApiSymbolIngestionService {
 			String imagePath = sourceFieldValueReader.readText(item, mapping.imagePathField());
 
 			if (rawSymbolCode == null || rawSymbolCode.isBlank()) {
-				manualProcessingItems.add(
-						new ApiManualProcessingItemResponse(index, "Missing symbol code", item.toString())
-				);
+				addReviewItem(ingestionJob, index, "Missing symbol code", item, manualProcessingItems);
 				continue;
 			}
 
 			if (imagePath == null || imagePath.isBlank()) {
-				manualProcessingItems.add(
-						new ApiManualProcessingItemResponse(index, "Missing image path or image URL", item.toString())
-				);
+				addReviewItem(ingestionJob, index, "Missing image path or image URL", item, manualProcessingItems);
 				continue;
 			}
 
@@ -146,9 +146,7 @@ public class ApiSymbolIngestionService {
 				createdSymbolIds.add(savedSymbol.getId());
 
 			} catch (RuntimeException exception) {
-				manualProcessingItems.add(
-						new ApiManualProcessingItemResponse(index, "Could not ingest symbol: " + exception.getMessage(), item.toString())
-				);
+				addReviewItem(ingestionJob, index, "Could not ingest symbol: " + exception.getMessage(), item, manualProcessingItems);
 			}
 		}
 
@@ -157,6 +155,23 @@ public class ApiSymbolIngestionService {
 				skippedCount,
 				manualProcessingItems
 		);
+	}
+
+	private void addReviewItem(IngestionJob ingestionJob, int itemIndex, String reason, JsonNode rawItem, List<ApiManualProcessingItemResponse> responseItems) {
+		JsonNode safeRawItem = rawItem == null
+				? objectMapper.nullNode()
+				: rawItem.deepCopy();
+
+		IngestionReviewItem reviewItem = IngestionReviewItem.builder()
+				.ingestionJob(ingestionJob)
+				.itemIndex(itemIndex)
+				.reason(reason)
+				.rawItem(safeRawItem)
+				.build();
+
+		ingestionReviewItemRepository.save(reviewItem);
+
+		responseItems.add(new ApiManualProcessingItemResponse(itemIndex, reason, safeRawItem.toString()));
 	}
 
 	private void putMappedValue(ObjectNode meta, String targetField, JsonNode sourceItem, String sourceFieldPath) {

@@ -3,8 +3,10 @@ package com.pictoglyph.pictoglyphapi.ingestion;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pictoglyph.pictoglyphapi.entities.core.Language;
 import com.pictoglyph.pictoglyphapi.entities.core.Symbol;
+import com.pictoglyph.pictoglyphapi.entities.enums.IngestionReviewStatus;
 import com.pictoglyph.pictoglyphapi.entities.ingestion.IngestionJob;
-import com.pictoglyph.pictoglyphapi.entities.ingestion.IngestionStatus;
+import com.pictoglyph.pictoglyphapi.entities.enums.IngestionStatus;
+import com.pictoglyph.pictoglyphapi.entities.ingestion.IngestionReviewItem;
 import com.pictoglyph.pictoglyphapi.ingestion.api.ApiIngestionRequest;
 import com.pictoglyph.pictoglyphapi.ingestion.api.ApiIngestionResultResponse;
 import com.pictoglyph.pictoglyphapi.ingestion.api.SourceFieldMapping;
@@ -14,9 +16,11 @@ import com.pictoglyph.pictoglyphapi.ingestion.mapping.SourceMappingValidator;
 import com.pictoglyph.pictoglyphapi.repositories.core.LanguageRepository;
 import com.pictoglyph.pictoglyphapi.repositories.core.SymbolRepository;
 import com.pictoglyph.pictoglyphapi.repositories.ingestion.IngestionJobRepository;
+import com.pictoglyph.pictoglyphapi.repositories.ingestion.IngestionReviewItemRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.client.RestTemplate;
@@ -30,6 +34,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class ApiSymbolIngestionServiceTest {
@@ -48,11 +53,77 @@ class ApiSymbolIngestionServiceTest {
 	private RemoteImageStorageService remoteImageStorageService;
 	@Mock
 	private SourceMappingValidator sourceMappingValidator;
+	@Mock
+	private IngestionReviewItemRepository ingestionReviewItemRepository;
 	private ApiSymbolIngestionService service;
 
 	@BeforeEach
 	void setUp() {
-		service = new ApiSymbolIngestionService(languageRepository, symbolRepository, ingestionJobRepository, restTemplate, new ObjectMapper(), remoteImageStorageService, sourceMappingValidator, new SourceFieldValueReader());
+		service = new ApiSymbolIngestionService(languageRepository, symbolRepository, ingestionJobRepository, restTemplate, new ObjectMapper(), remoteImageStorageService, sourceMappingValidator, new SourceFieldValueReader(), ingestionReviewItemRepository);
+	}
+
+	@Test
+	void shouldPersistMissingSymbolCodeForManualReview() {
+		SourceFieldMapping mapping = new SourceFieldMapping("symbols", "symbolCode", "imageUrl",  "label", null, null, null, null, null);
+		ApiIngestionRequest request = new ApiIngestionRequest(1L, "Review source", API_URL, mapping);
+
+		String responseJson = """
+			{
+			  "symbols": [
+			    {
+			      "symbolCode": "",
+			      "imageUrl": "https://example.org/a1.png",
+			      "label": "Missing code"
+			    }
+			  ]
+			}
+			""";
+
+		Language language = Language.builder()
+				.id(1L)
+				.name("Ancient Egyptian")
+				.scriptName("Egyptian hieroglyphs")
+				.build();
+
+		stubIngestionJobRepository();
+
+		when(languageRepository.findById(1L)).thenReturn(Optional.of(language));
+		when(restTemplate.getForObject(API_URL, String.class)).thenReturn(responseJson);
+		when(sourceMappingValidator.validate(eq(mapping), anyList())).thenReturn(
+				new SourceMappingValidationResult(
+						true,
+						List.of(),
+						List.of()
+				)
+		);
+
+		when(ingestionReviewItemRepository.save(any(IngestionReviewItem.class))).thenAnswer(invocation -> {
+			IngestionReviewItem item = invocation.getArgument(0);
+
+			item.setId(55L);
+			item.setStatus(IngestionReviewStatus.PENDING);
+
+			return item;
+		});
+
+		ApiIngestionResultResponse result = service.ingestApi(request);
+
+		assertThat(result.status()).isEqualTo(IngestionStatus.COMPLETED_WITH_MANUAL_PROCESSING);
+
+		assertThat(result.importedCount()).isZero();
+		assertThat(result.manualProcessingCount()).isEqualTo(1);
+
+		ArgumentCaptor<IngestionReviewItem> captor = ArgumentCaptor.forClass(IngestionReviewItem.class);
+		verify(ingestionReviewItemRepository).save(captor.capture());
+
+		IngestionReviewItem savedReviewItem = captor.getValue();
+		assertThat(savedReviewItem.getIngestionJob().getId()).isEqualTo(100L);
+		assertThat(savedReviewItem.getItemIndex()).isZero();
+		assertThat(savedReviewItem.getReason()).isEqualTo("Missing symbol code");
+		assertThat(savedReviewItem.getRawItem()
+				.path("label")
+				.asText())
+				.isEqualTo("Missing code");
 	}
 
 	@Test

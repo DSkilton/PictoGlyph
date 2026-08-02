@@ -1,5 +1,6 @@
 package com.pictoglyph.pictoglyphapi.entities.ingestion;
 
+import com.pictoglyph.pictoglyphapi.entities.enums.ApiSourceProfileStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

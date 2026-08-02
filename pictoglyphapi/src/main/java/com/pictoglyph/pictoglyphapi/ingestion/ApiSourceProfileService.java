@@ -1,7 +1,7 @@
 package com.pictoglyph.pictoglyphapi.ingestion;
 
 import com.pictoglyph.pictoglyphapi.entities.ingestion.ApiSourceProfile;
-import com.pictoglyph.pictoglyphapi.entities.ingestion.ApiSourceProfileStatus;
+import com.pictoglyph.pictoglyphapi.entities.enums.ApiSourceProfileStatus;
 import com.pictoglyph.pictoglyphapi.ingestion.api.ApiIngestionRequest;
 import com.pictoglyph.pictoglyphapi.ingestion.api.ApiIngestionResultResponse;
 import com.pictoglyph.pictoglyphapi.ingestion.api.ApiSourceProfileResponse;
