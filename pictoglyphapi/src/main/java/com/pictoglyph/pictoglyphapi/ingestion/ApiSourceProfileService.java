@@ -1,5 +1,8 @@
 package com.pictoglyph.pictoglyphapi.ingestion;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.pictoglyph.pictoglyphapi.entities.ingestion.ApiSourceProfile;
 import com.pictoglyph.pictoglyphapi.entities.enums.ApiSourceProfileStatus;
 import com.pictoglyph.pictoglyphapi.ingestion.api.ApiIngestionRequest;
@@ -9,6 +12,7 @@ import com.pictoglyph.pictoglyphapi.ingestion.api.ApiSourceProfileValidationResp
 import com.pictoglyph.pictoglyphapi.ingestion.api.CreateApiSourceProfileRequest;
 import com.pictoglyph.pictoglyphapi.ingestion.api.RunApiSourceProfileRequest;
 import com.pictoglyph.pictoglyphapi.ingestion.api.SourceFieldMapping;
+import com.pictoglyph.pictoglyphapi.ingestion.mapping.SourceFieldDiscoveryService;
 import com.pictoglyph.pictoglyphapi.ingestion.mapping.SourceMappingValidationResult;
 import com.pictoglyph.pictoglyphapi.ingestion.mapping.SourceMappingValidator;
 import com.pictoglyph.pictoglyphapi.ingestion.mapping.SourceSample;
@@ -19,7 +23,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +35,7 @@ public class ApiSourceProfileService {
 	private final SourceSampleReader sourceSampleReader;
 	private final SourceMappingValidator sourceMappingValidator;
 	private final ApiSymbolIngestionService apiSymbolIngestionService;
+	private final SourceFieldDiscoveryService sourceFieldDiscoveryService;
 
 	@Transactional
 	public ApiSourceProfileValidationResponse createDraft(CreateApiSourceProfileRequest request) {
@@ -68,19 +76,37 @@ public class ApiSourceProfileService {
 		ApiSourceProfile profile = findEntity(profileId);
 		SourceFieldMapping mapping = toMapping(profile);
 
+		SourceSample sample = sourceSampleReader.readSample(profile.getApiUrl(), mapping.itemArrayField());
 		SourceMappingValidationResult validationResult = validateMapping(profile.getApiUrl(), mapping);
 
 		requireValidMapping(validationResult);
 
+		Set<String> discoveredFields = sourceFieldDiscoveryService.discoverFields(sample.sampleItems());
 		LocalDateTime now = LocalDateTime.now();
 
 		profile.setStatus(ApiSourceProfileStatus.APPROVED);
 		profile.setValidatedAt(now);
 		profile.setApprovedAt(now);
+		profile.setApprovedSchemaFields(createSchemaSnapshot(discoveredFields));
 
 		ApiSourceProfile savedProfile = apiSourceProfileRepository.save(profile);
 
 		return new ApiSourceProfileValidationResponse(toResponse(savedProfile), validationResult.warnings());
+	}
+
+	private JsonNode createSchemaSnapshot(Set<String> discoveredFields) {
+		ArrayNode snapshot = JsonNodeFactory.instance.arrayNode();
+
+		if (discoveredFields == null) {
+			return snapshot;
+		}
+
+		new TreeSet<>(discoveredFields).stream()
+				.filter(field -> field != null && !field.isBlank())
+				.map(String::trim)
+				.forEach(snapshot::add);
+
+		return snapshot;
 	}
 
 	@Transactional(readOnly = true)
@@ -123,11 +149,36 @@ public class ApiSourceProfileService {
 				profile.getApiUrl(),
 				profile.getStatus(),
 				toMapping(profile),
+				readSchemaSnapshot(profile),
 				profile.getCreatedAt(),
 				profile.getUpdatedAt(),
 				profile.getValidatedAt(),
 				profile.getApprovedAt()
 		);
+	}
+
+	private List<String> readSchemaSnapshot(ApiSourceProfile profile) {
+		JsonNode snapshot = profile.getApprovedSchemaFields();
+
+		if (snapshot == null || !snapshot.isArray()) {
+			return List.of();
+		}
+
+		List<String> fields = new ArrayList<>();
+
+		for (JsonNode fieldNode : snapshot) {
+			if (!fieldNode.isTextual()) {
+				continue;
+			}
+
+			String field = fieldNode.asText().trim();
+
+			if (!field.isBlank()) {
+				fields.add(field);
+			}
+		}
+
+		return List.copyOf(fields);
 	}
 
 	private SourceFieldMapping toMapping(ApiSourceProfile profile) {

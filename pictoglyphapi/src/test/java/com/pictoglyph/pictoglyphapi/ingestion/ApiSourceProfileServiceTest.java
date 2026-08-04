@@ -11,6 +11,7 @@ import com.pictoglyph.pictoglyphapi.ingestion.api.ApiSourceProfileValidationResp
 import com.pictoglyph.pictoglyphapi.ingestion.api.CreateApiSourceProfileRequest;
 import com.pictoglyph.pictoglyphapi.ingestion.api.RunApiSourceProfileRequest;
 import com.pictoglyph.pictoglyphapi.ingestion.api.SourceFieldMapping;
+import com.pictoglyph.pictoglyphapi.ingestion.mapping.SourceFieldDiscoveryService;
 import com.pictoglyph.pictoglyphapi.ingestion.mapping.SourceMappingValidationResult;
 import com.pictoglyph.pictoglyphapi.ingestion.mapping.SourceMappingValidator;
 import com.pictoglyph.pictoglyphapi.ingestion.mapping.SourceSample;
@@ -25,10 +26,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -49,13 +52,16 @@ class ApiSourceProfileServiceTest {
 	@Mock
 	private ApiSymbolIngestionService apiSymbolIngestionService;
 
+	@Mock
+	private SourceFieldDiscoveryService sourceFieldDiscoveryService;
+
 	private ObjectMapper objectMapper;
 	private ApiSourceProfileService service;
 
 	@BeforeEach
 	void setUp() {
 		objectMapper = new ObjectMapper();
-		service = new ApiSourceProfileService(repository, sourceSampleReader, sourceMappingValidator, apiSymbolIngestionService);
+		service = new ApiSourceProfileService(repository, sourceSampleReader, sourceMappingValidator, apiSymbolIngestionService, sourceFieldDiscoveryService);
 	}
 
 	@Test
@@ -112,13 +118,18 @@ class ApiSourceProfileServiceTest {
 
 		when(repository.findById(4L)).thenReturn(Optional.of(profile));
 		when(sourceSampleReader.readSample(API_URL, "symbols")).thenReturn(sample);
-		when(sourceMappingValidator.validate(mapping(), sample.sampleItems())).thenReturn(
-				new SourceMappingValidationResult(true, List.of(), List.of()));
+		when(sourceMappingValidator.validate(mapping(), sample.sampleItems())).thenReturn(new SourceMappingValidationResult(true, List.of(), List.of()));
+		when(repository.save(any(ApiSourceProfile.class))).thenAnswer(invocation -> invocation.getArgument(0));
+		when(sourceFieldDiscoveryService.discoverFields(anyList())).thenReturn(Set.of("symbolCode", "imageUrl", "label"));
 
-		when(repository.save(profile)).thenReturn(profile);
 		ApiSourceProfileValidationResponse response = service.approve(4L);
 		assertThat(response.profile().status()).isEqualTo(ApiSourceProfileStatus.APPROVED);
 		assertThat(response.profile().approvedAt()).isNotNull();
+
+		assertThat(response.profile().approvedSchemaFields()).containsExactly("imageUrl", "label", "symbolCode");
+		assertThat(profile.getApprovedSchemaFields()).isNotNull();
+		assertThat(profile.getApprovedSchemaFields().isArray()).isTrue();
+		assertThat(profile.getApprovedSchemaFields().size()).isEqualTo(3);
 	}
 
 	@Test

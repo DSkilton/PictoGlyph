@@ -1,5 +1,6 @@
 package com.pictoglyph.pictoglyphapi.entities.ingestion;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.pictoglyph.pictoglyphapi.entities.enums.ApiSourceProfileStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -18,6 +19,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 
@@ -88,6 +91,13 @@ public class ApiSourceProfile {
 
 	@Column(name = "approved_at")
 	private LocalDateTime approvedAt;
+
+	@JdbcTypeCode(SqlTypes.JSON)
+	@Column(
+			name = "approved_schema_fields",
+			columnDefinition = "jsonb"
+	)
+	private JsonNode approvedSchemaFields;
 
 	@PrePersist
 	void onCreate() {
