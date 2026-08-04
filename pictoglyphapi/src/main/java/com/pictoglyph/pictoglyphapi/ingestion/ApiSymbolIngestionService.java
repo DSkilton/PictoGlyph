@@ -16,6 +16,7 @@ import com.pictoglyph.pictoglyphapi.ingestion.api.SourceFieldMapping;
 import com.pictoglyph.pictoglyphapi.ingestion.mapping.SourceFieldValueReader;
 import com.pictoglyph.pictoglyphapi.ingestion.mapping.SourceMappingValidationResult;
 import com.pictoglyph.pictoglyphapi.ingestion.mapping.SourceMappingValidator;
+import com.pictoglyph.pictoglyphapi.ml.MlProcessingJobQueueService;
 import com.pictoglyph.pictoglyphapi.repositories.core.LanguageRepository;
 import com.pictoglyph.pictoglyphapi.repositories.core.SymbolRepository;
 import com.pictoglyph.pictoglyphapi.repositories.ingestion.IngestionJobRepository;
@@ -47,6 +48,9 @@ public class ApiSymbolIngestionService {
 	private final SourceMappingValidator sourceMappingValidator;
 	private final SourceFieldValueReader sourceFieldValueReader;
 	private final IngestionReviewItemRepository ingestionReviewItemRepository;
+	private final ImportedSymbolPersistenceService importedSymbolPersistenceService;
+
+	public static final String DEFAULT_IMAGE_MODEL_PROFILE = "SIGLIP_BASELINE_V1";
 
 	public ApiIngestionResultResponse ingestApi(ApiIngestionRequest request) {
 		IngestionJob ingestJob = createRunningJob(request);
@@ -142,7 +146,7 @@ public class ApiSymbolIngestionService {
 						.meta(meta)
 						.build();
 
-				Symbol savedSymbol = symbolRepository.save(symbol);
+				Symbol savedSymbol = importedSymbolPersistenceService.saveAndQueueImageEmbedding(symbol, DEFAULT_IMAGE_MODEL_PROFILE, null);
 				createdSymbolIds.add(savedSymbol.getId());
 
 			} catch (RuntimeException exception) {

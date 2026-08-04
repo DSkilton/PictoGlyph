@@ -33,6 +33,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
 
@@ -43,23 +44,33 @@ class ApiSymbolIngestionServiceTest {
 
 	@Mock
 	private LanguageRepository languageRepository;
+
 	@Mock
 	private SymbolRepository symbolRepository;
+
 	@Mock
 	private IngestionJobRepository ingestionJobRepository;
+
 	@Mock
 	private RestTemplate restTemplate;
+
 	@Mock
 	private RemoteImageStorageService remoteImageStorageService;
+
 	@Mock
 	private SourceMappingValidator sourceMappingValidator;
+
 	@Mock
 	private IngestionReviewItemRepository ingestionReviewItemRepository;
+
+	@Mock
+	ImportedSymbolPersistenceService importedSymbolPersistenceService;
+
 	private ApiSymbolIngestionService service;
 
 	@BeforeEach
 	void setUp() {
-		service = new ApiSymbolIngestionService(languageRepository, symbolRepository, ingestionJobRepository, restTemplate, new ObjectMapper(), remoteImageStorageService, sourceMappingValidator, new SourceFieldValueReader(), ingestionReviewItemRepository);
+		service = new ApiSymbolIngestionService(languageRepository, symbolRepository, ingestionJobRepository, restTemplate, new ObjectMapper(), remoteImageStorageService, sourceMappingValidator, new SourceFieldValueReader(), ingestionReviewItemRepository, importedSymbolPersistenceService);
 	}
 
 	@Test
@@ -181,12 +192,7 @@ class ApiSymbolIngestionServiceTest {
 				)
 		);
 
-		when(symbolRepository.save(any(Symbol.class)))
-				.thenAnswer(invocation -> {
-					Symbol symbol = invocation.getArgument(0);
-					symbol.setId(10L);
-					return symbol;
-				});
+		stubImportedSymbolPersistence(10L);
 
 		ApiIngestionResultResponse result = service.ingestApi(request);
 
@@ -236,15 +242,24 @@ class ApiSymbolIngestionServiceTest {
 	}
 
 	private void stubIngestionJobRepository() {
-		when(ingestionJobRepository.save(any(IngestionJob.class)))
+		when(ingestionJobRepository.save(any(IngestionJob.class))).thenAnswer(invocation -> {
+			IngestionJob ingestionJob = invocation.getArgument(0);
+
+			if (ingestionJob.getId() == null) {
+				ingestionJob.setId(100L);
+			}
+
+			return ingestionJob;
+		});
+	}
+
+	private void stubImportedSymbolPersistence(long symbolId) {
+		when(importedSymbolPersistenceService.saveAndQueueImageEmbedding(any(Symbol.class), eq(ApiSymbolIngestionService.DEFAULT_IMAGE_MODEL_PROFILE), isNull()))
 				.thenAnswer(invocation -> {
-					IngestionJob job = invocation.getArgument(0);
+					Symbol symbol = invocation.getArgument(0);
+					symbol.setId(symbolId);
 
-					if (job.getId() == null) {
-						job.setId(100L);
-					}
-
-					return job;
+					return symbol;
 				});
 	}
 }
