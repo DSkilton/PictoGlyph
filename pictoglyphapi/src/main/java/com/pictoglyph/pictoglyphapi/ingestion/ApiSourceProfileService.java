@@ -17,6 +17,8 @@ import com.pictoglyph.pictoglyphapi.ingestion.mapping.SourceMappingValidationRes
 import com.pictoglyph.pictoglyphapi.ingestion.mapping.SourceMappingValidator;
 import com.pictoglyph.pictoglyphapi.ingestion.mapping.SourceSample;
 import com.pictoglyph.pictoglyphapi.ingestion.mapping.SourceSampleReader;
+import com.pictoglyph.pictoglyphapi.ingestion.mapping.SourceSchemaComparison;
+import com.pictoglyph.pictoglyphapi.ingestion.mapping.SourceSchemaDriftDetector;
 import com.pictoglyph.pictoglyphapi.repositories.ingestion.ApiSourceProfileRepository;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +26,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -36,6 +39,7 @@ public class ApiSourceProfileService {
 	private final SourceMappingValidator sourceMappingValidator;
 	private final ApiSymbolIngestionService apiSymbolIngestionService;
 	private final SourceFieldDiscoveryService sourceFieldDiscoveryService;
+	private final SourceSchemaDriftDetector sourceSchemaDriftDetector;
 
 	@Transactional
 	public ApiSourceProfileValidationResponse createDraft(CreateApiSourceProfileRequest request) {
@@ -131,9 +135,34 @@ public class ApiSourceProfileService {
 			throw new IllegalStateException("API source profile must be approved before it can run");
 		}
 
-		ApiIngestionRequest ingestionRequest = new ApiIngestionRequest(request.languageId(), profile.getSourceName(), profile.getApiUrl(), toMapping(profile));
+		SourceFieldMapping mapping = toMapping(profile);
+		checkForBreakingSchemaDrift(profile, mapping);
+
+		ApiIngestionRequest ingestionRequest = new ApiIngestionRequest(request.languageId(), profile.getSourceName(), profile.getApiUrl(), mapping);
 
 		return apiSymbolIngestionService.ingestApi(ingestionRequest);
+	}
+
+	private void checkForBreakingSchemaDrift(ApiSourceProfile profile, SourceFieldMapping mapping) {
+		List<String> approvedFields = readSchemaSnapshot(profile);
+
+		if (approvedFields.isEmpty()) {
+			throw new IllegalStateException("API source profile does not have an approved schema snapshot. Approve the profile again before running it.");
+		}
+
+		SourceSample currentSample = sourceSampleReader.readSample(profile.getApiUrl(), mapping.itemArrayField());
+
+		Set<String> currentFields = sourceFieldDiscoveryService.discoverFields(currentSample.sampleItems());
+
+		SourceSchemaComparison comparison = sourceSchemaDriftDetector.comparison(new HashSet<>(approvedFields), currentFields);
+
+		if (comparison.hasBreakingChanges()) {
+			throw new IllegalStateException("Breaking API schema drift detected. "
+					+ "The following approved fields are no longer present: "
+					+ String.join(", ", comparison.removedFields())
+					+ ". Review and approve the source profile again "
+					+ "before running it.");
+		}
 	}
 
 	private ApiSourceProfile findEntity(Long profileId) {

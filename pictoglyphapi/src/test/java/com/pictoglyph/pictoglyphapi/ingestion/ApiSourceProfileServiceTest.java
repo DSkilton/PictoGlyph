@@ -1,5 +1,6 @@
 package com.pictoglyph.pictoglyphapi.ingestion;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pictoglyph.pictoglyphapi.entities.ingestion.ApiSourceProfile;
@@ -16,6 +17,7 @@ import com.pictoglyph.pictoglyphapi.ingestion.mapping.SourceMappingValidationRes
 import com.pictoglyph.pictoglyphapi.ingestion.mapping.SourceMappingValidator;
 import com.pictoglyph.pictoglyphapi.ingestion.mapping.SourceSample;
 import com.pictoglyph.pictoglyphapi.ingestion.mapping.SourceSampleReader;
+import com.pictoglyph.pictoglyphapi.ingestion.mapping.SourceSchemaDriftDetector;
 import com.pictoglyph.pictoglyphapi.repositories.ingestion.ApiSourceProfileRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,6 +35,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -61,7 +64,72 @@ class ApiSourceProfileServiceTest {
 	@BeforeEach
 	void setUp() {
 		objectMapper = new ObjectMapper();
-		service = new ApiSourceProfileService(repository, sourceSampleReader, sourceMappingValidator, apiSymbolIngestionService, sourceFieldDiscoveryService);
+		service = new ApiSourceProfileService(repository, sourceSampleReader, sourceMappingValidator, apiSymbolIngestionService, sourceFieldDiscoveryService, new SourceSchemaDriftDetector());
+	}
+
+	@Test
+	void shouldBlockRunWhenApprovedFieldHasBeenRemoved() throws Exception {
+		ApiSourceProfile profile = profile(ApiSourceProfileStatus.APPROVED);
+
+		JsonNode sampleItem = objectMapper.readTree("""
+			{
+			  "symbolCode": "A1",
+			  "label": "Seated man"
+			}
+			""");
+
+		SourceSample currentSample = new SourceSample("symbols",List.of(sampleItem));
+
+		when(repository.findById(4L)).thenReturn(Optional.of(profile));
+		when(sourceSampleReader.readSample(API_URL,"symbols")).thenReturn(currentSample);
+		when(sourceFieldDiscoveryService.discoverFields(currentSample.sampleItems())).thenReturn(
+				Set.of(
+						"symbolCode",
+						"label"
+				)
+		);
+
+		assertThatThrownBy(() ->
+				service.run(
+						4L,
+						new RunApiSourceProfileRequest(1L)
+				)
+		)
+				.isInstanceOf(IllegalStateException.class)
+				.hasMessageContaining(
+						"Breaking API schema drift detected"
+				)
+				.hasMessageContaining("imageUrl")
+				.hasMessageContaining(
+						"approve the source profile again"
+				);
+
+		verifyNoInteractions(apiSymbolIngestionService);
+	}
+
+	@Test
+	void shouldRequireReapprovalWhenProfileHasNoSchemaSnapshot() {
+		ApiSourceProfile profile = profile(ApiSourceProfileStatus.APPROVED);
+
+		profile.setApprovedSchemaFields(null);
+
+		when(repository.findById(4L)).thenReturn(Optional.of(profile));
+
+		assertThatThrownBy(() ->
+				service.run(
+						4L,
+						new RunApiSourceProfileRequest(1L)
+				)
+		)
+				.isInstanceOf(IllegalStateException.class)
+				.hasMessageContaining(
+						"does not have an approved schema snapshot"
+				)
+				.hasMessageContaining(
+						"Approve the profile again"
+				);
+
+		verifyNoInteractions(sourceSampleReader, apiSymbolIngestionService);
 	}
 
 	@Test
@@ -80,11 +148,8 @@ class ApiSourceProfileServiceTest {
 		SourceSample sample = new SourceSample("symbols", List.of(sampleItem));
 
 		when(repository.existsByProfileNameIgnoreCase("Local Egyptian API")).thenReturn(false);
-
 		when(sourceSampleReader.readSample(API_URL,"symbols")).thenReturn(sample);
-
 		when(sourceMappingValidator.validate(mapping, sample.sampleItems())).thenReturn(new SourceMappingValidationResult(true, List.of(), List.of("Optional place field was not mapped")));
-
 		when(repository.save(any(ApiSourceProfile.class)))
 				.thenAnswer(invocation -> {
 					ApiSourceProfile profile =
@@ -133,13 +198,38 @@ class ApiSourceProfileServiceTest {
 	}
 
 	@Test
-	void shouldRunApprovedProfileUsingStoredMapping() {
+	void shouldRunApprovedProfileUsingStoredMapping() throws JsonProcessingException {
 		ApiSourceProfile profile = profile(ApiSourceProfileStatus.APPROVED);
+
+		JsonNode sampleItem = objectMapper.readTree("""
+		{
+		  "symbolCode": "A1",
+		  "imageUrl": "https://example.org/a1.png",
+		  "label": "Seated man",
+		  "description": "An additional field"
+		}
+		""");
+
+		SourceSample currentSample = new SourceSample(
+				"symbols",
+				List.of(sampleItem)
+		);
 
 		ApiIngestionResultResponse expectedResult = new ApiIngestionResultResponse(11L, "API", "Local mock symbol API", API_URL, IngestionStatus.COMPLETED, 2, 0, 0, List.of(21L, 22L), List.of());
 
 		when(repository.findById(4L)).thenReturn(Optional.of(profile));
 		when(apiSymbolIngestionService.ingestApi(any(ApiIngestionRequest.class))).thenReturn(expectedResult);
+
+		when(sourceSampleReader.readSample(API_URL, "symbols")).thenReturn(currentSample);
+
+		when(sourceFieldDiscoveryService.discoverFields(currentSample.sampleItems())).thenReturn(
+				Set.of(
+						"symbolCode",
+						"imageUrl",
+						"label",
+						"description"
+				)
+		);
 
 		ApiIngestionResultResponse result = service.run(4L, new RunApiSourceProfileRequest(1L));
 		ArgumentCaptor<ApiIngestionRequest> requestCaptor = ArgumentCaptor.forClass(ApiIngestionRequest.class);
@@ -205,6 +295,7 @@ class ApiSourceProfileServiceTest {
 				.periodField(mapping.periodField())
 				.dateStartField(mapping.dateStartField())
 				.dateEndField(mapping.dateEndField())
+				.approvedSchemaFields(objectMapper.valueToTree(List.of("imageUrl", "label", "symbolCode")))
 				.build();
 	}
 }
