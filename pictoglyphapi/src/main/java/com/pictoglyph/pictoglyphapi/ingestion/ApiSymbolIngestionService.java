@@ -25,11 +25,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.awt.Image;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import static com.pictoglyph.pictoglyphapi.ingestion.ImageChecksumService.CHECKSUM_ALGORITHM;
 import static com.pictoglyph.pictoglyphapi.ingestion.mapping.JsonNodePathReader.read;
 import static com.pictoglyph.pictoglyphapi.utils.StringUtils.*;
 
@@ -49,6 +51,7 @@ public class ApiSymbolIngestionService {
 	private final SourceFieldValueReader sourceFieldValueReader;
 	private final IngestionReviewItemRepository ingestionReviewItemRepository;
 	private final ImportedSymbolPersistenceService importedSymbolPersistenceService;
+	private final ImageChecksumService imageChecksumService;
 
 	public static final String DEFAULT_IMAGE_MODEL_PROFILE = "SIGLIP_BASELINE_V1";
 
@@ -122,12 +125,15 @@ public class ApiSymbolIngestionService {
 
 			try {
 				DownloadedImage downloadedImage = remoteImageStorageService.downloadedImage(imagePath, SOURCE_TYPE, languageId, symbolCode);
+				String imageChecksum = imageChecksumService.calculateSha256(downloadedImage.localPath());
 				ObjectNode meta = objectMapper.createObjectNode();
 
 				meta.set("sourceItem", item.deepCopy());
 				meta.set("sourceFieldMapping", objectMapper.valueToTree(mapping));
 				meta.put("originalImageUrl", downloadedImage.originalUrl());
 				meta.put("downloadedImagePath", downloadedImage.localPath());
+				meta.put("imageChecksum", imageChecksum);
+				meta.put("imageChecksumAlgorithm", CHECKSUM_ALGORITHM);
 				meta.put("sourceType", SOURCE_TYPE);
 				meta.put("sourceName", request.sourceName());
 				meta.put("apiUrl", request.apiUrl());
@@ -146,7 +152,7 @@ public class ApiSymbolIngestionService {
 						.meta(meta)
 						.build();
 
-				Symbol savedSymbol = importedSymbolPersistenceService.saveAndQueueImageEmbedding(symbol, DEFAULT_IMAGE_MODEL_PROFILE, null);
+				Symbol savedSymbol = importedSymbolPersistenceService.saveAndQueueImageEmbedding(symbol, DEFAULT_IMAGE_MODEL_PROFILE, imageChecksum);
 				createdSymbolIds.add(savedSymbol.getId());
 
 			} catch (RuntimeException exception) {

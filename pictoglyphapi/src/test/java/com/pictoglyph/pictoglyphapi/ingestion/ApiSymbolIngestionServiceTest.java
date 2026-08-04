@@ -4,8 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pictoglyph.pictoglyphapi.entities.core.Language;
 import com.pictoglyph.pictoglyphapi.entities.core.Symbol;
 import com.pictoglyph.pictoglyphapi.entities.enums.IngestionReviewStatus;
-import com.pictoglyph.pictoglyphapi.entities.ingestion.IngestionJob;
 import com.pictoglyph.pictoglyphapi.entities.enums.IngestionStatus;
+import com.pictoglyph.pictoglyphapi.entities.ingestion.IngestionJob;
 import com.pictoglyph.pictoglyphapi.entities.ingestion.IngestionReviewItem;
 import com.pictoglyph.pictoglyphapi.ingestion.api.ApiIngestionRequest;
 import com.pictoglyph.pictoglyphapi.ingestion.api.ApiIngestionResultResponse;
@@ -33,14 +33,15 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class ApiSymbolIngestionServiceTest {
 
 	private static final String API_URL = "http://localhost:9000/sample-api-symbols.json";
+	private static final String IMAGE_CHECKSUM = "abc123checksum";
 
 	@Mock
 	private LanguageRepository languageRepository;
@@ -64,18 +65,21 @@ class ApiSymbolIngestionServiceTest {
 	private IngestionReviewItemRepository ingestionReviewItemRepository;
 
 	@Mock
-	ImportedSymbolPersistenceService importedSymbolPersistenceService;
+	private ImportedSymbolPersistenceService importedSymbolPersistenceService;
+
+	@Mock
+	private ImageChecksumService imageChecksumService;
 
 	private ApiSymbolIngestionService service;
 
 	@BeforeEach
 	void setUp() {
-		service = new ApiSymbolIngestionService(languageRepository, symbolRepository, ingestionJobRepository, restTemplate, new ObjectMapper(), remoteImageStorageService, sourceMappingValidator, new SourceFieldValueReader(), ingestionReviewItemRepository, importedSymbolPersistenceService);
+		service = new ApiSymbolIngestionService(languageRepository, symbolRepository, ingestionJobRepository, restTemplate, new ObjectMapper(), remoteImageStorageService, sourceMappingValidator, new SourceFieldValueReader(), ingestionReviewItemRepository, importedSymbolPersistenceService, imageChecksumService);
 	}
 
 	@Test
 	void shouldPersistMissingSymbolCodeForManualReview() {
-		SourceFieldMapping mapping = new SourceFieldMapping("symbols", "symbolCode", "imageUrl",  "label", null, null, null, null, null);
+		SourceFieldMapping mapping = new SourceFieldMapping("symbols", "symbolCode", "imageUrl", "label", null, null, null, null, null);
 		ApiIngestionRequest request = new ApiIngestionRequest(1L, "Review source", API_URL, mapping);
 
 		String responseJson = """
@@ -100,27 +104,18 @@ class ApiSymbolIngestionServiceTest {
 
 		when(languageRepository.findById(1L)).thenReturn(Optional.of(language));
 		when(restTemplate.getForObject(API_URL, String.class)).thenReturn(responseJson);
-		when(sourceMappingValidator.validate(eq(mapping), anyList())).thenReturn(
-				new SourceMappingValidationResult(
-						true,
-						List.of(),
-						List.of()
-				)
-		);
+		when(sourceMappingValidator.validate(eq(mapping), anyList())).thenReturn(new SourceMappingValidationResult(true, List.of(), List.of()));
 
 		when(ingestionReviewItemRepository.save(any(IngestionReviewItem.class))).thenAnswer(invocation -> {
 			IngestionReviewItem item = invocation.getArgument(0);
-
 			item.setId(55L);
 			item.setStatus(IngestionReviewStatus.PENDING);
-
 			return item;
 		});
 
 		ApiIngestionResultResponse result = service.ingestApi(request);
 
 		assertThat(result.status()).isEqualTo(IngestionStatus.COMPLETED_WITH_MANUAL_PROCESSING);
-
 		assertThat(result.importedCount()).isZero();
 		assertThat(result.manualProcessingCount()).isEqualTo(1);
 
@@ -128,33 +123,132 @@ class ApiSymbolIngestionServiceTest {
 		verify(ingestionReviewItemRepository).save(captor.capture());
 
 		IngestionReviewItem savedReviewItem = captor.getValue();
+
 		assertThat(savedReviewItem.getIngestionJob().getId()).isEqualTo(100L);
 		assertThat(savedReviewItem.getItemIndex()).isZero();
 		assertThat(savedReviewItem.getReason()).isEqualTo("Missing symbol code");
-		assertThat(savedReviewItem.getRawItem()
-				.path("label")
-				.asText())
-				.isEqualTo("Missing code");
+		assertThat(savedReviewItem.getRawItem().path("label").asText()).isEqualTo("Missing code");
+
+		verifyNoInteractions(imageChecksumService, importedSymbolPersistenceService);
 	}
 
 	@Test
 	void shouldTreatNullItemArrayFieldAsSingleRootItem() {
-		SourceFieldMapping mapping = new SourceFieldMapping(null, "symbolCode", "imageUrl",  "label",null, null, null, null, null);
-
-		ApiIngestionRequest request = new ApiIngestionRequest(
-				1L,
-				"Single item API",
-				API_URL,
-				mapping
-		);
+		SourceFieldMapping mapping = new SourceFieldMapping(null, "symbolCode", "imageUrl", "label", null, null, null, null, null);
+		ApiIngestionRequest request = new ApiIngestionRequest(1L, "Single item API", API_URL, mapping);
 
 		String responseJson = """
-				{
-				  "symbolCode": "A1",
-				  "imageUrl": "https://example.org/images/a1.png",
-				  "label": "Seated man"
-				}
-				""";
+			{
+			  "symbolCode": "A1",
+			  "imageUrl": "https://example.org/images/a1.png",
+			  "label": "Seated man"
+			}
+			""";
+
+		Language language = Language.builder()
+				.id(1L)
+				.name("Ancient Egyptian")
+				.scriptName("Egyptian hieroglyphs")
+				.build();
+
+		DownloadedImage downloadedImage = new DownloadedImage("https://example.org/images/a1.png", "C:\\pictoglyph\\A1.png");
+
+		stubIngestionJobRepository();
+
+		when(languageRepository.findById(1L)).thenReturn(Optional.of(language));
+		when(restTemplate.getForObject(API_URL, String.class)).thenReturn(responseJson);
+		when(sourceMappingValidator.validate(eq(mapping), anyList())).thenReturn(new SourceMappingValidationResult(true, List.of(), List.of()));
+		when(symbolRepository.existsByLanguageIdAndSymbolCodeIgnoreCase(1L, "A1")).thenReturn(false);
+		when(remoteImageStorageService.downloadedImage("https://example.org/images/a1.png", "API", 1L, "A1")).thenReturn(downloadedImage);
+		when(imageChecksumService.calculateSha256(downloadedImage.localPath())).thenReturn(IMAGE_CHECKSUM);
+
+		stubImportedSymbolPersistence(10L, IMAGE_CHECKSUM);
+
+		ApiIngestionResultResponse result = service.ingestApi(request);
+
+		assertThat(result.status()).isEqualTo(IngestionStatus.COMPLETED);
+		assertThat(result.importedCount()).isEqualTo(1);
+		assertThat(result.skippedCount()).isZero();
+		assertThat(result.manualProcessingCount()).isZero();
+		assertThat(result.createdSymbolIds()).containsExactly(10L);
+
+		verify(imageChecksumService).calculateSha256(downloadedImage.localPath());
+
+		ArgumentCaptor<Symbol> symbolCaptor = ArgumentCaptor.forClass(Symbol.class);
+		verify(importedSymbolPersistenceService).saveAndQueueImageEmbedding(symbolCaptor.capture(), eq(ApiSymbolIngestionService.DEFAULT_IMAGE_MODEL_PROFILE), eq(IMAGE_CHECKSUM));
+
+		Symbol savedSymbol = symbolCaptor.getValue();
+
+		assertThat(savedSymbol.getSymbolCode()).isEqualTo("A1");
+		assertThat(savedSymbol.getImagePath()).isEqualTo(downloadedImage.localPath());
+		assertThat(savedSymbol.getMeta().path("imageChecksum").asText()).isEqualTo(IMAGE_CHECKSUM);
+		assertThat(savedSymbol.getMeta().path("imageChecksumAlgorithm").asText()).isEqualTo("SHA-256");
+		assertThat(savedSymbol.getMeta().path("originalImageUrl").asText()).isEqualTo(downloadedImage.originalUrl());
+		assertThat(savedSymbol.getMeta().path("downloadedImagePath").asText()).isEqualTo(downloadedImage.localPath());
+	}
+
+	@Test
+	void shouldRouteImageToManualReviewWhenChecksumFails() {
+		SourceFieldMapping mapping = new SourceFieldMapping("symbols", "symbolCode", "imageUrl", "label", null, null, null, null, null);
+		ApiIngestionRequest request = new ApiIngestionRequest(1L, "Checksum test source", API_URL, mapping);
+
+		String responseJson = """
+			{
+			  "symbols": [
+			    {
+			      "symbolCode": "A1",
+			      "imageUrl": "https://example.org/images/a1.png",
+			      "label": "Seated man"
+			    }
+			  ]
+			}
+			""";
+
+		Language language = Language.builder()
+				.id(1L)
+				.name("Ancient Egyptian")
+				.scriptName("Egyptian hieroglyphs")
+				.build();
+
+		DownloadedImage downloadedImage = new DownloadedImage("https://example.org/images/a1.png", "C:\\pictoglyph\\A1.png");
+
+		stubIngestionJobRepository();
+
+		when(languageRepository.findById(1L)).thenReturn(Optional.of(language));
+		when(restTemplate.getForObject(API_URL, String.class)).thenReturn(responseJson);
+		when(sourceMappingValidator.validate(eq(mapping), anyList())).thenReturn(new SourceMappingValidationResult(true, List.of(), List.of()));
+		when(symbolRepository.existsByLanguageIdAndSymbolCodeIgnoreCase(1L, "A1")).thenReturn(false);
+		when(remoteImageStorageService.downloadedImage("https://example.org/images/a1.png", "API", 1L, "A1")).thenReturn(downloadedImage);
+		when(imageChecksumService.calculateSha256(downloadedImage.localPath())).thenThrow(new IllegalStateException("Could not calculate checksum"));
+
+		ApiIngestionResultResponse result = service.ingestApi(request);
+
+		assertThat(result.status()).isEqualTo(IngestionStatus.COMPLETED_WITH_MANUAL_PROCESSING);
+		assertThat(result.importedCount()).isZero();
+		assertThat(result.skippedCount()).isZero();
+		assertThat(result.manualProcessingCount()).isEqualTo(1);
+		assertThat(result.createdSymbolIds()).isEmpty();
+
+		assertThat(result.manualProcessingItems()).singleElement().satisfies(item -> {
+			assertThat(item.itemIndex()).isZero();
+			assertThat(item.reason()).contains("Could not calculate checksum");
+		});
+
+		ArgumentCaptor<IngestionReviewItem> reviewCaptor = ArgumentCaptor.forClass(IngestionReviewItem.class);
+		verify(ingestionReviewItemRepository).save(reviewCaptor.capture());
+
+		IngestionReviewItem reviewItem = reviewCaptor.getValue();
+
+		assertThat(reviewItem.getReason()).contains("Could not calculate checksum");
+		assertThat(reviewItem.getRawItem().path("symbolCode").asText()).isEqualTo("A1");
+
+		verifyNoInteractions(importedSymbolPersistenceService);
+	}
+
+	@Test
+	void shouldReportMissingItemArrayPathRatherThanThrowNullPointerException() {
+		SourceFieldMapping mapping = new SourceFieldMapping("missing.items", "symbolCode", "imageUrl", null, null, null, null, null, null);
+		ApiIngestionRequest request = new ApiIngestionRequest(1L, "Missing array API", API_URL, mapping);
 
 		Language language = Language.builder()
 				.id(1L)
@@ -165,80 +259,19 @@ class ApiSymbolIngestionServiceTest {
 		stubIngestionJobRepository();
 
 		when(languageRepository.findById(1L)).thenReturn(Optional.of(language));
-		when(restTemplate.getForObject(API_URL, String.class)).thenReturn(responseJson);
-		when(sourceMappingValidator.validate(eq(mapping), anyList()))
-				.thenReturn(
-						new SourceMappingValidationResult(
-								true,
-								List.of(),
-								List.of()
-						)
-				);
-
-		when(symbolRepository.existsByLanguageIdAndSymbolCodeIgnoreCase(
-				1L,
-				"A1"
-		)).thenReturn(false);
-
-		when(remoteImageStorageService.downloadedImage(
-				"https://example.org/images/a1.png",
-				"API",
-				1L,
-				"A1"
-		)).thenReturn(
-				new DownloadedImage(
-						"https://example.org/images/a1.png",
-						"C:\\pictoglyph\\A1.png"
-				)
-		);
-
-		stubImportedSymbolPersistence(10L);
-
-		ApiIngestionResultResponse result = service.ingestApi(request);
-
-		assertThat(result.status()).isEqualTo(IngestionStatus.COMPLETED);
-
-		assertThat(result.importedCount()).isEqualTo(1);
-		assertThat(result.skippedCount()).isZero();
-		assertThat(result.manualProcessingCount()).isZero();
-
-		assertThat(result.createdSymbolIds()).containsExactly(10L);
-	}
-
-	@Test
-	void shouldReportMissingItemArrayPathRatherThanThrowNullPointerException() {
-		SourceFieldMapping mapping = new SourceFieldMapping("missing.items", "symbolCode", "imageUrl", null, null, null, null, null, null);
-
-		ApiIngestionRequest request = new ApiIngestionRequest(
-				1L,
-				"Missing array API",
-				API_URL,
-				mapping
-		);
-
-		Language language = Language.builder()
-				.id(1L)
-				.name("Ancient Egyptian")
-				.scriptName("Egyptian hieroglyphs")
-				.build();
-
-		stubIngestionJobRepository();
-
-		when(languageRepository.findById(1L))
-				.thenReturn(Optional.of(language));
-
-		when(restTemplate.getForObject(API_URL, String.class))
-				.thenReturn("""
-						{
-						  "symbols": []
-						}
-						""");
+		when(restTemplate.getForObject(API_URL, String.class)).thenReturn("""
+			{
+			  "symbols": []
+			}
+			""");
 
 		assertThatThrownBy(() -> service.ingestApi(request))
 				.isInstanceOf(IllegalStateException.class)
 				.hasMessageContaining("API ingestion failed for: " + API_URL)
 				.hasRootCauseInstanceOf(IllegalArgumentException.class)
 				.hasRootCauseMessage("Item array field was not found: missing.items");
+
+		verifyNoInteractions(imageChecksumService, importedSymbolPersistenceService);
 	}
 
 	private void stubIngestionJobRepository() {
@@ -253,13 +286,11 @@ class ApiSymbolIngestionServiceTest {
 		});
 	}
 
-	private void stubImportedSymbolPersistence(long symbolId) {
-		when(importedSymbolPersistenceService.saveAndQueueImageEmbedding(any(Symbol.class), eq(ApiSymbolIngestionService.DEFAULT_IMAGE_MODEL_PROFILE), isNull()))
-				.thenAnswer(invocation -> {
-					Symbol symbol = invocation.getArgument(0);
-					symbol.setId(symbolId);
-
-					return symbol;
-				});
+	private void stubImportedSymbolPersistence(long symbolId, String imageChecksum) {
+		when(importedSymbolPersistenceService.saveAndQueueImageEmbedding(any(Symbol.class), eq(ApiSymbolIngestionService.DEFAULT_IMAGE_MODEL_PROFILE), eq(imageChecksum))).thenAnswer(invocation -> {
+			Symbol symbol = invocation.getArgument(0);
+			symbol.setId(symbolId);
+			return symbol;
+		});
 	}
 }
