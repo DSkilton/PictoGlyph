@@ -116,7 +116,7 @@ public class MlProcessingJob {
 
 	public void markProcessing() {
 		if (this.status != MlProcessingStatus.PENDING && this.status != MlProcessingStatus.FAILED) {
-			throw new IllegalStateException("Only pending or faild ML jobs can begin processing");
+			throw new IllegalStateException("Only pending or failed ML jobs can begin processing");
 		}
 
 		this.status = MlProcessingStatus.PROCESSING;
