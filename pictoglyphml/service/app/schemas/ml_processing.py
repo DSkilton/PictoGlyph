@@ -4,19 +4,19 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
-ML_CONTRACT_VERSION = "1.0"
+from app.constants import ML_CONTRACT_VERSION
 
 class MlProcessingTaskType(str, Enum):
-    GNERATE_IMAGE_EBEDDING = "GENERATE_IMAGE_EMBEDDING"
+    GENERATE_IMAGE_EMBEDDING = "GENERATE_IMAGE_EMBEDDING"
     FIND_SIMILAR_SYMBOLS = "FIND_SIMILAR_SYMBOLS"
-    CLASSIFY_SYMBOLS = "CLASSIFY_SYMBOLS"
-    
-    
-class MlProcessingTaskStatus(str, Enum):
+    CLASSIFY_SYMBOL = "CLASSIFY_SYMBOL"
+
+
+class MlProcessingResultStatus(str, Enum):
     COMPLETED = "COMPLETED"
     FAILED = "FAILED"
-    
-    
+
+
 class MlProcessingRequest(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
 
@@ -48,13 +48,13 @@ class MlProcessingResponse(BaseModel):
     contract_version: str = Field(alias="contractVersion")
     job_id: int = Field(alias="jobId")
     symbol_id: int = Field(alias="symbolId")
-    status: MlProcessingTaskStatus
+    status: MlProcessingResultStatus
     model_results: list[MlModelResult] = Field(
         default_factory=list,
         alias="modelResults"
     )
     processed_at: datetime = Field(alias="processedAt")
     error_message: str | None = Field(
-        default=None, 
+        default=None,
         alias="errorMessage"
     )

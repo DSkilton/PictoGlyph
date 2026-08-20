@@ -1,5 +1,5 @@
-from service.embedding_models import ImageEmbeddingModel
-from service.mock_embedding_model import (
+from app.services.embedding_models import ImageEmbeddingModel
+from app.services.mock_embedding_model import (
     MockSiglipEmbeddingModel,
 )
 
@@ -19,4 +19,3 @@ class ModelProfileRegistry:
             raise ValueError(f"Unknown model profile: {model_profile}")
 
         return list(models)
-

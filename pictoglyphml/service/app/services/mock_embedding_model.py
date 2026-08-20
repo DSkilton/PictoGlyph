@@ -2,11 +2,11 @@ import hashlib
 import math
 from pathlib import Path
 
-from service.embedding_models import (
+from app.services.embedding_models import (
     EmbeddingOutput,
     ImageEmbeddingModel,
 )
-from service.ml_contract import MlProcessingRequest
+from app.schemas.ml_processing import MlProcessingRequest
 
 
 class MockSiglipEmbeddingModel(ImageEmbeddingModel):
@@ -20,7 +20,7 @@ class MockSiglipEmbeddingModel(ImageEmbeddingModel):
 
     @property
     def model_version(self) -> str:
-        return "mock_v1"
+        return "mock-v1"
 
 
     def embed_image(self, image_path: Path, request: MlProcessingRequest) -> EmbeddingOutput:
