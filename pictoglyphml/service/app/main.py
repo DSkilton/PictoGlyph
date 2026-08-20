@@ -2,8 +2,10 @@ from fastapi import FastAPI
 
 from app.schemas.symbol_similarity import SymbolSimilarityResponse
 from app.services.symbol_similarity_service import SymbolSimilarityService
+from app.api.processing import router as processing_router
 
 app = FastAPI(title="PictoGlyph ML Service")
+app.include_router(processing_router)
 
 symbol_similarity_service = SymbolSimilarityService()
 
