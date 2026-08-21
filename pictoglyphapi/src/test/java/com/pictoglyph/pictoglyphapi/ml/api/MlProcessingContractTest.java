@@ -34,7 +34,7 @@ class MlProcessingContractTest {
 						MlProcessingTaskType
 								.GENERATE_IMAGE_EMBEDDING,
 						"SIGLIP_BASELINE_V1",
-						"C:\\pictoglyph\\A1.png",
+						"..\\pictoglyph\\test_api\\A1.png",
 						"abc123checksum",
 						"A1",
 						1L,
@@ -62,7 +62,7 @@ class MlProcessingContractTest {
 						MlProcessingTaskType
 								.GENERATE_IMAGE_EMBEDDING,
 						"SIGLIP_BASELINE_V1",
-						"C:\\pictoglyph\\A1.png",
+						"..\\pictoglyph\\test_api\\A1.png",
 						"abc123checksum",
 						"A1",
 						1L,
