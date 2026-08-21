@@ -21,9 +21,9 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
-import static com.pictoglyph.pictoglyphapi.constants.PICTOGLYPH_TEST_FILE_LOCATION;
-import static com.pictoglyph.pictoglyphapi.constants.SIGLIP_BASELINE_V_1;
-import static com.pictoglyph.pictoglyphapi.constants.ABC_123_CHECKSUM;
+import static com.pictoglyph.pictoglyphapi.TestConstants.PICTOGLYPH_TEST_FILE_LOCATION;
+import static com.pictoglyph.pictoglyphapi.TestConstants.SIGLIP_BASELINE_V1;
+import static com.pictoglyph.pictoglyphapi.TestConstants.ABC_123_CHECKSUM;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -78,7 +78,7 @@ public class MlProcessingJobProcessorTest {
 				25L,
 				42L,
 				MlProcessingTaskType.GENERATE_IMAGE_EMBEDDING,
-				SIGLIP_BASELINE_V_1,
+				SIGLIP_BASELINE_V1,
 				PICTOGLYPH_TEST_FILE_LOCATION,
 				ABC_123_CHECKSUM,
 				"A1",
@@ -192,7 +192,7 @@ public class MlProcessingJobProcessorTest {
 				.id(25L)
 				.symbolId(42L)
 				.taskType(MlProcessingTaskType.GENERATE_IMAGE_EMBEDDING)
-				.modelProfile(SIGLIP_BASELINE_V_1)
+				.modelProfile(SIGLIP_BASELINE_V1)
 				.status(MlProcessingStatus.PENDING)
 				.inputChecksum(ABC_123_CHECKSUM)
 				.build();

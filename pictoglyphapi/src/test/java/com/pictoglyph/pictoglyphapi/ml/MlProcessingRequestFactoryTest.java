@@ -1,7 +1,7 @@
 package com.pictoglyph.pictoglyphapi.ml;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pictoglyph.pictoglyphapi.constants;
+import com.pictoglyph.pictoglyphapi.TestConstants;
 import com.pictoglyph.pictoglyphapi.entities.core.Language;
 import com.pictoglyph.pictoglyphapi.entities.core.Symbol;
 import com.pictoglyph.pictoglyphapi.entities.ml.MlProcessingJob;
@@ -34,7 +34,7 @@ public class MlProcessingRequestFactoryTest {
 				.id(42L)
 				.language(language)
 				.symbolCode("A1")
-				.imagePath(constants.PICTOGLYPH_TEST_FILE_LOCATION)
+				.imagePath(TestConstants.PICTOGLYPH_TEST_FILE_LOCATION)
 				.meta(new ObjectMapper()
 						.createObjectNode().put("sourceType", "API"))
 				.build();
@@ -51,7 +51,7 @@ public class MlProcessingRequestFactoryTest {
 
 		assertThat(request.contractVersion()).isEqualTo(MlApiContractVersions.V1);
 		assertThat(request.modelProfile()).isEqualTo("SIGLIP_BASELINE_V1");
-		assertThat(request.imagePath()).isEqualTo(constants.PICTOGLYPH_TEST_FILE_LOCATION);
+		assertThat(request.imagePath()).isEqualTo(TestConstants.PICTOGLYPH_TEST_FILE_LOCATION);
 		assertThat(request.inputChecksum()).isEqualTo("abc123checksum");
 		assertThat(request.symbolCode()).isEqualTo("A1");
 		assertThat(request.languageId()).isEqualTo(1L);
