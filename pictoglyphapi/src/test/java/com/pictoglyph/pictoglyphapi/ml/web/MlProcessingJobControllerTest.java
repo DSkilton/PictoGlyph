@@ -10,13 +10,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MockMvcBuilder;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.time.LocalDateTime;
 
-import static com.pictoglyph.pictoglyphapi.constants.ABC_123_CHECKSUM;
-import static com.pictoglyph.pictoglyphapi.constants.SIGLIP_BASELINE_V_1;
+import static com.pictoglyph.pictoglyphapi.TestConstants.ABC_123_CHECKSUM;
+import static com.pictoglyph.pictoglyphapi.TestConstants.SIGLIP_BASELINE_V1;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -44,7 +43,7 @@ public class MlProcessingJobControllerTest {
 				.id(25L)
 				.symbolId(42L)
 				.taskType(MlProcessingTaskType.GENERATE_IMAGE_EMBEDDING)
-				.modelProfile(SIGLIP_BASELINE_V_1)
+				.modelProfile(SIGLIP_BASELINE_V1)
 				.status(MlProcessingStatus.COMPLETED)
 				.attemptCount(1)
 				.inputChecksum(ABC_123_CHECKSUM)
@@ -59,7 +58,7 @@ public class MlProcessingJobControllerTest {
 				.andExpect(jsonPath("$.id").value(25))
 				.andExpect(jsonPath("$.symbolId").value(42))
 				.andExpect(jsonPath("$.taskType").value("GENERATE_IMAGE_EMBEDDING"))
-				.andExpect(jsonPath("$.modelProfile").value(SIGLIP_BASELINE_V_1))
+				.andExpect(jsonPath("$.modelProfile").value(SIGLIP_BASELINE_V1))
 				.andExpect(jsonPath("$.status").value("COMPLETED"))
 				.andExpect(jsonPath("$.attemptCount").value(1));
 	}
