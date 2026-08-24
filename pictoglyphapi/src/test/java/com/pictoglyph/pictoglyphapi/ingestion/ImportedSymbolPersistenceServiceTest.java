@@ -1,7 +1,6 @@
 package com.pictoglyph.pictoglyphapi.ingestion;
 
 import com.pictoglyph.pictoglyphapi.entities.core.Symbol;
-import com.pictoglyph.pictoglyphapi.ml.MlProcessingJobQueueService;
 import com.pictoglyph.pictoglyphapi.repositories.core.SymbolRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,23 +21,18 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class ImportedSymbolPersistenceServiceTest {
 
-	private static final String MODEL_PROFILE = "SIGLIP_BASELINE_V1";
-
 	@Mock
 	private SymbolRepository symbolRepository;
-
-	@Mock
-	private MlProcessingJobQueueService mlProcessingJobQueueService;
 
 	private ImportedSymbolPersistenceService service;
 
 	@BeforeEach
 	void setUp() {
-		service = new ImportedSymbolPersistenceService(symbolRepository, mlProcessingJobQueueService);
+		service = new ImportedSymbolPersistenceService(symbolRepository);
 	}
 
 	@Test
-	void shouldSaveSymbolAndQueueImageEmbedding() {
+	void shouldSaveImportedSymbol() {
 		Symbol unsavedSymbol = Symbol.builder()
 				.symbolCode("A1")
 				.imagePath("images/a1.png")
@@ -52,28 +46,18 @@ class ImportedSymbolPersistenceServiceTest {
 
 		when(symbolRepository.save(unsavedSymbol)).thenReturn(savedSymbol);
 
-		Symbol result = service.saveAndQueueImageEmbedding(unsavedSymbol, MODEL_PROFILE, "abc123");
+		Symbol result = service.saveImportedSymbol(unsavedSymbol);
 		assertThat(result).isSameAs(savedSymbol);
 
 		verify(symbolRepository).save(unsavedSymbol);
-		verify(mlProcessingJobQueueService).queueImageEmbedding(42L, MODEL_PROFILE, "abc123");
 	}
 
 	@Test
 	void shouldRejectMissingSymbol() {
 		assertThatThrownBy(() ->
-				service.saveAndQueueImageEmbedding(
-						null,
-						MODEL_PROFILE,
-						null
-				)
-		)
-				.isInstanceOf(
-						IllegalArgumentException.class
-				)
-				.hasMessageContaining(
-						"Symbol is required"
-				);
+				service.saveImportedSymbol(null))
+				.isInstanceOf(IllegalArgumentException.class)
+				.hasMessageContaining("Symbol is required");
 
 		verify(symbolRepository, never()).save(any());
 	}
@@ -91,55 +75,10 @@ class ImportedSymbolPersistenceServiceTest {
 		when(symbolRepository.save(unsavedSymbol)).thenReturn(savedWithoutId);
 
 		assertThatThrownBy(() ->
-				service.saveAndQueueImageEmbedding(
-						unsavedSymbol,
-						MODEL_PROFILE,
-						null
-				)
-		)
-				.isInstanceOf(
-						IllegalStateException.class
-				)
-				.hasMessageContaining(
-						"saved without an id"
-				);
+				service.saveImportedSymbol(unsavedSymbol))
+				.isInstanceOf(IllegalStateException.class)
+				.hasMessageContaining("saved without an id");
 
-		verify(mlProcessingJobQueueService, never()).queueImageEmbedding(anyLong(), anyString(), any());
-	}
-
-	@Test
-	void shouldPropagateQueueFailure() {
-		Symbol unsavedSymbol = Symbol.builder()
-				.symbolCode("A1")
-				.build();
-
-		Symbol savedSymbol = Symbol.builder()
-				.id(42L)
-				.symbolCode("A1")
-				.build();
-
-		when(symbolRepository.save(unsavedSymbol)).thenReturn(savedSymbol);
-
-		doThrow(new IllegalStateException("Could not create ML job"))
-				.when(mlProcessingJobQueueService)
-				.queueImageEmbedding(
-						42L,
-						MODEL_PROFILE,
-						null
-				);
-
-		assertThatThrownBy(() ->
-				service.saveAndQueueImageEmbedding(
-						unsavedSymbol,
-						MODEL_PROFILE,
-						null
-				)
-		)
-				.isInstanceOf(
-						IllegalStateException.class
-				)
-				.hasMessageContaining(
-						"Could not create ML job"
-				);
+		verify(symbolRepository).save(unsavedSymbol);
 	}
 }

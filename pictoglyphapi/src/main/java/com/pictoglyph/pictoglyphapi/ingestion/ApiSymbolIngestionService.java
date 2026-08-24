@@ -5,18 +5,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.pictoglyph.pictoglyphapi.entities.core.Language;
 import com.pictoglyph.pictoglyphapi.entities.core.Symbol;
-import com.pictoglyph.pictoglyphapi.entities.ingestion.IngestionJob;
 import com.pictoglyph.pictoglyphapi.entities.enums.IngestionStatus;
+import com.pictoglyph.pictoglyphapi.entities.ingestion.IngestionJob;
 import com.pictoglyph.pictoglyphapi.entities.ingestion.IngestionReviewItem;
 import com.pictoglyph.pictoglyphapi.ingestion.api.ApiIngestionRequest;
 import com.pictoglyph.pictoglyphapi.ingestion.api.ApiIngestionResultResponse;
 import com.pictoglyph.pictoglyphapi.ingestion.api.ApiManualProcessingItemResponse;
-import com.pictoglyph.pictoglyphapi.ingestion.api.ManualProcessingFileResponse;
 import com.pictoglyph.pictoglyphapi.ingestion.api.SourceFieldMapping;
 import com.pictoglyph.pictoglyphapi.ingestion.mapping.SourceFieldValueReader;
 import com.pictoglyph.pictoglyphapi.ingestion.mapping.SourceMappingValidationResult;
 import com.pictoglyph.pictoglyphapi.ingestion.mapping.SourceMappingValidator;
-import com.pictoglyph.pictoglyphapi.ml.MlProcessingJobQueueService;
 import com.pictoglyph.pictoglyphapi.repositories.core.LanguageRepository;
 import com.pictoglyph.pictoglyphapi.repositories.core.SymbolRepository;
 import com.pictoglyph.pictoglyphapi.repositories.ingestion.IngestionJobRepository;
@@ -25,7 +23,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.awt.Image;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -33,7 +30,7 @@ import java.util.List;
 
 import static com.pictoglyph.pictoglyphapi.ingestion.ImageChecksumService.CHECKSUM_ALGORITHM;
 import static com.pictoglyph.pictoglyphapi.ingestion.mapping.JsonNodePathReader.read;
-import static com.pictoglyph.pictoglyphapi.utils.StringUtils.*;
+import static com.pictoglyph.pictoglyphapi.utils.StringUtils.cleanString;
 
 @Service
 @RequiredArgsConstructor
@@ -52,8 +49,6 @@ public class ApiSymbolIngestionService {
 	private final IngestionReviewItemRepository ingestionReviewItemRepository;
 	private final ImportedSymbolPersistenceService importedSymbolPersistenceService;
 	private final ImageChecksumService imageChecksumService;
-
-	public static final String DEFAULT_IMAGE_MODEL_PROFILE = "SIGLIP_BASELINE_V1";
 
 	public ApiIngestionResultResponse ingestApi(ApiIngestionRequest request) {
 		IngestionJob ingestJob = createRunningJob(request);
@@ -152,7 +147,7 @@ public class ApiSymbolIngestionService {
 						.meta(meta)
 						.build();
 
-				Symbol savedSymbol = importedSymbolPersistenceService.saveAndQueueImageEmbedding(symbol, DEFAULT_IMAGE_MODEL_PROFILE, imageChecksum);
+				Symbol savedSymbol = importedSymbolPersistenceService.saveImportedSymbol(symbol);
 				createdSymbolIds.add(savedSymbol.getId());
 
 			} catch (RuntimeException exception) {

@@ -162,7 +162,7 @@ class ApiSymbolIngestionServiceTest {
 		when(remoteImageStorageService.downloadedImage("https://example.org/images/a1.png", "API", 1L, "A1")).thenReturn(downloadedImage);
 		when(imageChecksumService.calculateSha256(downloadedImage.localPath())).thenReturn(IMAGE_CHECKSUM);
 
-		stubImportedSymbolPersistence(10L, IMAGE_CHECKSUM);
+		stubImportedSymbolPersistence(10L);
 
 		ApiIngestionResultResponse result = service.ingestApi(request);
 
@@ -175,7 +175,7 @@ class ApiSymbolIngestionServiceTest {
 		verify(imageChecksumService).calculateSha256(downloadedImage.localPath());
 
 		ArgumentCaptor<Symbol> symbolCaptor = ArgumentCaptor.forClass(Symbol.class);
-		verify(importedSymbolPersistenceService).saveAndQueueImageEmbedding(symbolCaptor.capture(), eq(ApiSymbolIngestionService.DEFAULT_IMAGE_MODEL_PROFILE), eq(IMAGE_CHECKSUM));
+		verify(importedSymbolPersistenceService).saveImportedSymbol(symbolCaptor.capture());
 
 		Symbol savedSymbol = symbolCaptor.getValue();
 
@@ -286,10 +286,12 @@ class ApiSymbolIngestionServiceTest {
 		});
 	}
 
-	private void stubImportedSymbolPersistence(long symbolId, String imageChecksum) {
-		when(importedSymbolPersistenceService.saveAndQueueImageEmbedding(any(Symbol.class), eq(ApiSymbolIngestionService.DEFAULT_IMAGE_MODEL_PROFILE), eq(imageChecksum))).thenAnswer(invocation -> {
+	private void stubImportedSymbolPersistence(Long symbolId) {
+		when(importedSymbolPersistenceService.saveImportedSymbol(any(Symbol.class))
+		).thenAnswer(invocation -> {
 			Symbol symbol = invocation.getArgument(0);
 			symbol.setId(symbolId);
+
 			return symbol;
 		});
 	}
