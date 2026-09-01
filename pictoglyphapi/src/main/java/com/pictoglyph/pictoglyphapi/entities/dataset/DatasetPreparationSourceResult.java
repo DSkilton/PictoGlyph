@@ -1,4 +1,4 @@
-package com.pictoglyph.pictoglyphapi.entities.DatasetPreparation;
+package com.pictoglyph.pictoglyphapi.entities.dataset;
 
 import com.pictoglyph.pictoglyphapi.entities.enums.IngestionStatus;
 import jakarta.persistence.Column;

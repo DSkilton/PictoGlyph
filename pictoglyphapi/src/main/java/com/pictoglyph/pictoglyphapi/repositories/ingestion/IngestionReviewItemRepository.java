@@ -11,4 +11,7 @@ public interface IngestionReviewItemRepository extends JpaRepository<IngestionRe
 	List<IngestionReviewItem> findByStatusOrderByCreatedAtAsc(IngestionReviewStatus status);
 
 	List<IngestionReviewItem> findByIngestionJobIdOrderByItemIndexAsc(Long ingestionJobId);
+
+	// underscore is required i.e. ingestionJob.id
+	long countByIngestionJob_IdAndStatus(Long ingestionJobId, IngestionReviewStatus status);
 }

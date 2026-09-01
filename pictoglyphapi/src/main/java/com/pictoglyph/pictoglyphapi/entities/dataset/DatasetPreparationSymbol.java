@@ -1,4 +1,4 @@
-package com.pictoglyph.pictoglyphapi.entities.DatasetPreparation;
+package com.pictoglyph.pictoglyphapi.entities.dataset;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -27,8 +27,8 @@ import java.time.LocalDateTime;
 		name = "dataset_preparation_symbol",
 		indexes = {
 				@Index(
-						name = "idex_dataset_symbol_dataset",
-						columnList = "datset_preparation_id"
+						name = "idx_dataset_symbol_dataset",
+						columnList = "dataset_preparation_id"
 				),
 				@Index(
 						name = "idx_dataset_symbol_symbol",
@@ -40,7 +40,7 @@ import java.time.LocalDateTime;
 						name = "uk_dataset_preparation_symbol",
 						columnNames = {
 								"dataset_preparation_id",
-								"symbolid"
+								"symbol_id"
 						}
 				)
 		}

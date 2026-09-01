@@ -1,4 +1,4 @@
-package com.pictoglyph.pictoglyphapi.entities.DatasetPreparation;
+package com.pictoglyph.pictoglyphapi.entities.dataset;
 
 import com.pictoglyph.pictoglyphapi.entities.enums.DatasetReadinessStatus;
 import jakarta.persistence.Column;
@@ -74,7 +74,7 @@ public class DatasetPreparation {
 	private Long version;
 
 	@PrePersist
-	void onCreate() {
+	public void onCreate() {
 		LocalDateTime now = LocalDateTime.now();
 
 		if (status == null) {
@@ -83,6 +83,10 @@ public class DatasetPreparation {
 
 		if (createdAt == null) {
 			createdAt = now;
+		}
+
+		if (updatedAt == null) {
+			updatedAt = now;
 		}
 	}
 

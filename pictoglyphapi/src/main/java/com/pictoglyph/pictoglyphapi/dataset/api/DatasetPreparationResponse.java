@@ -1,6 +1,6 @@
 package com.pictoglyph.pictoglyphapi.dataset.api;
 
-import com.pictoglyph.pictoglyphapi.entities.DatasetPreparation.DatasetPreparation;
+import com.pictoglyph.pictoglyphapi.entities.dataset.DatasetPreparation;
 import com.pictoglyph.pictoglyphapi.entities.enums.DatasetReadinessStatus;
 
 import java.time.LocalDateTime;
