@@ -2,6 +2,8 @@ package com.pictoglyph.pictoglyphapi;
 
 public class TestConstants {
 
+	public static final String ANCIENT_SCRIPTS_PILOT = "Anciet scripts pilot";
+
 	private TestConstants() {	}
 
 	public static final String PICTOGLYPH_TEST_FILE_LOCATION = "..\\pictoglyph\\test_api\\A1.png";
