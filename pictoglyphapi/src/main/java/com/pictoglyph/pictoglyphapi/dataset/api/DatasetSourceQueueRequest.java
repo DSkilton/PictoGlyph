@@ -1,4 +1,11 @@
 package com.pictoglyph.pictoglyphapi.dataset.api;
 
-public record DatasetSourceQueueRequest() {
+import com.pictoglyph.pictoglyphapi.ingestion.api.ApiIngestionRequest;
+
+import java.util.List;
+
+public record DatasetSourceQueueRequest(
+		String datasetName,
+		List<ApiIngestionRequest> sources
+) {
 }
