@@ -9,7 +9,7 @@ import com.pictoglyph.pictoglyphapi.ingestion.ApiSymbolIngestionService;
 import com.pictoglyph.pictoglyphapi.ingestion.api.ApiIngestionRequest;
 import com.pictoglyph.pictoglyphapi.ingestion.api.ApiIngestionResultResponse;
 import com.pictoglyph.pictoglyphapi.ingestion.api.SourceFieldMapping;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InOrder;
@@ -43,7 +43,7 @@ public class DatasetSourceQueueServiceTest {
 
 	private DatasetSourceQueueService service;
 
-	private ApiIngestionRequest MAYA = createRequest("Maya source", "https://example.org/may");
+	private ApiIngestionRequest MAYA = createRequest("Maya source", "https://example.org/maya");
 	private ApiIngestionRequest EGYPTIAN = createRequest("Egyptian source", "https://example.org/egyptian");
 	private ApiIngestionRequest CUNEIFORM = createRequest("Cuneiform source", "https://example.org/cuneiform");
 	DatasetSourceQueueRequest request = new DatasetSourceQueueRequest("Ancient scripts pilot", List.of(MAYA, EGYPTIAN));
