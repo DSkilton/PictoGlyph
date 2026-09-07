@@ -120,8 +120,8 @@ public class DatasetSourceQueueServiceTest {
 
 		DatasetSourceQueueResponse result = service.run(request);
 
-		assertThat(result.sourceCount()).isEqualTo(2);
-		assertThat(result.completedSourceCount()).isEqualTo(3);
+		assertThat(result.sourceCount()).isEqualTo(3);
+		assertThat(result.completedSourceCount()).isEqualTo(2);
 		assertThat(result.failedSourceCount()).isEqualTo(1);
 		assertThat(result.sources().get(0).ingestionStatus()).isEqualTo(IngestionStatus.FAILED);
 

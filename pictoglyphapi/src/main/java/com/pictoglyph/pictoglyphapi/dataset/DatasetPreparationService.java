@@ -1,8 +1,10 @@
 package com.pictoglyph.pictoglyphapi.dataset;
 
 import com.pictoglyph.pictoglyphapi.dataset.api.DatasetPreparationResponse;
+import com.pictoglyph.pictoglyphapi.dataset.api.DatasetPreparationSourceResponse;
 import com.pictoglyph.pictoglyphapi.entities.dataset.DatasetPreparation;
 import com.pictoglyph.pictoglyphapi.entities.dataset.DatasetPreparationSourceResult;
+import com.pictoglyph.pictoglyphapi.entities.dataset.DatasetPreparationSourceRetryAttempt;
 import com.pictoglyph.pictoglyphapi.entities.dataset.DatasetPreparationSymbol;
 import com.pictoglyph.pictoglyphapi.entities.enums.DatasetReadinessStatus;
 import com.pictoglyph.pictoglyphapi.entities.enums.IngestionReviewStatus;
@@ -10,15 +12,18 @@ import com.pictoglyph.pictoglyphapi.entities.enums.IngestionStatus;
 import com.pictoglyph.pictoglyphapi.ingestion.api.ApiIngestionResultResponse;
 import com.pictoglyph.pictoglyphapi.repositories.dataset.DatasetPreparationRepository;
 import com.pictoglyph.pictoglyphapi.repositories.dataset.DatasetPreparationSourceResultRepository;
+import com.pictoglyph.pictoglyphapi.repositories.dataset.DatasetPreparationSourceRetryAttemptRepository;
 import com.pictoglyph.pictoglyphapi.repositories.dataset.DatasetPreparationSymbolRepository;
 import com.pictoglyph.pictoglyphapi.repositories.ingestion.IngestionReviewItemRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
-
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +33,127 @@ public class DatasetPreparationService {
 	private final DatasetPreparationSourceResultRepository sourceResultRepository;
 	private final DatasetPreparationSymbolRepository datasetPreparationSymbolRepository;
 	private final IngestionReviewItemRepository ingestionReviewItemRepository;
+	private final DatasetPreparationSourceRetryAttemptRepository retryAttemptRepository;
+
+	@Transactional(readOnly = true)
+	public List<DatasetPreparationSourceResponse> listSources(Long datasetPreparationId) {
+		findPreparation(datasetPreparationId);
+
+		return sourceResultRepository
+				.findAllByDatasetPreparationIdOrderByIdAsc(datasetPreparationId)
+				.stream()
+				.map(DatasetPreparationSourceResponse::from)
+				.toList();
+	}
+
+	private DatasetPreparationSourceResult findRetryableSourceEntity(Long datasetPreparationId, Long sourceResultId) {
+		DatasetPreparation preparation = findPreparation(datasetPreparationId);
+
+		if (preparation.getIngestionCompletedAt() == null) {
+			throw new IllegalStateException("Dataset ingestion must be completed before sources can be retried");
+		}
+
+		if (preparation.getStatus() != DatasetReadinessStatus.RETRY_REQUIRED) {
+			throw new IllegalStateException("Dataset must be RETRY_REQUIRED before a source can be retried");
+		}
+
+		DatasetPreparationSourceResult sourceResult = sourceResultRepository
+				.findByIdAndDatasetPreparation_Id(sourceResultId, datasetPreparationId)
+				.orElseThrow(() ->
+						new IllegalArgumentException("No dataset source found for id: " + sourceResultId)
+				);
+
+		if (sourceResult.getIngestionStatus() != IngestionStatus.FAILED) {
+			throw new IllegalStateException("Only failed dataset sources can be retried");
+		}
+
+		return sourceResult;
+	}
+
+	@Transactional(readOnly = true)
+	public DatasetPreparationSourceResponse getRetryableSource(Long datasetPreparationId, Long sourceResultId) {
+		DatasetPreparationSourceResult sourceResult = findRetryableSourceEntity(datasetPreparationId, sourceResultId);
+		return DatasetPreparationSourceResponse.from(sourceResult);
+	}
+
+	@Transactional
+	public DatasetPreparationSourceRetryAttempt recordRetrySuccess(Long datasetPreparationId, Long sourceResultId, ApiIngestionResultResponse result, LocalDateTime startedAt, LocalDateTime completedAt) {
+		if (result == null) {
+			throw new IllegalArgumentException("Retry ingestion result is required");
+		}
+
+		if (result.status() == IngestionStatus.FAILED) {
+			throw new IllegalArgumentException("A failed retry result cannot be recorded as successful");
+		}
+
+		DatasetPreparationSourceResult sourceResult = findRetryableSourceEntity(datasetPreparationId, sourceResultId);
+
+		int attemptNumber = nextRetryAttemptNumber(sourceResultId);
+
+		sourceResult.setIngestionJobId(result.ingestionJobId());
+		sourceResult.setSourceType(normaliseSourceType(result.sourceType()));
+		sourceResult.setSourceName(normaliseSourceName(result.sourceName()));
+		sourceResult.setSourcePath(result.sourcePath());
+		sourceResult.setIngestionStatus(result.status());
+		sourceResult.setImportedCount(result.importedCount());
+		sourceResult.setSkippedCount(result.skippedCount());
+		sourceResult.setManualProcessingCount(result.manualProcessingCount());
+		sourceResult.setErrorMessage(null);
+
+		sourceResultRepository.save(sourceResult);
+
+		recordImportedSymbols(sourceResult.getDatasetPreparation(), result.createdSymbolIds());
+
+		DatasetPreparationSourceRetryAttempt attempt = DatasetPreparationSourceRetryAttempt.builder()
+				.sourceResult(sourceResult)
+				.attemptNumber(attemptNumber)
+				.ingestionJobId(result.ingestionJobId())
+				.ingestionStatus(result.status())
+				.importedCount(result.importedCount())
+				.skippedCount(result.skippedCount())
+				.manualProcessingCount(result.manualProcessingCount())
+				.startedAt(startedAt)
+				.completedAt(completedAt)
+				.build();
+
+		return retryAttemptRepository.save(attempt);
+	}
+
+	@Transactional
+	public DatasetPreparationSourceRetryAttempt recordRetryFailure(Long datasetPreparationId, Long sourceResultId, String errorMessage, LocalDateTime startedAt, LocalDateTime completedAt) {
+		DatasetPreparationSourceResult sourceResult = findRetryableSourceEntity(datasetPreparationId, sourceResultId);
+
+		int attemptNumber = nextRetryAttemptNumber(sourceResultId);
+
+		String safeErrorMessage = errorMessage == null || errorMessage.isBlank()
+				? "Source retry failed"
+				: errorMessage.trim();
+
+		sourceResult.setIngestionStatus(IngestionStatus.FAILED);
+		sourceResult.setErrorMessage(safeErrorMessage);
+
+		sourceResultRepository.save(sourceResult);
+
+		DatasetPreparationSourceRetryAttempt attempt = DatasetPreparationSourceRetryAttempt.builder()
+				.sourceResult(sourceResult)
+				.attemptNumber(attemptNumber)
+				.ingestionStatus(IngestionStatus.FAILED)
+				.importedCount(0)
+				.skippedCount(0)
+				.manualProcessingCount(0)
+				.errorMessage(safeErrorMessage)
+				.startedAt(startedAt)
+				.completedAt(completedAt)
+				.build();
+
+		return retryAttemptRepository.save(attempt);
+	}
+
+	private int nextRetryAttemptNumber(Long sourceResultId) {
+		long existingAttempts = retryAttemptRepository.countBySourceResult_Id(sourceResultId);
+
+		return Math.toIntExact(existingAttempts + 1);
+	}
 
 	@Transactional
 	public DatasetPreparationResponse create(String name) {
@@ -177,7 +303,8 @@ public class DatasetPreparationService {
 
 		datasetPreparationRepository.save(preparation);
 
-		List<DatasetPreparationSourceResult> sourceResults = sourceResultRepository.findAllByDatasetPreparationIdOrderByIdAsc(preparation.getId());
+		List<DatasetPreparationSourceResult> sourceResults = sourceResultRepository
+				.findAllByDatasetPreparationIdOrderByIdAsc(preparation.getId());
 
 		if (sourceResults.isEmpty()) {
 			preparation.markRetryRequired("No ingestion source results have been recorded");
@@ -233,6 +360,40 @@ public class DatasetPreparationService {
 		validateInternal(preparation);
 
 		return DatasetPreparationResponse.from(preparation);
+	}
+
+	@Transactional
+	public void revalidateForIngestionJob(Long ingestionJobId) {
+		if (ingestionJobId == null) {
+			return;
+		}
+
+		List<DatasetPreparationSourceResult> sourceResults = sourceResultRepository
+				.findAllByIngestionJobId(ingestionJobId);
+
+		Set<Long> processedDatasetsIds = new HashSet<>();
+
+		for (DatasetPreparationSourceResult sourceResult : sourceResults) {
+			DatasetPreparation preparation = sourceResult.getDatasetPreparation();
+
+			if (preparation == null || preparation.getId() == null) {
+				continue;
+			}
+
+			if (!processedDatasetsIds.add(preparation.getId())) {
+				continue;
+			}
+
+			if (preparation.getIngestionCompletedAt() == null) {
+				continue;
+			}
+
+			if (preparation.getStatus() == DatasetReadinessStatus.EXCLUDED) {
+				continue;
+			}
+
+			validateInternal(preparation);
+		}
 	}
 
 	@Transactional

@@ -12,5 +12,9 @@ public interface DatasetPreparationSourceResultRepository extends JpaRepository<
 
 	Optional<DatasetPreparationSourceResult> findByDatasetPreparationIdAndIngestionJobId(Long datasetPreparationId, Long ingestionJobId);
 
+	Optional<DatasetPreparationSourceResult> findByIdAndDatasetPreparation_Id(Long sourceResultId, Long datasetPreparationId);
+
+	List<DatasetPreparationSourceResult> findAllByIngestionJobId(Long ingestionJobId);
+
 	long countByDatasetPreparationId(Long datasetPreparationId);
 }

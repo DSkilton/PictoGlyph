@@ -2,6 +2,8 @@ package com.pictoglyph.pictoglyphapi.utils;
 
 public class Constants {
 
+	public static final String SOURCE_TYPE_API = "API";
+
 	// Entity Constants
 	public static final String DATE_START = "date_start";
 	public static final String DATE_END = "date_end";

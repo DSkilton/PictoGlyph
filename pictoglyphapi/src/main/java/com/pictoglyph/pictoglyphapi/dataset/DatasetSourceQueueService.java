@@ -14,11 +14,11 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.pictoglyph.pictoglyphapi.utils.Constants.SOURCE_TYPE_API;
+
 @Service
 @RequiredArgsConstructor
 public class DatasetSourceQueueService {
-
-	private static final String SOURCE_TYPE_API = "API";
 
 	private final DatasetPreparationService datasetPreparationService;
 	private final ApiSymbolIngestionService apiSymbolIngestionService;
