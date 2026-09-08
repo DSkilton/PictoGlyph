@@ -33,12 +33,13 @@ public class IngestionReviewController {
 	}
 
 	@PatchMapping
-	public ResponseEntity<IngestionReviewItemResponse> update(@PathVariable Long reviewItemId, @Valid @RequestBody UpdateIngestionReviewItemRequest request) {
+	public ResponseEntity<IngestionReviewItemResponse> update(
+			@PathVariable Long reviewItemId,
+			@Valid
+			@RequestBody
+			UpdateIngestionReviewItemRequest request) {
 		return ResponseEntity.ok(
 				reviewItemService.update(reviewItemId, request)
 		);
 	}
-
-
-
 }

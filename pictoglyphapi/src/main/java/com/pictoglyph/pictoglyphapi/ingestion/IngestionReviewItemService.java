@@ -1,5 +1,6 @@
 package com.pictoglyph.pictoglyphapi.ingestion;
 
+import com.pictoglyph.pictoglyphapi.dataset.DatasetPreparationService;
 import com.pictoglyph.pictoglyphapi.entities.enums.IngestionReviewStatus;
 import com.pictoglyph.pictoglyphapi.entities.ingestion.IngestionReviewItem;
 import com.pictoglyph.pictoglyphapi.ingestion.api.IngestionReviewItemResponse;
@@ -15,6 +16,7 @@ import java.util.List;
 @Service@RequiredArgsConstructor
 public class IngestionReviewItemService {
 	private final IngestionReviewItemRepository repository;
+	private final DatasetPreparationService datasetPreparationService;
 
 	@Transactional(readOnly = true)
 	public List<IngestionReviewItemResponse> findByStatus(IngestionReviewStatus status) {
@@ -45,7 +47,17 @@ public class IngestionReviewItemService {
 		item.setResolutionNotes(cleanNullable(request.resolutionNotes()));
 		item.setResolvedAt(LocalDateTime.now());
 
-		return toResponse(repository.save(item));
+		IngestionReviewItem saved = repository.save(item);
+
+		/*
+		* Ensure the updated review status is visible before dataset readiness is calculated
+		*/
+
+		repository.flush();
+
+		datasetPreparationService.revalidateForIngestionJob(saved.getIngestionJob().getId());
+
+		return toResponse(saved);
 	}
 
 	private String cleanNullable(String value) {
