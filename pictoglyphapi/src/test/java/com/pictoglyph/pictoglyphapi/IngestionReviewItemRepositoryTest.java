@@ -38,7 +38,7 @@ public class IngestionReviewItemRepositoryTest {
 	}
 
 	@Test
-	void shouldRevalidateDatasetAfterReviewResolution() {
+	void shouldRevalidateDatasetAfterReviewDismissal() {
 		IngestionJob ingestionJob = IngestionJob.builder()
 				.id(100L)
 				.build();
@@ -55,10 +55,10 @@ public class IngestionReviewItemRepositoryTest {
 		when(ingestionRepo.findById(55L)).thenReturn(Optional.of(reviewItem));
 		when(ingestionRepo.save(reviewItem)).thenReturn(reviewItem);
 
-		UpdateIngestionReviewItemRequest request = new UpdateIngestionReviewItemRequest(IngestionReviewStatus.RESOLVED, "Symbol checked and corrected");
+		UpdateIngestionReviewItemRequest request = new UpdateIngestionReviewItemRequest(IngestionReviewStatus.DISMISSED, "Reviewed and intentionally excluded");
 		IngestionReviewItemResponse response = service.update(55L, request);
 
-		assertThat(response.status()).isEqualTo(IngestionReviewStatus.RESOLVED);
+		assertThat(response.status()).isEqualTo(IngestionReviewStatus.DISMISSED);
 		assertThat(response.resolvedAt()).isNotNull();
 
 		verify(ingestionRepo).flush();

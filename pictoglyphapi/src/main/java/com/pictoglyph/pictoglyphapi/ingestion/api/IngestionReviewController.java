@@ -2,12 +2,14 @@ package com.pictoglyph.pictoglyphapi.ingestion.api;
 
 import com.pictoglyph.pictoglyphapi.entities.enums.IngestionReviewStatus;
 import com.pictoglyph.pictoglyphapi.ingestion.IngestionReviewItemService;
+import com.pictoglyph.pictoglyphapi.ingestion.IngestionReviewReprocessingService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -21,9 +23,10 @@ import java.util.List;
 public class IngestionReviewController {
 
 	private final IngestionReviewItemService reviewItemService;
+	private final IngestionReviewReprocessingService reprocessingService;
 
 	@GetMapping("/review-items")
-	private ResponseEntity<List<IngestionReviewItemResponse>> findByStatus(@RequestParam(defaultValue = "PENDING")IngestionReviewStatus status) {
+	private ResponseEntity<List<IngestionReviewItemResponse>> findByStatus(@RequestParam(defaultValue = "PENDING") IngestionReviewStatus status) {
 		return ResponseEntity.ok(reviewItemService.findByStatus(status));
 	}
 
@@ -41,5 +44,14 @@ public class IngestionReviewController {
 		return ResponseEntity.ok(
 				reviewItemService.update(reviewItemId, request)
 		);
+	}
+
+	@PostMapping("/review-items/{reviewItemId}/reprocess")
+	public ResponseEntity<ReprocessIngestionReviewItemResponse> reprocess(
+			@PathVariable Long reviewItemId,
+			@Valid
+			@RequestBody ReprocessIngestionReviewItemRequest request
+	) {
+		return ResponseEntity.ok(reprocessingService.reprocess(reviewItemId, request));
 	}
 }

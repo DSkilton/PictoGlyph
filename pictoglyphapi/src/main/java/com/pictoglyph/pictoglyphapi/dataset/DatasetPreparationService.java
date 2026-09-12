@@ -156,6 +156,29 @@ public class DatasetPreparationService {
 	}
 
 	@Transactional
+	public void recordReviewedSymbolForIngestionJob(Long ingestionJobId, Long symbolId) {
+		if (ingestionJobId == null) {
+			throw new IllegalArgumentException("Ingestion job id is required");
+		}
+
+		if (symbolId == null) {
+			throw new IllegalArgumentException("Symbol id job id is required");
+		}
+
+		List<DatasetPreparationSourceResult> sourceResults = sourceResultRepository.findAllByIngestionJobId(ingestionJobId);
+
+		for (DatasetPreparationSourceResult sourceResult : sourceResults) {
+			DatasetPreparation preparation = sourceResult.getDatasetPreparation();
+
+			if (preparation == null) {
+				continue;
+			}
+
+			recordImportedSymbols(preparation, List.of(symbolId));
+		}
+	}
+
+	@Transactional
 	public DatasetPreparationResponse create(String name) {
 		if (name == null || name.isBlank()) {
 			throw new IllegalArgumentException("Dataset preparation name is required");

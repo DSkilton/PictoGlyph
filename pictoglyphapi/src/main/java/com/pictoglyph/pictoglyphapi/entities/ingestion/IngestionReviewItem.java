@@ -2,8 +2,6 @@ package com.pictoglyph.pictoglyphapi.entities.ingestion;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.pictoglyph.pictoglyphapi.entities.enums.IngestionReviewStatus;
-import com.pictoglyph.pictoglyphapi.ingestion.mapping.JsonNodePathReader;
-import jakarta.persistence.Cacheable;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -58,6 +56,16 @@ public class IngestionReviewItem {
 	@JdbcTypeCode(SqlTypes.JSON)
 	@Column(name = "raw_item", nullable = false, columnDefinition = "jsonb")
 	private JsonNode rawItem;
+
+	@JdbcTypeCode(SqlTypes.JSON)
+	@Column(name = "corrected_item", columnDefinition = "jsonb")
+	private JsonNode correctedItem;
+
+	@Column(name = "reprocessed_symbol_id")
+	private Long reprocessedSymbolId;
+
+	@Column(name = "reprocessed_at")
+	private LocalDateTime reprocessedAt;
 
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false, length = 30)

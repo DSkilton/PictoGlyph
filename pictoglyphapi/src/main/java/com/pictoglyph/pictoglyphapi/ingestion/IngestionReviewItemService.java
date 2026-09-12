@@ -39,8 +39,8 @@ public class IngestionReviewItemService {
 		IngestionReviewItem item = repository.findById(reviewItemId)
 				.orElseThrow(() -> new IllegalArgumentException("No ingestion review item found for id: " + reviewItemId));
 
-		if (request.status() == IngestionReviewStatus.PENDING) {
-			throw new IllegalArgumentException("Review items can only be marked RESOLVED or DISMISSED");
+		if (request.status() != IngestionReviewStatus.DISMISSED) {
+			throw new IllegalArgumentException("Review items can only be dismissed directly. Use the reprocess endpoint to resolve corrected items.");
 		}
 
 		item.setStatus(request.status());

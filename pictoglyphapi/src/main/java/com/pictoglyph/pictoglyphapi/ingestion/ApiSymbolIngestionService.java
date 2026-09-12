@@ -89,6 +89,56 @@ public class ApiSymbolIngestionService {
 		}
 	}
 
+	public Symbol reprocessReviewedItem(Long languageId, String sourceName, String apiUrl, SourceFieldMapping mapping, JsonNode correctedItem) {
+		if (languageId == null) {
+			throw new IllegalArgumentException("Language id is required");
+		}
+
+		if (sourceName == null || sourceName.isBlank()) {
+			throw new IllegalArgumentException("Source name is required");
+		}
+
+		if (apiUrl == null || apiUrl.isBlank()) {
+			throw new IllegalArgumentException("API URL is required");
+		}
+
+		if (mapping == null) {
+			throw new IllegalArgumentException("Source field mapping is required");
+		}
+
+		if (correctedItem == null || correctedItem.isNull()) {
+			throw new IllegalArgumentException("Corrected review item is required");
+		}
+
+		Language language = languageRepository.findById(languageId)
+				.orElseThrow(() -> new IllegalArgumentException("No language found for id: " + languageId));
+
+		SourceMappingValidationResult validationResult = sourceMappingValidator.validate(mapping, List.of(correctedItem));
+
+		if (!validationResult.valid()) {
+			throw new IllegalArgumentException("Invalid corrected source item: " + validationResult.errors());
+		}
+
+		String rawSymbolCode = sourceFieldValueReader.readText(correctedItem, mapping.symbolCodeField());
+		String imagePath = sourceFieldValueReader.readText(correctedItem, mapping.imagePathField());
+
+		if (rawSymbolCode == null || rawSymbolCode.isBlank()) {
+			throw new IllegalArgumentException("Corrected item still has no symbol code");
+		}
+
+		if (imagePath == null || imagePath.isBlank()) {
+			throw new IllegalArgumentException("Corrected item still has no iamge path of image URL");
+		}
+
+		String symbolCode = cleanString(rawSymbolCode);
+
+		if (symbolRepository.existsByLanguageIdAndSymbolCodeIgnoreCase(languageId, symbolCode)) {
+			throw new IllegalStateException("A symbol already exists for language " + languageId + " with code " + symbolCode);
+		}
+
+		return persistCandidateItem(language, languageId, sourceName.trim(), apiUrl.trim(), mapping, correctedItem, symbolCode, imagePath);
+	}
+
 	private ApiIngestionStats processCandidateItems(IngestionJob ingestionJob, Language language, Long languageId, ApiIngestionRequest request, List<JsonNode> candidateItems) {
 		SourceFieldMapping mapping = request.sourceFieldMapping();
 		List<Long> createdSymbolIds = new ArrayList<>();
@@ -119,35 +169,7 @@ public class ApiSymbolIngestionService {
 			}
 
 			try {
-				DownloadedImage downloadedImage = remoteImageStorageService.downloadedImage(imagePath, SOURCE_TYPE, languageId, symbolCode);
-				String imageChecksum = imageChecksumService.calculateSha256(downloadedImage.localPath());
-				ObjectNode meta = objectMapper.createObjectNode();
-
-				meta.set("sourceItem", item.deepCopy());
-				meta.set("sourceFieldMapping", objectMapper.valueToTree(mapping));
-				meta.put("originalImageUrl", downloadedImage.originalUrl());
-				meta.put("downloadedImagePath", downloadedImage.localPath());
-				meta.put("imageChecksum", imageChecksum);
-				meta.put("imageChecksumAlgorithm", CHECKSUM_ALGORITHM);
-				meta.put("sourceType", SOURCE_TYPE);
-				meta.put("sourceName", request.sourceName());
-				meta.put("apiUrl", request.apiUrl());
-
-				putMappedValue(meta, "title", item, mapping.titleField());
-				putMappedValue(meta, "description", item, mapping.descriptionField());
-				putMappedValue(meta, "place", item, mapping.placeField());
-				putMappedValue(meta, "period", item, mapping.periodField());
-				putMappedValue(meta, "dateStart", item, mapping.dateStartField());
-				putMappedValue(meta, "dateEnd", item, mapping.dateEndField());
-
-				Symbol symbol = Symbol.builder()
-						.language(language)
-						.symbolCode(symbolCode)
-						.imagePath(downloadedImage.localPath())
-						.meta(meta)
-						.build();
-
-				Symbol savedSymbol = importedSymbolPersistenceService.saveImportedSymbol(symbol);
+				Symbol savedSymbol = persistCandidateItem(language, languageId, request.sourceName(), request.apiUrl(), mapping, item, symbolCode, imagePath);
 				createdSymbolIds.add(savedSymbol.getId());
 
 			} catch (RuntimeException exception) {
@@ -160,6 +182,38 @@ public class ApiSymbolIngestionService {
 				skippedCount,
 				manualProcessingItems
 		);
+	}
+
+	private Symbol persistCandidateItem(Language language, Long languageId, String sourceName, String apiUrl, SourceFieldMapping mapping, JsonNode item, String symbolCode, String imagePath) {
+		DownloadedImage downloadedImage = remoteImageStorageService.downloadedImage(imagePath, SOURCE_TYPE, languageId, symbolCode);
+		String imageChecksum = imageChecksumService.calculateSha256(downloadedImage.localPath());
+
+		ObjectNode meta = objectMapper.createObjectNode();
+		meta.set("sourceItem", item.deepCopy());
+		meta.set("sourceFieldMapping", objectMapper.valueToTree(mapping));
+		meta.put("originalImageUrl", downloadedImage.originalUrl());
+		meta.put("downloadedImagePath", downloadedImage.localPath());
+		meta.put("imageChecksum", imageChecksum);
+		meta.put("imageChecksumAlgorithm", CHECKSUM_ALGORITHM);
+		meta.put("sourceType", SOURCE_TYPE);
+		meta.put("sourceName", sourceName);
+		meta.put("apiUrl", apiUrl);
+
+		putMappedValue(meta, "title", item, mapping.titleField());
+		putMappedValue(meta, "description", item, mapping.descriptionField());
+		putMappedValue(meta, "place", item, mapping.placeField());
+		putMappedValue(meta, "period", item, mapping.periodField());
+		putMappedValue(meta, "dateStart", item, mapping.dateStartField());
+		putMappedValue(meta, "dateEnd", item, mapping.dateEndField());
+
+		Symbol symbol = Symbol.builder()
+				.language(language)
+				.symbolCode(symbolCode)
+				.imagePath(downloadedImage.localPath())
+				.meta(meta)
+				.build();
+
+		return importedSymbolPersistenceService.saveImportedSymbol(symbol);
 	}
 
 	private void addReviewItem(IngestionJob ingestionJob, int itemIndex, String reason, JsonNode rawItem, List<ApiManualProcessingItemResponse> responseItems) {
