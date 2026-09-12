@@ -6,12 +6,12 @@ import java.time.LocalDateTime;
 
 public record DatasetSourceRetryResponse(
 		Long datasetPreparationId,
-		Long souceResultId,
+		Long sourceResultId,
 		int attemptNumber,
 		String sourceName,
 		String sourcePath,
 		IngestionStatus ingestionStatus,
-		Long indestionJobId,
+		Long ingestionJobId,
 		int importedCount,
 		int skippedCount,
 		int manualProcessingCount,

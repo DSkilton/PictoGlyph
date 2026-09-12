@@ -58,10 +58,10 @@ public class DatasetPreparation {
 	@Column(name = "ready_for_ml_at")
 	private LocalDateTime readyForMlAt;
 
-	@Column(name = " excluded_at")
+	@Column(name = "excluded_at")
 	private LocalDateTime excludedAt;
 
-	@Column(name = " exclusion_reason", columnDefinition = "text")
+	@Column(name = "exclusion_reason", columnDefinition = "text")
 	private String exclusionReason;
 
 	@Column(name = "created_at", nullable = false)
