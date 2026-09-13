@@ -24,6 +24,7 @@ import static com.pictoglyph.pictoglyphapi.TestConstants.ANCIENT_SCRIPTS_PILOT;
 import static com.pictoglyph.pictoglyphapi.TestConstants.EXAMPLE_ORG_MAYA;
 import static com.pictoglyph.pictoglyphapi.TestConstants.MAYA_API_UNAVAILABLE;
 import static com.pictoglyph.pictoglyphapi.TestConstants.MAYA_SOURCE;
+import static com.pictoglyph.pictoglyphapi.dataset.DatasetSourceQueueServiceTest.API;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -149,7 +150,7 @@ public class DatasetSourceRetryServiceTest {
 	}
 
 	private DatasetPreparationSourceResponse failedSource() {
-		return new DatasetPreparationSourceResponse(SOURCE_RESULT_ID, null, "API", MAYA_SOURCE, EXAMPLE_ORG_MAYA, IngestionStatus.FAILED, 0, 0, 0, "API unavailable", LocalDateTime.now());
+		return new DatasetPreparationSourceResponse(SOURCE_RESULT_ID, null, null, null, API, MAYA_SOURCE, EXAMPLE_ORG_MAYA, IngestionStatus.FAILED, 0, 0, 0,"API unavailable", LocalDateTime.now());
 	}
 
 	private SourceFieldMapping mapping() {

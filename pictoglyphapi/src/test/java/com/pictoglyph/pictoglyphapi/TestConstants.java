@@ -3,6 +3,8 @@ package com.pictoglyph.pictoglyphapi;
 public class TestConstants {
 
 	public static final String MAYA_API_UNAVAILABLE = "Maya API unavailable";
+	public static final String MAYA_PROFILE = "Maya profile";
+	public static final String EGYPTIAN_PROFILE = "Egyptian profile";
 
 	private TestConstants() {	}
 

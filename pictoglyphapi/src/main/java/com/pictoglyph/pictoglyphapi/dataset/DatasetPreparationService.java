@@ -25,6 +25,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+import static com.pictoglyph.pictoglyphapi.utils.Constants.SOURCE_TYPE_API;
+
 @Service
 @RequiredArgsConstructor
 public class DatasetPreparationService {
@@ -175,6 +177,40 @@ public class DatasetPreparationService {
 			}
 
 			recordImportedSymbols(preparation, List.of(symbolId));
+		}
+	}
+
+	@Transactional
+	public DatasetPreparationSourceResult recordProfileIngestionResult(Long datasetPreparationId, Long apiSourceProfileId, Long languageId, ApiIngestionResultResponse result) {
+		requireProfileContext(apiSourceProfileId, languageId);
+
+		DatasetPreparationSourceResult sourceResult = recordIngestionResult(datasetPreparationId, result);
+
+		sourceResult.setApiSourceProfileId(apiSourceProfileId);
+		sourceResult.setLanguageId(languageId);
+
+		return sourceResultRepository.save(sourceResult);
+	}
+
+	@Transactional
+	public DatasetPreparationSourceResult recordProfileSourceFailure(Long datasetPreparationId, Long apiSourceProfileId, Long languageId, String sourceName, String sourcePath, String errorMessage){
+		requireProfileContext(apiSourceProfileId, languageId);
+
+		DatasetPreparationSourceResult sourceResult = recordSourceFailure(datasetPreparationId, SOURCE_TYPE_API, sourceName, sourcePath, errorMessage);
+
+		sourceResult.setApiSourceProfileId(apiSourceProfileId);
+		sourceResult.setLanguageId(languageId);
+
+		return sourceResultRepository.save(sourceResult);
+	}
+
+	private void requireProfileContext(Long apiSourceProfileId, Long languageId) {
+		if (apiSourceProfileId == null || apiSourceProfileId <= 0) {
+			throw new IllegalArgumentException("A valid API source profile id is required");
+		}
+
+		if (languageId == null || languageId <= 0) {
+			throw new IllegalArgumentException("A valid language id is required");
 		}
 	}
 

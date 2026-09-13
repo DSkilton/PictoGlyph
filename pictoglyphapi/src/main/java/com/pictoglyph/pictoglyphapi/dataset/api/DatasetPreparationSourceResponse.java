@@ -8,6 +8,8 @@ import java.time.LocalDateTime;
 public record DatasetPreparationSourceResponse(
 		Long id,
 		Long ingestionJobId,
+		Long apiSourceProfileId,
+		Long languageId,
 		String sourceType,
 		String sourceName,
 		String sourcePath,
@@ -22,6 +24,8 @@ public record DatasetPreparationSourceResponse(
 		return new DatasetPreparationSourceResponse(
 				sourceResult.getId(),
 				sourceResult.getIngestionJobId(),
+				sourceResult.getApiSourceProfileId(),
+				sourceResult.getLanguageId(),
 				sourceResult.getSourceType(),
 				sourceResult.getSourceName(),
 				sourceResult.getSourcePath(),

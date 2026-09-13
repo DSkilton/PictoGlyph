@@ -72,6 +72,12 @@ public class DatasetPreparationSourceResult {
 	@Column(name = "ingestion_job_id")
 	private Long ingestionJobId;
 
+	@Column(name = "api_source_profile_id")
+	private Long apiSourceProfileId;
+
+	@Column(name = "language_id")
+	private Long languageId;
+
 	@Column(name = "source_type", nullable = false, length = 100)
 	private String sourceType;
 
