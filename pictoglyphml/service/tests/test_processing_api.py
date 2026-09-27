@@ -1,6 +1,8 @@
 from fastapi.testclient import TestClient
 from app.main import app
+
 from app.registry.model_profile_registry import ModelProfileRegistry
+from app.services.mock_embedding_model import MockSiglipEmbeddingModel
 
 
 client = TestClient(app)
@@ -113,3 +115,14 @@ def test_should_cache_model_instances() -> None:
     second = registry.models_for("SIGLIP_BASELINE_V1")
 
     assert first[0] is second[0]
+
+
+def test_should_use_injected_profile_factories() -> None:
+    registry = ModelProfileRegistry({
+        "TEST_PROFILE": [MockSiglipEmbeddingModel],
+    })
+
+    models = registry.models_for("TEST_PROFILE")
+
+    assert len(models) == 1
+    assert isinstance(models[0], MockSiglipEmbeddingModel)

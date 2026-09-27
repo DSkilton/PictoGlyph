@@ -10,8 +10,8 @@ ModelFactory = Callable[[], ImageEmbeddingModel]
 
 
 class ModelProfileRegistry:
-    def __init__(self) -> None:
-        self._profile_factories: dict[str, list[ModelFactory]] = {
+    def __init__(self, profile_factories: dict[str, list[ModelFactory]] | None = None) -> None:
+        self._profile_factories: dict[str, list[ModelFactory]] = profile_factories if profile_factories is not None else {
             "SIGLIP_BASELINE_V1": [MockSiglipEmbeddingModel,
             ],
         }
