@@ -1,9 +1,18 @@
 from fastapi.testclient import TestClient
 from app.main import app
 
+import app.api.processing as processing_api
+from app.constants import SIGLIP_BASELINE_PROFILE
 from app.registry.model_profile_registry import ModelProfileRegistry
+from app.services.ml_processing_service import MlProcessingService
 from app.services.mock_embedding_model import MockSiglipEmbeddingModel
 
+
+processing_api.processing_service = MlProcessingService(
+    ModelProfileRegistry(
+        {SIGLIP_BASELINE_PROFILE: [MockSiglipEmbeddingModel]}
+     )
+)
 
 client = TestClient(app)
 
