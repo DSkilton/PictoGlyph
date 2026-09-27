@@ -1,7 +1,10 @@
 from fastapi.testclient import TestClient
 from app.main import app
+from app.registry.model_profile_registry import ModelProfileRegistry
+
 
 client = TestClient(app)
+
 
 def valid_request() -> dict:
     return {
@@ -101,3 +104,12 @@ def test_should_reject_invalid_request_shape() -> None:
     )
 
     assert response.status_code == 422
+
+
+def test_should_cache_model_instances() -> None:
+    registry = ModelProfileRegistry()
+
+    first = registry.models_for("SIGLIP_BASELINE_V1")
+    second = registry.models_for("SIGLIP_BASELINE_V1")
+
+    assert first[0] is second[0]

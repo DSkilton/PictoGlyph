@@ -1,21 +1,34 @@
+from collections.abc import Callable
+
 from app.services.embedding_models import ImageEmbeddingModel
 from app.services.mock_embedding_model import (
     MockSiglipEmbeddingModel,
 )
 
 
+ModelFactory = Callable[[], ImageEmbeddingModel]
+
+
 class ModelProfileRegistry:
     def __init__(self) -> None:
-        self._profiles: dict[str, list[ImageEmbeddingModel],] = {
-            "SIGLIP_BASELINE_V1": [MockSiglipEmbeddingModel(),
+        self._profile_factories: dict[str, list[ModelFactory]] = {
+            "SIGLIP_BASELINE_V1": [MockSiglipEmbeddingModel,
             ],
         }
 
+        self._model_cache: dict[str, list[ImageEmbeddingModel]] = {}
+
 
     def models_for(self, model_profile: str,) -> list[ImageEmbeddingModel]:
-        models = self._profiles.get(model_profile)
+        factories = self._profile_factories.get(model_profile)
 
-        if models is None:
+        if factories is None:
             raise ValueError(f"Unknown model profile: {model_profile}")
 
-        return list(models)
+        if model_profile not in self._model_cache:
+            self._model_cache[model_profile] = [
+                factory()
+                for factory in factories
+            ]
+
+        return list(self._model_cache[model_profile])
