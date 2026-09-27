@@ -1,7 +1,18 @@
+from dataclasses import dataclass
+from typing import Any
+
 from PIL import Image, ImageFilter, ImageOps
 
+GAUSSIAN_BLUR_RADIUS = 1.2
+EDGE_DETECTION_NAME = "FIND_EDGES"
 
-def preprocess_shape(image: Image.Image) -> Image.Image:
+@dataclass(frozen=True)
+class ImagePreprocessingOutput:
+    image: Image.Image
+    metadata: dict[str, Any]
+
+
+def preprocess_shape(image: Image.Image) -> ImagePreprocessingOutput:
     """
     Convert an image into a shape-focused edge representation.
 
@@ -13,14 +24,26 @@ def preprocess_shape(image: Image.Image) -> Image.Image:
         image: The source PIL image to preprocess.
 
     Returns:
-        A three-channel RGB PIL image containing the processed edge map.
+        The processed RGB image and metadata describing the preprocessing.
     """
     gray = ImageOps.grayscale(image)
 
-    blurred = gray.filter(ImageFilter.GaussianBlur(radius=1.2))
+    blurred = gray.filter(ImageFilter.GaussianBlur(radius=GAUSSIAN_BLUR_RADIUS))
     edges = blurred.filter(ImageFilter.FIND_EDGES)
 
     edges = ImageOps.autocontrast(edges)
     edges = ImageOps.invert(edges)
 
-    return edges.convert("RGB")
+    processed_image = edges.convert("RGB")
+
+    return ImagePreprocessingOutput(
+        image=processed_image,
+        metadata={
+            "shapePreprocessing": True,
+            "grayscale": True,
+            "gaussianBlurRadius": GAUSSIAN_BLUR_RADIUS,
+            "edgeDetection": EDGE_DETECTION_NAME,
+            "autocontrast": True,
+            "inverted": True,
+        },
+    )
