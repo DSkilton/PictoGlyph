@@ -1,5 +1,8 @@
 from fastapi import APIRouter
 
+from app.constants import SIGLIP_BASELINE_PROFILE
+from app.services.siglip2_embedding_model import Siglip2EmbeddingModel
+
 from app.registry.model_profile_registry import (
     ModelProfileRegistry
 )
@@ -19,7 +22,9 @@ router = APIRouter(
 )
 
 processing_service = MlProcessingService(
-    ModelProfileRegistry()
+    ModelProfileRegistry({
+        SIGLIP_BASELINE_PROFILE: [Siglip2EmbeddingModel],
+    })
 )
 
 @router.post(
