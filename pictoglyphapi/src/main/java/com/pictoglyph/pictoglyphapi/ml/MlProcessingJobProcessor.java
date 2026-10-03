@@ -37,7 +37,7 @@ public class MlProcessingJobProcessor {
 		}
 
 		job.markProcessing();
-		jobRepository.save(job);
+		job = jobRepository.save(job);
 
 		try {
 			process(job);
