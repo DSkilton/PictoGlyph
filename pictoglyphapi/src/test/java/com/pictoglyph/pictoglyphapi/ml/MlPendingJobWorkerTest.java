@@ -4,6 +4,7 @@ package com.pictoglyph.pictoglyphapi.ml;
 import com.pictoglyph.pictoglyphapi.entities.ml.MlProcessingJob;
 import com.pictoglyph.pictoglyphapi.entities.ml.MlProcessingStatus;
 import com.pictoglyph.pictoglyphapi.repositories.ml.MlProcessingJobRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -26,8 +27,34 @@ class MlPendingJobWorkerTest {
 	@Mock
 	private MlProcessingJobProcessor processor;
 
-	@InjectMocks
 	private MlPendingJobWorker worker;
+
+	@BeforeEach
+	void setUp() {
+		worker = new MlPendingJobWorker(jobRepository, processor, 1);
+	}
+
+	@Test
+	void shouldStopAfterMaximumJobsPerStart() {
+		MlProcessingJob pending = MlProcessingJob.builder()
+				.id(5L)
+				.status(MlProcessingStatus.PENDING)
+				.build();
+
+		MlProcessingJob completed = MlProcessingJob.builder()
+				.id(5L)
+				.status(MlProcessingStatus.COMPLETED)
+				.build();
+
+		when(jobRepository.findFirstByStatusOrderByRequestedAtAsc(MlProcessingStatus.PENDING)).thenReturn(Optional.of(pending));
+		when(processor.processJob(5L)).thenReturn(completed);
+
+		worker.processNextPendingJob();
+		worker.processNextPendingJob();
+
+		verify(jobRepository, times(1)).findFirstByStatusOrderByRequestedAtAsc(MlProcessingStatus.PENDING);
+		verify(processor, times(1)).processJob(5L);
+	}
 
 	@Test
 	void shouldDoNothingWhenNoJobsArePending() {
