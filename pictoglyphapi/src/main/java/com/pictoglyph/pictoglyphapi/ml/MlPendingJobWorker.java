@@ -5,7 +5,6 @@ import com.pictoglyph.pictoglyphapi.entities.ml.MlProcessingStatus;
 import com.pictoglyph.pictoglyphapi.repositories.ml.MlProcessingJobRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.annotations.Comment;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -26,8 +25,8 @@ public class MlPendingJobWorker {
 	private final MlProcessingJobProcessor processor;
 
 	@Scheduled(
-			fixedDelayString = "$(pictoglyph.ml.worker.poll-delay-ms:10000}",
-			initialDelayString = "${pictoglpy.ml.worker.initial-delay-ms:15000}"
+			fixedDelayString = "${pictoglyph.ml.worker.poll-delay-ms:10000}",
+			initialDelayString = "${pictoglyph.ml.worker.initial-delay-ms:15000}"
 	)
 	public void processNextPendingJob() {
 		Optional<MlProcessingJob> pendingJob = jobRepository.findFirstByStatusOrderByRequestedAtAsc(MlProcessingStatus.PENDING);
