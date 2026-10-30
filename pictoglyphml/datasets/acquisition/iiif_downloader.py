@@ -10,10 +10,11 @@ DATA_ROOT = Path(
     "/mnt/i/PictoGlyph/data/research-datasets/iiif"
 )
 
-SHOW_CANVASES = False
+DOWNLOAD_PREVIEWS = True
+SHOW_CANVASES = True
 CHECK_IMAGE_SERVICE = True
 DOWNLOAD_IMAGES = False
-DOWNLOAD_MAX_IMAGE = True
+DOWNLOAD_MAX_IMAGE = False
 
 def load_manifest(manifest_url: str, data_dir: Path):
     manifest_path = data_dir / "manifest.json"
@@ -126,9 +127,9 @@ def download_image(image_url, image_path):
     print("Image saved:", image_path)
 
 
-def inspect_image_service(service_url: str, data_dir: Path):
-    info_path = data_dir / "image-info.json"
-
+def inspect_image_service(service_url: str, data_dir: Path, index: int):
+    info_path = data_dir / f"image-info-{index:03d}.json"
+    
     if info_path.exists():
         print("Loading existing image service information")
         image_info = json.loads(
@@ -188,19 +189,44 @@ def main():
     print("Images discovered:", len(images))
 
     if CHECK_IMAGE_SERVICE and images:
-        service_url = images[0]["service_url"]
+        for index, image in enumerate(images, start=1):
+            print(f"\nProcessing image {index}/{len(images)}")
+            print("Canvas:", image["canvas_id"])
 
-        if service_url:
-            image_info = inspect_image_service(service_url, data_dir)
+            service_url = image["service_url"]
 
-            if image_info.get("type") == "ImageService3":
-                max_url = f"{service_url.rstrip('/')}/full/max/0/default.jpg"
-                print("Maximum resolution URL:", max_url)
+            if not service_url:
+                print(f"Canvas {index}: no image service available")
+                continue
 
-                if DOWNLOAD_MAX_IMAGE:
-                    max_image_path = data_dir / "canvas-001-max.jpg"
+            if DOWNLOAD_PREVIEWS:
+                preview_url = (
+                    f"{service_url.rstrip('/')}/full/800,/0/default.jpg"
+                )
             
-                    download_image(max_url, max_image_path)
+                preview_path = data_dir / f"canvas-{index:03d}-preview.jpg"
+            
+                download_image(preview_url, preview_path)
+    
+            if not service_url:
+                print(f"Canvas {index}: no image service available")
+                continue
+    
+            image_info = inspect_image_service(
+                service_url,
+                data_dir,
+                index
+            )
+    
+            if image_info.get("type") != "ImageService3":
+                print(f"Canvas {index}: unsupported image service version")
+                continue
+    
+            max_url = f"{service_url.rstrip('/')}/full/max/0/default.jpg"
+    
+            if DOWNLOAD_MAX_IMAGE:
+                image_path = data_dir / f"canvas-{index:03d}-max.jpg"
+                download_image(max_url, image_path)
 
     if DOWNLOAD_IMAGES:
         for index, image in enumerate(images, start=1):
