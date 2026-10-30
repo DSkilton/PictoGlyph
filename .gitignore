@@ -234,7 +234,7 @@ http-client.private.env.json
 
 # Data / Models / DBs
 data/
-datasets/
+/datasets/
 models/
 checkpoints/
 *.db
