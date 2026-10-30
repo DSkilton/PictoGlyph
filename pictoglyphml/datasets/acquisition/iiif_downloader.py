@@ -14,6 +14,7 @@ MANIFEST_URL = "https://iiif.micr.io/RFwqO/manifest"
 SHOW_CANVASES = False
 CHECK_IMAGE_SERVICE = True
 DOWNLOAD_IMAGES = False
+DOWNLOAD_MAX_IMAGE = True
 
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -156,6 +157,10 @@ def inspect_image_service(service_url):
     print("Height:", image_info.get("height"))
     print("Profile:", image_info.get("profile"))
     print("Available sizes:", image_info.get("sizes"))
+    print("Service type:", image_info.get("type"))
+    print("Maximum width:", image_info.get("maxWidth"))
+    print("Maximum height:", image_info.get("maxHeight"))
+    print("Maximum area:", image_info.get("maxArea"))
 
     return image_info
 
@@ -179,7 +184,16 @@ def main():
         service_url = images[0]["service_url"]
 
         if service_url:
-            inspect_image_service(service_url)
+            image_info = inspect_image_service(service_url)
+
+            if image_info.get("type") == "ImageService3":
+                max_url = f"{service_url.rstrip('/')}/full/max/0/default.jpg"
+                print("Maximum resolution URL:", max_url)
+
+                if DOWNLOAD_MAX_IMAGE:
+                    max_image_path = DATA_DIR / "canvas-001-max.jpg"
+            
+                    download_image(max_url, max_image_path)
 
     if DOWNLOAD_IMAGES:
         for index, image in enumerate(images, start=1):
