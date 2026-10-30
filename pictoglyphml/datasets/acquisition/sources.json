@@ -1,0 +1,639 @@
+{
+  "schema_version": 2,
+  "description": "PictoGlyph multi-script and contextual research source catalogue v2. Compatible with download_sources.py v2; ready means a supported retrieval mechanism, NOT proof of download success, image inclusion, rights clearance, or scholarly correctness. review entries must be handled separately. Never treat sources with ambiguous decipherments as ground-truth translations.",
+  "sources": [
+    {
+      "id": "egyptian-mmm",
+      "label": "MMM Egyptian isolated signs",
+      "group": "scripts",
+      "scripts": [
+        "Egyptian hieroglyphic"
+      ],
+      "kind": "labelled_glyph_images",
+      "state": "ready",
+      "method": "gdrive",
+      "file_id": "1EGntzp66OnPi8VtlYg-2EBNoLTl4Huul",
+      "filename": "MMM.zip",
+      "landing": "https://github.com/imak-ai-lab/egyptian-hieroglyph-datasets",
+      "licence": "CC BY-SA 4.0 (dataset publisher)",
+      "caution": "Gardiner-coded sign images. Google Drive may limit anonymous downloads.",
+      "download_url": "https://drive.google.com/file/d/1EGntzp66OnPi8VtlYg-2EBNoLTl4Huul/view",
+      "priority": "very_high",
+      "download_support": "supported_by_existing_downloader"
+    },
+    {
+      "id": "egyptian-meh",
+      "label": "MEH full page hieroglyphs and bounding boxes",
+      "group": "scripts",
+      "scripts": [
+        "Egyptian hieroglyphic"
+      ],
+      "kind": "annotated_page_images",
+      "state": "ready",
+      "method": "gdrive",
+      "file_id": "1lM-XDgHpBcQ4-2JDyp5ZvDYgcvssT6an",
+      "filename": "MEH.zip",
+      "landing": "https://github.com/imak-ai-lab/egyptian-hieroglyph-datasets",
+      "licence": "CC BY-SA 4.0 (dataset publisher)",
+      "caution": "Segmentation data; includes source images and sign boxes.",
+      "download_url": "https://drive.google.com/file/d/1lM-XDgHpBcQ4-2JDyp5ZvDYgcvssT6an/view",
+      "priority": "very_high",
+      "download_support": "supported_by_existing_downloader"
+    },
+    {
+      "id": "egyptian-mummy",
+      "label": "MuMMy multimodal hieroglyph data",
+      "group": "scripts",
+      "scripts": [
+        "Egyptian hieroglyphic"
+      ],
+      "kind": "text_image_alignments",
+      "state": "ready",
+      "method": "gdrive",
+      "file_id": "1T2LyxaQ3D4WzjvbKB_oMr03FgGUt8pMD",
+      "filename": "MuMMy.zip",
+      "landing": "https://github.com/imak-ai-lab/egyptian-hieroglyph-datasets",
+      "licence": "CC BY-SA 4.0 (dataset publisher)",
+      "caution": "Hieroglyph images + Gardiner sequence/transliteration/translation.",
+      "download_url": "https://drive.google.com/file/d/1T2LyxaQ3D4WzjvbKB_oMr03FgGUt8pMD/view",
+      "priority": "very_high",
+      "download_support": "supported_by_existing_downloader"
+    },
+    {
+      "id": "kanji-vg",
+      "label": "KanjiVG stroke-level vector signs",
+      "group": "scripts",
+      "scripts": [
+        "Japanese kanji"
+      ],
+      "kind": "vector_sign_inventory",
+      "state": "ready",
+      "method": "github",
+      "repo": "KanjiVG/kanjivg",
+      "landing": "https://github.com/KanjiVG/kanjivg",
+      "licence": "CC BY-SA 3.0",
+      "caution": "Modern idealized vector forms, not archaeological photographs. Render SVG to raster only in a later preprocessing stage.",
+      "download_url": "https://api.github.com/repos/KanjiVG/kanjivg/zipball",
+      "priority": "medium",
+      "download_support": "supported_by_existing_downloader"
+    },
+    {
+      "id": "coptic-scriptorium",
+      "label": "Coptic SCRIPTORIUM corpora",
+      "group": "scripts",
+      "scripts": [
+        "Coptic"
+      ],
+      "kind": "annotated_text",
+      "state": "ready",
+      "method": "github",
+      "repo": "CopticScriptorium/corpora",
+      "landing": "https://github.com/CopticScriptorium/corpora",
+      "licence": "Per-document CC BY or CC BY-SA with exceptions; check every file",
+      "caution": "Text/transcriptions, not consistently manuscript-image crops; includes duplicate witnesses.",
+      "download_url": "https://api.github.com/repos/CopticScriptorium/corpora/zipball",
+      "priority": "medium",
+      "download_support": "supported_by_existing_downloader"
+    },
+    {
+      "id": "greek-perseus-treebank",
+      "label": "Perseus Ancient Greek linguistic treebanks",
+      "group": "scripts",
+      "scripts": [
+        "Ancient Greek alphabet"
+      ],
+      "kind": "annotated_text",
+      "state": "ready",
+      "method": "github",
+      "repo": "PerseusDL/treebank_data",
+      "landing": "https://github.com/PerseusDL/treebank_data",
+      "licence": "Review licence per dataset/file",
+      "caution": "Primarily text and linguistic annotations, not inscribed glyph photographs.",
+      "download_url": "https://api.github.com/repos/PerseusDL/treebank_data/zipball",
+      "priority": "medium",
+      "download_support": "supported_by_existing_downloader"
+    },
+    {
+      "id": "indus-lipi",
+      "label": "Lipi Indus inscriptions and sign references",
+      "group": "scripts",
+      "scripts": [
+        "Indus script"
+      ],
+      "kind": "seal_images_and_transcriptions",
+      "state": "ready",
+      "method": "github",
+      "repo": "yajnadevam/lipi",
+      "landing": "https://github.com/yajnadevam/lipi",
+      "licence": "Inspect repository and third-party corpus rights before redistribution",
+      "caution": "GitHub snapshot includes thousands of JPG seal images under public/seal_images; these are full seals, NOT automatically isolated glyph crops or gold sign labels. Site README claims a decipherment; this is not accepted scholarly ground truth. Check image copyright and source attribution before using.",
+      "download_url": "https://api.github.com/repos/yajnadevam/lipi/zipball",
+      "priority": "very_high",
+      "download_support": "supported_by_existing_downloader"
+    },
+    {
+      "id": "lineara-corpus",
+      "label": "Linear A cross-referenced corpus",
+      "group": "scripts",
+      "scripts": [
+        "Linear A"
+      ],
+      "kind": "inscriptions_and_signs",
+      "state": "ready",
+      "method": "github",
+      "repo": "Navarre-AI/linear-a",
+      "landing": "https://github.com/Navarre-AI/linear-a",
+      "licence": "Check data manifests and source field rights; not a blanket image licence",
+      "caution": "Snapshot is valuable for 1,884 inscription records and metadata but contains no JPG/PNG/SVG images. Contains mixed licences at record/path level; verify restrictions before use, and obtain glyph images separately.",
+      "download_url": "https://api.github.com/repos/Navarre-AI/linear-a/zipball",
+      "priority": "very_high",
+      "download_support": "supported_by_existing_downloader"
+    },
+    {
+      "id": "cretan-hieroglyphic",
+      "label": "Cretan Hieroglyphic Explorer",
+      "group": "scripts",
+      "scripts": [
+        "Cretan Hieroglyphic"
+      ],
+      "kind": "inscription_images_and_transcriptions",
+      "state": "ready",
+      "method": "github",
+      "repo": "mwenge/linear0.xyz",
+      "landing": "https://github.com/mwenge/linear0.xyz",
+      "licence": "Review corpus/data rights",
+      "caution": "GitHub snapshot includes thousands of JPG images under _site/images, but also generated website assets and possible duplicates. Distinguish inscriptions, facsimiles, individual signs and unrelated images; check original authorship/licences.",
+      "download_url": "https://api.github.com/repos/mwenge/linear0.xyz/zipball",
+      "priority": "very_high",
+      "download_support": "supported_by_existing_downloader"
+    },
+    {
+      "id": "cypro-minoan-pasp",
+      "label": "PASP Database for scripts on Cyprus",
+      "group": "scripts",
+      "scripts": [
+        "Cypro-Minoan"
+      ],
+      "kind": "inscription_metadata",
+      "state": "ready",
+      "method": "manual",
+      "landing": "https://dataverse.tdl.org/dataset.xhtml?persistentId=doi:10.18738/T8/GDUFXG",
+      "licence": "CC0 (Dataverse catalogue)",
+      "caution": "Includes Cypro-Minoan alongside other Cypriot writing; inspect file selection and IDs before automating.",
+      "download_url": null,
+      "priority": "medium",
+      "download_support": "needs_method_or_rights_review"
+    },
+    {
+      "id": "maya-bonn",
+      "label": "Bonn Maya Hieroglyphic Text and Image Archive",
+      "group": "scripts",
+      "scripts": [
+        "Classic Maya"
+      ],
+      "kind": "inscription_images_metadata",
+      "state": "ready",
+      "method": "manual",
+      "landing": "https://classicmayan.ulb.uni-bonn.de/",
+      "licence": "Check rights for each image and bulk/API access",
+      "caution": "Research archive with images and artefact context, but no verified bulk-download interface.",
+      "download_url": null,
+      "priority": "very_high",
+      "download_support": "needs_method_or_rights_review"
+    },
+    {
+      "id": "proto-sinaitic",
+      "label": "Proto-Sinaitic / Serabit el-Khadim epigraphy",
+      "group": "scripts",
+      "scripts": [
+        "Proto-Sinaitic"
+      ],
+      "kind": "scholarly_corpus_lead",
+      "state": "ready",
+      "method": "manual",
+      "landing": "https://www.britishmuseum.org/collection",
+      "licence": "Object/image-specific",
+      "caution": "No verified standardised, openly licensed bulk glyph corpus; prioritise scholarly site catalogues and selected museum objects.",
+      "download_url": null,
+      "priority": "medium",
+      "download_support": "needs_method_or_rights_review"
+    },
+    {
+      "id": "sogdian-invisible-east",
+      "label": "Invisible East Digital Corpus (Sogdian and others)",
+      "group": "scripts",
+      "scripts": [
+        "Sogdian"
+      ],
+      "kind": "transcriptions_metadata",
+      "state": "ready",
+      "method": "zenodo",
+      "record_id": "20490171",
+      "landing": "https://zenodo.org/records/20490171",
+      "licence": "Check record and individual referenced image rights",
+      "caution": "JSON release contains multilingual documents, not necessarily images bundled; filter Sogdian records.",
+      "download_url": null,
+      "priority": "medium",
+      "download_support": "supported_by_existing_downloader"
+    },
+    {
+      "id": "proto-elamite-cdli",
+      "label": "CDLI catalogue and ATF bulk dump",
+      "group": "scripts",
+      "scripts": [
+        "Proto-Elamite",
+        "Proto-Cuneiform"
+      ],
+      "kind": "transcriptions_and_catalogue",
+      "state": "ready",
+      "method": "manual",
+      "landing": "https://github.com/cdli-gh/data",
+      "licence": "Inspect CDLI terms and images separately",
+      "caution": "Git LFS archives; historical GitHub dump may be stale (README says Aug 2022). Requires LFS or current CDLI exports.",
+      "download_url": null,
+      "priority": "medium",
+      "download_support": "needs_method_or_rights_review"
+    },
+    {
+      "id": "meroitic",
+      "label": "Meroitic inscription corpus discovery",
+      "group": "scripts",
+      "scripts": [
+        "Meroitic"
+      ],
+      "kind": "scholarly_corpus_lead",
+      "state": "ready",
+      "method": "manual",
+      "landing": "https://github.com/Nacryos/ancient-scripts-datasets/blob/master/docs/DATABASE_REFERENCE.md",
+      "licence": "Unverified",
+      "caution": "Secondary catalogue mentions a Meroitic corpus repository but independent download and provenance are not confirmed; do not use unreviewed speculative decipherments as labels.",
+      "download_url": null,
+      "priority": "medium",
+      "download_support": "needs_method_or_rights_review"
+    },
+    {
+      "id": "byblos",
+      "label": "Byblos pseudo-hieroglyphic corpus",
+      "group": "scripts",
+      "scripts": [
+        "Byblos script"
+      ],
+      "kind": "sign_inventory_and_inscriptions",
+      "state": "ready",
+      "method": "manual",
+      "landing": "https://mnamon.sns.it/index.php?id=3&lang=en&page=Scrittura",
+      "licence": "Research/edition-specific; verify images",
+      "caution": "Very small, poorly understood corpus. No verified bulk licensed image set.",
+      "download_url": null,
+      "priority": "medium",
+      "download_support": "needs_method_or_rights_review"
+    },
+    {
+      "id": "anatolian-hieroglyphs",
+      "label": "eDiAna Anatolian hieroglyphic Luwian corpus",
+      "group": "scripts",
+      "scripts": [
+        "Anatolian hieroglyphic"
+      ],
+      "kind": "annotated_text_and_lexicon",
+      "state": "ready",
+      "method": "manual",
+      "landing": "https://www.ediana.gwi.uni-muenchen.de/",
+      "licence": "Check database/image reuse and access permissions",
+      "caution": "Contains Hieroglyphic Luwian among several languages; bulk export unverified.",
+      "download_url": null,
+      "priority": "medium",
+      "download_support": "needs_method_or_rights_review"
+    },
+    {
+      "id": "rosetta-bm",
+      "label": "Rosetta Stone — three-script translation key",
+      "group": "translation_keys",
+      "scripts": [
+        "Egyptian hieroglyphic",
+        "Egyptian Demotic",
+        "Ancient Greek alphabet"
+      ],
+      "kind": "multilingual_reference_artefact",
+      "state": "ready",
+      "method": "manual",
+      "landing": "https://www.britishmuseum.org/collection/image/16456004",
+      "licence": "CC BY-NC-SA 4.0 for linked British Museum image",
+      "caution": "Rosetta is an artefact, not a script. Use as aligned evidence with explicit passage/line correspondence.",
+      "download_url": null,
+      "priority": "medium",
+      "download_support": "needs_method_or_rights_review"
+    },
+    {
+      "id": "pleiades-places",
+      "label": "Pleiades historical place gazetteer",
+      "group": "context",
+      "scripts": [],
+      "kind": "ancient_places_geography",
+      "state": "ready",
+      "method": "http",
+      "url": "https://atlantides.org/downloads/pleiades/json/pleiades-places-latest.json.gz",
+      "filename": "pleiades-places-latest.json.gz",
+      "landing": "https://pleiades.stoa.org/downloads",
+      "licence": "CC BY 3.0",
+      "caution": "Snapshot changes; SHA256 and date recorded. Supports place/time plausibility, not evidence of contact on its own.",
+      "download_url": "https://atlantides.org/downloads/pleiades/json/pleiades-places-latest.json.gz",
+      "priority": "very_high",
+      "download_support": "supported_by_existing_downloader"
+    },
+    {
+      "id": "itinere-roads",
+      "label": "Itiner-e ancient Roman road network",
+      "group": "trade",
+      "scripts": [],
+      "kind": "historical_road_geography",
+      "state": "ready",
+      "method": "http",
+      "url": "https://www.itiner-e.org/route-segments/download",
+      "filename": "itinere-road-segments.ndjson",
+      "landing": "https://www.itiner-e.org/about",
+      "licence": "CC BY 4.0",
+      "caution": "Historical road topology and uncertainty; a possible route is not proof of a journey or exchange.",
+      "download_url": "https://www.itiner-e.org/route-segments/download",
+      "priority": "medium",
+      "download_support": "supported_by_existing_downloader"
+    },
+    {
+      "id": "oxrep-shipwrecks",
+      "label": "Oxford Roman Economy shipwrecks and cargo",
+      "group": "trade",
+      "scripts": [],
+      "kind": "shipwrecks_cargo_dates_geography",
+      "state": "ready",
+      "method": "http",
+      "url": "https://oxrep.web.ox.ac.uk/sitefiles/oxrep-shipwrecks-database-2.1-march-2017.xlsx",
+      "filename": "oxrep-shipwrecks-database-2.1-march-2017.xlsx",
+      "landing": "https://oxrep.web.ox.ac.uk/shipwrecks-database",
+      "licence": "Verify redistribution terms on Oxford site",
+      "caution": "Some locations intentionally imprecise, dates uncertain, some origin/destination inferred.",
+      "download_url": "https://oxrep.web.ox.ac.uk/sitefiles/oxrep-shipwrecks-database-2.1-march-2017.xlsx",
+      "priority": "medium",
+      "download_support": "supported_by_existing_downloader"
+    },
+    {
+      "id": "roman-open-data",
+      "label": "Roman Open Data / CEIPAC amphorae and inscriptions",
+      "group": "trade",
+      "scripts": [],
+      "kind": "trade_goods_epigraphy",
+      "state": "ready",
+      "method": "manual",
+      "landing": "https://romanopendata.eu/",
+      "licence": "Check dataset/API access and reuse permissions",
+      "caution": "Strong lead for commodities and traded amphorae; bulk method not confirmed.",
+      "download_url": null,
+      "priority": "medium",
+      "download_support": "needs_method_or_rights_review"
+    },
+    {
+      "id": "orbis",
+      "label": "Stanford ORBIS Roman network model",
+      "group": "trade",
+      "scripts": [],
+      "kind": "modelled_transport_costs",
+      "state": "ready",
+      "method": "manual",
+      "landing": "https://orbis.stanford.edu/",
+      "licence": "Check data and model reuse",
+      "caution": "Modeled travel times/costs, not an observed historical itinerary.",
+      "download_url": null,
+      "priority": "medium",
+      "download_support": "needs_method_or_rights_review"
+    },
+    {
+      "id": "elamite-deepscribe",
+      "label": "DeepScribe Elamite cuneiform sample images and annotations/code",
+      "group": "scripts",
+      "scripts": [
+        "Elamite cuneiform"
+      ],
+      "kind": "sample_tablet_images_and_annotation_tools",
+      "state": "ready",
+      "method": "github",
+      "landing": "https://github.com/uchicago-digitalculture-webdev/deepscribe",
+      "licence": "Repository code GPL-3.0; check DATASET_LICENSE.md separately for image/annotation reuse",
+      "caution": "This GitHub ZIP is code plus sample images, NOT the complete Persepolis archive. Original labelled images are a separate externally hosted download; do not conflate code and dataset rights.",
+      "repo": "uchicago-digitalculture-webdev/deepscribe",
+      "image_content": "sample_images",
+      "priority": "high",
+      "documentation": "https://github.com/uchicago-digitalculture-webdev/deepscribe/blob/main/README.md",
+      "download_url": "https://api.github.com/repos/uchicago-digitalculture-webdev/deepscribe/zipball",
+      "download_support": "supported_by_existing_downloader"
+    },
+    {
+      "id": "elamite-deepscribe-pfa-full",
+      "label": "Persepolis Fortification Archive labeled tablets/hotspots (DeepScribe)",
+      "group": "scripts",
+      "scripts": [
+        "Elamite cuneiform"
+      ],
+      "kind": "tablet_images_and_sign_hotspot_annotations",
+      "state": "ready",
+      "method": "manual",
+      "landing": "https://github.com/uchicago-digitalculture-webdev/deepscribe#download",
+      "licence": "Dataset licence specified in DATASET_LICENSE.md; image rights distinct from code",
+      "caution": "Download link is external to GitHub and requires a separate verified retrieval method. Expected files are ImagesWithHotspots.json, images/, categories.txt. Archive includes economic/commodities context relevant to trade.",
+      "image_content": "tablet_photographs_with_boxes",
+      "priority": "very_high",
+      "download_url": null,
+      "download_support": "needs_method_or_rights_review"
+    },
+    {
+      "id": "hieratic-papyrus-dataverse",
+      "label": "PaPYrus Hieratic OCR 13,134 isolated sign image dataset",
+      "group": "scripts",
+      "scripts": [
+        "Egyptian Hieratic"
+      ],
+      "kind": "labelled_glyph_images",
+      "state": "ready",
+      "method": "manual",
+      "landing": "https://doi.org/10.7910/DVN/D8CWVZ",
+      "licence": "Verify Dataverse dataset licence, attributed facsimiles, and redistribution conditions",
+      "caution": "Harvard Dataverse contains multiple ZIP files; download individual dataset archives through Dataverse file IDs/API. Do not mistake the GitHub OCR code for the 13,134 image dataset.",
+      "api_url": "https://dataverse.harvard.edu/api/datasets/:persistentId/?persistentId=doi:10.7910/DVN/D8CWVZ",
+      "image_content": "isolated_hieratic_signs",
+      "priority": "very_high",
+      "download_url": null,
+      "related_code": "https://github.com/jtabin/PaPYrus",
+      "download_support": "needs_method_or_rights_review"
+    },
+    {
+      "id": "maya-twkm-huggingface",
+      "label": "TWKM Classic Maya graph drawings and relational sign catalogue",
+      "group": "scripts",
+      "scripts": [
+        "Classic Maya"
+      ],
+      "kind": "glyph_drawings_signs_decipherments_artefacts",
+      "state": "ready",
+      "method": "manual",
+      "landing": "https://huggingface.co/datasets/tadad/twkm-maya-glyphs",
+      "licence": "Image drawings listed CC BY 4.0; other catalogue metadata license unconfirmed; consult dataset RIGHTS.md",
+      "caution": "Hugging Face Parquet is NOT handled by the existing GitHub/gdown downloader. Use hf download with --repo-type dataset; preserved complete catalogue is a research snapshot, not official TWKM or an entire inscription-image corpus.",
+      "image_content": "isolated_drawings_embedded_in_parquet",
+      "priority": "very_high",
+      "download_command": "hf download tadad/twkm-maya-glyphs --repo-type dataset --local-dir /mnt/i/PictoGlyph/data/research-datasets/scripts/maya-twkm-huggingface",
+      "api_url": "https://huggingface.co/api/datasets/tadad/twkm-maya-glyphs",
+      "download_url": null,
+      "download_support": "needs_method_or_rights_review"
+    },
+    {
+      "id": "cuneiform-sign-annotations-zenodo",
+      "label": "Semi-automatically Filtered OCR Cuneiform Signs metadata",
+      "group": "scripts",
+      "scripts": [
+        "Cuneiform"
+      ],
+      "kind": "sign_annotation_metadata",
+      "state": "ready",
+      "method": "zenodo",
+      "landing": "https://zenodo.org/records/17871055",
+      "licence": "Check record rights/licence and original image sources individually",
+      "caution": "One JSON file (annotations_output.json); metadata only, not a bundled large image corpus. Source is semi-automatically filtered, so labels should be audited.",
+      "record_id": "17871055",
+      "image_content": "no_bundled_images_reported",
+      "priority": "high",
+      "api_url": "https://zenodo.org/api/records/17871055",
+      "download_url": null,
+      "download_support": "supported_by_existing_downloader"
+    },
+    {
+      "id": "cdli-cts-texts",
+      "label": "CDLI Canonical Text Services converted cuneiform transcriptions",
+      "group": "scripts",
+      "scripts": [
+        "Akkadian cuneiform",
+        "Sumerian cuneiform",
+        "Other cuneiform"
+      ],
+      "kind": "annotated_transcriptions_tei_xml",
+      "state": "ready",
+      "method": "github",
+      "landing": "https://github.com/cdli-gh/cdli-cts",
+      "licence": "Check CDLI corpus rights and textual source reuse per record",
+      "caution": "Repository contains converted transcriptions and source references, not archaeological sign photographs; can be substantial. Does not replace current live CDLI catalogue.",
+      "repo": "cdli-gh/cdli-cts",
+      "image_content": "none_expected",
+      "priority": "medium",
+      "download_url": "https://api.github.com/repos/cdli-gh/cdli-cts/zipball",
+      "download_support": "supported_by_existing_downloader"
+    },
+    {
+      "id": "lapis-gt-inscription-annotations",
+      "label": "LAPIS-GT labeled proper nouns in inscriptional sources",
+      "group": "scripts",
+      "scripts": [
+        "Inscriptional texts (multiple systems)"
+      ],
+      "kind": "inscription_named_entity_annotations",
+      "state": "ready",
+      "method": "manual",
+      "landing": "https://zenodo.org/records/18711985",
+      "licence": "Check dataset record licence",
+      "caution": "Small ZIP file LAPIS-GT.zip contains annotated inscription text, not necessarily original stone/tablet photos. An explicit Zenodo file download is available, but the current zenodo downloader only selects JSON files.",
+      "download_url": "https://zenodo.org/records/18711985/files/LAPIS-GT.zip?download=1",
+      "image_content": "none_reported",
+      "priority": "medium",
+      "api_url": "https://zenodo.org/api/records/18711985",
+      "download_support": "needs_method_or_rights_review"
+    },
+    {
+      "id": "met-openaccess-metadata",
+      "label": "The Met Open Access collection and artefact image links",
+      "group": "scripts",
+      "scripts": [
+        "Multiple scripts and cultures"
+      ],
+      "kind": "museum_object_records_and_public_domain_image_urls",
+      "state": "ready",
+      "method": "manual",
+      "landing": "https://metmuseum.github.io/",
+      "licence": "API Open Access images when isPublicDomain=true; object-by-object rights vary",
+      "caution": "Requires paginated API harvester for /public/collection/v1.1/search or per-object requests; GitHub MetObjects.csv uses Git LFS and can be stale. Downloading a GitHub repo ZIP will NOT provide the full CSV nor the artefact image files.",
+      "api_url": "https://collectionapi.metmuseum.org/public/collection/v1.1/search",
+      "api_object_template": "https://collectionapi.metmuseum.org/public/collection/v1/objects/{objectID}",
+      "download_url": "https://github.com/metmuseum/openaccess/blob/master/MetObjects.csv",
+      "priority": "high",
+      "image_content": "image_links_not_bundled",
+      "download_support": "needs_method_or_rights_review"
+    },
+    {
+      "id": "smithsonian-openaccess-index",
+      "label": "Smithsonian public S3 bulk metadata index of holding units",
+      "group": "context",
+      "scripts": [],
+      "kind": "metadata_index_and_collection_access",
+      "state": "ready",
+      "method": "http",
+      "landing": "https://github.com/Smithsonian/OpenAccess",
+      "licence": "CC0 only for explicitly designated records/assets; rights may vary",
+      "caution": "This downloads a 37-line index of unit index URLs only, not images or 11 million records. Use a separate throttled S3 manifest/NDJSON harvester later. Smithsonian GitHub repo was archived in 2026; current bulk data is S3.",
+      "url": "https://smithsonian-open-access.s3-us-west-2.amazonaws.com/metadata/edan/index.txt",
+      "filename": "smithsonian-edan-index.txt",
+      "image_content": "none_index_only",
+      "priority": "high",
+      "download_url": "https://smithsonian-open-access.s3-us-west-2.amazonaws.com/metadata/edan/index.txt",
+      "download_support": "supported_by_existing_downloader"
+    },
+    {
+      "id": "smithsonian-openaccess-records",
+      "label": "Smithsonian S3 bulk NDJSON records and linked images",
+      "group": "context",
+      "scripts": [],
+      "kind": "museum_object_metadata_with_media_links",
+      "state": "ready",
+      "method": "manual",
+      "landing": "https://registry.opendata.aws/smithsonian-open-access/",
+      "licence": "Per-record CC0 designation for eligible media; metadata and other images have varied rights",
+      "caution": "Requires iterating unit index files then NDJSON files, with checkpoint/rate limits and rights filtering; current downloader cannot recurse S3 index pages. Index is a separate ready source.",
+      "source_index": "https://smithsonian-open-access.s3-us-west-2.amazonaws.com/metadata/edan/index.txt",
+      "image_content": "linked_museum_photographs",
+      "priority": "high",
+      "download_url": null,
+      "download_support": "needs_method_or_rights_review"
+    },
+    {
+      "id": "opencontext-archaeology",
+      "label": "Open Context archaeological records, finds, findspots and media",
+      "group": "context",
+      "scripts": [],
+      "kind": "archaeological_find_records_and_image_links",
+      "state": "ready",
+      "method": "manual",
+      "landing": "https://opencontext.org/about/services",
+      "licence": "Per-project data licensing, protection of sensitive archaeological sites; verify prior to bulk use",
+      "caution": "Offers JSON-LD paginated search and per-project CSV/GeoJSON exports, not a single canonical bulk ZIP for all archaeology. Scope relevant regions and epochs before harvesting.",
+      "api_url": "https://opencontext.org/query/.json?type=subjects",
+      "search_url": "https://opencontext.org/query/",
+      "image_content": "media_links_vary_by_project",
+      "priority": "high",
+      "download_url": null,
+      "download_support": "needs_method_or_rights_review"
+    },
+    {
+      "id": "oxrep-mines",
+      "label": "Oxford Roman Economy Project mines and mineral commodities",
+      "group": "trade",
+      "scripts": [],
+      "kind": "mines_commodities_geography_dates",
+      "state": "ready",
+      "method": "manual",
+      "landing": "https://oxrep.web.ox.ac.uk/mines-database",
+      "licence": "Verify permissions for data export, reuse and citation",
+      "caution": "Mines database complements shipwreck/cargo data, but no machine-readable bulk file was verified for automatic download. Do not assume a Roman-period connection is universally applicable.",
+      "image_content": "not_primary_focus",
+      "priority": "medium",
+      "download_url": null,
+      "download_support": "needs_method_or_rights_review"
+    }
+  ],
+  "catalogue_updated_at": "2026-10-29",
+  "download_root": "/mnt/i/PictoGlyph/data/research-datasets",
+  "source_count": 35
+}
