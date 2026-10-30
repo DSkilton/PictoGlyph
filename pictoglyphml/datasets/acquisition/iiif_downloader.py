@@ -1,84 +1,195 @@
+
 import json
-import requests
 from pathlib import Path
+
+import requests
+
 
 DATA_DIR = Path(
     "/mnt/i/PictoGlyph/data/research-datasets/iiif/test-rfwqo"
 )
 
+MANIFEST_URL = "https://iiif.micr.io/RFwqO/manifest"
+
+SHOW_CANVASES = False
+CHECK_IMAGE_SERVICE = True
+DOWNLOAD_IMAGES = False
+
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 
-manifest_url = "https://iiif.micr.io/RFwqO/manifest"
 
-response = requests.get(manifest_url, timeout=30)
-response.raise_for_status()
+def load_manifest():
+    manifest_path = DATA_DIR / "manifest.json"
 
-manifest = response.json()
+    if manifest_path.exists():
+        print("Loading existing manifest")
+        return json.loads(
+            manifest_path.read_text(encoding="utf-8")
+        )
 
-manifest_path = DATA_DIR / "manifest.json"
+    response = requests.get(MANIFEST_URL, timeout=30)
+    response.raise_for_status()
 
-manifest_path.write_text(
-    json.dumps(manifest, indent=2, ensure_ascii=False),
-    encoding="utf-8"
-)
+    manifest = response.json()
 
-print("Manifest saved:", manifest_path)
+    manifest_path.write_text(
+        json.dumps(manifest, indent=2, ensure_ascii=False),
+        encoding="utf-8"
+    )
 
-print("Manifest type:", manifest.get("type"))
-print("Identifier:", manifest.get("id")) 
-print("Label:", manifest.get("label"))
-print("Rights:", manifest.get("rights"))
-print("Canvases:", len(manifest.get("items", [])))
+    print("Manifest downloaded:", manifest_path)
 
-for canvas in manifest.get("items", []):
-    print("\nCanvas ID:", canvas.get("id"))
-    print("Width:", canvas.get("width"))
-    print("Height:", canvas.get("height"))
+    return manifest
 
-    annotation_pages = canvas.get("items", [])
 
-    print("Annotation pages:", len(annotation_pages))
+def inspect_canvases(manifest, show_details=True):
+    images = []
 
-    for page in annotation_pages:
-        annotations = page.get("items", [])
-    
-        for annotation in annotations:
-            body = annotation.get("body", {})
-    
-            print("Annotation type:", annotation.get("motivation"))
-            print("Image URL:", body.get("id"))
+    for canvas in manifest.get("items", []):
+        if show_details:
+            print("\nCanvas ID:", canvas.get("id"))
+            print("Width:", canvas.get("width"))
+            print("Height:", canvas.get("height"))
 
-            image_url = body.get("id")
+        annotation_pages = canvas.get("items", [])
 
-            if image_url:
-                image_path = Path(
-                    "/mnt/i/PictoGlyph/data/research-datasets/"
-                    "iiif/test-rfwqo/canvas-001.jpg"
-                )
-            
-                if not image_path.exists():
-                    image_response = requests.get(image_url, timeout=60)
-                    image_response.raise_for_status()
-            
-                    image_path.write_bytes(image_response.content)
-            
-                    print("Image saved:", image_path)
-                else:
-                    print("Image already downloaded:", image_path)
-            print("Image format:", body.get("format"))
-    
-            for service in body.get("service", []):
-                print("Image service:", service.get("id"))
+        for page in annotation_pages:
+            annotations = page.get("items", [])
 
-service_url = "https://iiif.micr.io/RFwqO"
+            for annotation in annotations:
+                body = annotation.get("body", {})
 
-response = requests.get(f"{service_url}/info.json", timeout=30)
-response.raise_for_status()
+                if not isinstance(body, dict):
+                    continue
 
-image_info = response.json()
+                image_url = body.get("id")
 
-print("\nImage service information:")
-print("Width:", image_info.get("width"))
-print("Height:", image_info.get("height"))
-print("Profile:", image_info.get("profile"))
-print("Available sizes:", image_info.get("sizes"))
+                if not image_url:
+                    continue
+
+                services = body.get("service", [])
+
+                if isinstance(services, dict):
+                    services = [services]
+
+                service_url = None
+
+                for service in services:
+                    service_url = service.get("id")
+
+                    if service_url:
+                        break
+
+                images.append({
+                    "canvas_id": canvas.get("id"),
+                    "image_url": image_url,
+                    "image_format": body.get("format"),
+                    "service_url": service_url
+                })
+
+                if show_details:
+                    print("Annotation:", annotation.get("motivation"))
+                    print("Image URL:", image_url)
+                    print("Image format:", body.get("format"))
+                    print("Image service:", service_url)
+
+    return images
+
+
+def download_image(image_url, image_path):
+    if image_path.exists():
+        print("Image already downloaded:", image_path)
+        return
+
+    image_path.parent.mkdir(parents=True, exist_ok=True)
+
+    temporary_path = image_path.with_suffix(".part")
+
+    try:
+        with requests.get(
+            image_url,
+            timeout=60,
+            stream=True
+        ) as response:
+            response.raise_for_status()
+
+            with temporary_path.open("wb") as file:
+                for chunk in response.iter_content(
+                    chunk_size=1024 * 1024
+                ):
+                    if chunk:
+                        file.write(chunk)
+
+        temporary_path.replace(image_path)
+
+    except Exception:
+        temporary_path.unlink(missing_ok=True)
+        raise
+
+    print("Image saved:", image_path)
+
+
+def inspect_image_service(service_url):
+    info_path = DATA_DIR / "image-info.json"
+
+    if info_path.exists():
+        print("Loading existing image service information")
+        image_info = json.loads(
+            info_path.read_text(encoding="utf-8")
+        )
+    else:
+        response = requests.get(
+            f"{service_url.rstrip('/')}/info.json",
+            timeout=30
+        )
+        response.raise_for_status()
+
+        image_info = response.json()
+
+        info_path.write_text(
+            json.dumps(image_info, indent=2, ensure_ascii=False),
+            encoding="utf-8"
+        )
+
+    print("\nImage service information:")
+    print("Width:", image_info.get("width"))
+    print("Height:", image_info.get("height"))
+    print("Profile:", image_info.get("profile"))
+    print("Available sizes:", image_info.get("sizes"))
+
+    return image_info
+
+
+def main():
+    manifest = load_manifest()
+
+    print("Manifest type:", manifest.get("type"))
+    print("Identifier:", manifest.get("id"))
+    print("Label:", manifest.get("label"))
+    print("Rights:", manifest.get("rights"))
+
+    images = inspect_canvases(
+        manifest,
+        show_details=SHOW_CANVASES
+    )
+
+    print("Images discovered:", len(images))
+
+    if CHECK_IMAGE_SERVICE and images:
+        service_url = images[0]["service_url"]
+
+        if service_url:
+            inspect_image_service(service_url)
+
+    if DOWNLOAD_IMAGES:
+        for index, image in enumerate(images, start=1):
+            image_path = DATA_DIR / f"canvas-{index:03d}.jpg"
+
+            download_image(
+                image["image_url"],
+                image_path
+            )
+
+
+if __name__ == "__main__":
+    main()
