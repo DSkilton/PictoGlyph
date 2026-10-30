@@ -1,26 +1,22 @@
-
+import argparse
+import re
 import json
 from pathlib import Path
 
 import requests
 
 
-DATA_DIR = Path(
-    "/mnt/i/PictoGlyph/data/research-datasets/iiif/test-rfwqo"
+DATA_ROOT = Path(
+    "/mnt/i/PictoGlyph/data/research-datasets/iiif"
 )
-
-MANIFEST_URL = "https://iiif.micr.io/RFwqO/manifest"
 
 SHOW_CANVASES = False
 CHECK_IMAGE_SERVICE = True
 DOWNLOAD_IMAGES = False
 DOWNLOAD_MAX_IMAGE = True
 
-DATA_DIR.mkdir(parents=True, exist_ok=True)
-
-
-def load_manifest():
-    manifest_path = DATA_DIR / "manifest.json"
+def load_manifest(manifest_url: str, data_dir: Path):
+    manifest_path = data_dir / "manifest.json"
 
     if manifest_path.exists():
         print("Loading existing manifest")
@@ -28,7 +24,7 @@ def load_manifest():
             manifest_path.read_text(encoding="utf-8")
         )
 
-    response = requests.get(MANIFEST_URL, timeout=30)
+    response = requests.get(manifest_url, timeout=30)
     response.raise_for_status()
 
     manifest = response.json()
@@ -130,8 +126,8 @@ def download_image(image_url, image_path):
     print("Image saved:", image_path)
 
 
-def inspect_image_service(service_url):
-    info_path = DATA_DIR / "image-info.json"
+def inspect_image_service(service_url: str, data_dir: Path):
+    info_path = data_dir / "image-info.json"
 
     if info_path.exists():
         print("Loading existing image service information")
@@ -166,17 +162,28 @@ def inspect_image_service(service_url):
 
 
 def main():
-    manifest = load_manifest()
+    parser = argparse.ArgumentParser(
+        description="Retrieve images and metadata from an IIIF manifest"
+    )
+    
+    parser.add_argument("--manifest-url", required=True)
+    parser.add_argument("--source-id", required=True)
+    
+    args = parser.parse_args()
+    
+    if not re.fullmatch(r"[a-z0-9][a-z0-9-]*", args.source_id):
+        parser.error("--source-id must contain lowercase letters, numbers or hyphens")
+    
+    data_dir = DATA_ROOT / args.source_id
+    data_dir.mkdir(parents=True, exist_ok=True)
+    manifest = load_manifest(args.manifest_url, data_dir)
 
     print("Manifest type:", manifest.get("type"))
     print("Identifier:", manifest.get("id"))
     print("Label:", manifest.get("label"))
     print("Rights:", manifest.get("rights"))
 
-    images = inspect_canvases(
-        manifest,
-        show_details=SHOW_CANVASES
-    )
+    images = inspect_canvases(manifest, show_details=SHOW_CANVASES)
 
     print("Images discovered:", len(images))
 
@@ -184,20 +191,20 @@ def main():
         service_url = images[0]["service_url"]
 
         if service_url:
-            image_info = inspect_image_service(service_url)
+            image_info = inspect_image_service(service_url, data_dir)
 
             if image_info.get("type") == "ImageService3":
                 max_url = f"{service_url.rstrip('/')}/full/max/0/default.jpg"
                 print("Maximum resolution URL:", max_url)
 
                 if DOWNLOAD_MAX_IMAGE:
-                    max_image_path = DATA_DIR / "canvas-001-max.jpg"
+                    max_image_path = data_dir / "canvas-001-max.jpg"
             
                     download_image(max_url, max_image_path)
 
     if DOWNLOAD_IMAGES:
         for index, image in enumerate(images, start=1):
-            image_path = DATA_DIR / f"canvas-{index:03d}.jpg"
+            image_path = data_dir / f"canvas-{index:03d}.jpg"
 
             download_image(
                 image["image_url"],
