@@ -1,19 +1,16 @@
-
 import argparse
 import hashlib
+import requests
 import json
 import re
 from datetime import datetime, timezone
 from pathlib import Path
 
-import requests
-
-
 DATA_ROOT = Path("/mnt/i/PictoGlyph/data/research-datasets/iiif")
 
-DOWNLOAD_PREVIEWS = True
+DOWNLOAD_PREVIEWS = False
 SHOW_CANVASES = False
-CHECK_IMAGE_SERVICE = True
+CHECK_IMAGE_SERVICE = False
 DOWNLOAD_IMAGES = False
 DOWNLOAD_MAX_IMAGE = False
 
@@ -28,7 +25,7 @@ def load_manifest(manifest_url: str, data_dir: Path) -> dict:
         cached_url = (
             source_path.read_text(encoding="utf-8").strip()
             if source_path.exists()
-            else manifest.get("id")
+            else manifest.get("id") or manifest.get("@id")
         )
 
         if cached_url != manifest_url:
@@ -68,7 +65,7 @@ def load_manifest(manifest_url: str, data_dir: Path) -> dict:
     return manifest
 
 
-def inspect_canvases(manifest: dict, show_details: bool = True) -> list[dict]:
+def inspect_canvases_v3(manifest: dict, show_details: bool = True) -> list[dict]:
     images = []
 
     for canvas in manifest.get("items", []):
@@ -119,6 +116,58 @@ def inspect_canvases(manifest: dict, show_details: bool = True) -> list[dict]:
                     print("Image URL:", image_url)
                     print("Image format:", body.get("format"))
                     print("Image service:", service_url)
+
+    return images
+
+
+def inspect_canvases_v2(manifest: dict) -> list[dict]:
+    images = []
+
+    for sequence in manifest.get("sequences", []):
+        for canvas in sequence.get("canvases", []):
+            for annotation in canvas.get("images", []):
+                if annotation.get("motivation") != "sc:painting":
+                    continue
+
+                resource = annotation.get("resource", {})
+
+                if not isinstance(resource, dict):
+                    continue
+
+                if resource.get("@type") not in (None, "dctypes:Image"):
+                    continue
+
+                image_url = resource.get("@id")
+
+                if not image_url:
+                    continue
+
+                services = resource.get("service") or []
+
+                if isinstance(services, dict):
+                    services = [services]
+
+                service_url = next(
+                    (
+                        service.get("@id")
+                        for service in services
+                        if isinstance(service, dict) and service.get("@id")
+                    ),
+                    None
+                )
+
+                images.append({
+                    "canvas_id": canvas.get("@id"),
+                    "canvas_label": canvas.get("label"),
+                    "canvas_rights": canvas.get("license"),
+                    "canvas_width": canvas.get("width"),
+                    "canvas_height": canvas.get("height"),
+                    "canvas_metadata": canvas.get("metadata", []),
+                    "canvas_see_also": canvas.get("seeAlso", []),
+                    "image_url": image_url,
+                    "image_format": resource.get("format"),
+                    "service_url": service_url,
+                })
 
     return images
 
@@ -232,16 +281,17 @@ def save_acquisition_metadata(manifest: dict, images: list[dict], source_id: str
         "source_id": source_id,
         "metadata_recorded_at": datetime.now(timezone.utc).isoformat(),
         "manifest_url": manifest_url,
-        "manifest_id": manifest.get("id"),
+        "manifest_id": manifest.get("id") or manifest.get("@id"),
         "manifest_metadata": manifest.get("metadata", []),
         "homepage": manifest.get("homepage"),
         "see_also": manifest.get("seeAlso"),
         "nav_date": manifest.get("navDate"),
         "label": manifest.get("label"),
-        "rights": manifest.get("rights"),
+        "rights": manifest.get("rights") or manifest.get("license"),
         "provider": manifest.get("provider"),
         "summary": manifest.get("summary"),
         "required_statement": manifest.get("requiredStatement"),
+        "attribution": manifest.get("attribution"),
         "images": records,
     }
 
@@ -265,12 +315,22 @@ def main() -> None:
     data_dir.mkdir(parents=True, exist_ok=True)
     manifest = load_manifest(args.manifest_url, data_dir)
 
-    print("Manifest type:", manifest.get("type"))
-    print("Identifier:", manifest.get("id"))
     print("Label:", manifest.get("label"))
-    print("Rights:", manifest.get("rights"))
+    print("Manifest type:", manifest.get("type") or manifest.get("@type"))
+    print("Identifier:", manifest.get("id") or manifest.get("@id"))
+    print("Rights:", manifest.get("rights") or manifest.get("license"))
 
-    images = inspect_canvases(manifest, show_details=SHOW_CANVASES)
+    if manifest.get("type") == "Manifest":
+        print("IIIF Presentation API 3 detected")
+        images = inspect_canvases_v3(manifest, show_details=SHOW_CANVASES)
+
+    elif manifest.get("@type") == "sc:Manifest":
+        print("IIIF Presentation API 2 detected")
+        images = inspect_canvases_v2(manifest)
+    
+    else:
+        raise ValueError("Unsupported IIIF Presentation manifest")
+        
     print("Images discovered:", len(images))
 
     if images and (CHECK_IMAGE_SERVICE or DOWNLOAD_PREVIEWS or DOWNLOAD_MAX_IMAGE):
