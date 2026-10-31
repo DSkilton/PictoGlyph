@@ -44,6 +44,10 @@ public class DatasetMlReleaseService {
 
 		List<VerifiedSymbol> verifiedSymbols = verifySymbols(datasetSymbols);
 
+		if (verifiedSymbols.isEmpty()) {
+			throw new IllegalStateException("Dataset contains no approved, labelled sign crops");
+		}
+
 		int createdJobCount = 0;
 		int existingJobCount = 0;
 
@@ -67,6 +71,10 @@ public class DatasetMlReleaseService {
 			Symbol symbol = symbolRepository.findById(datasetSymbol.getSymbolId())
 					.orElseThrow(() ->
 							new IllegalStateException("Dataset references missing symbol " + datasetSymbol.getSymbolId()));
+
+			if (!SignEligibilityPolicy.isApprovedSignCrop(symbol)) {
+				continue;
+			}
 
 			String storedChecksum = requireStoredChecksum(symbol);
 			String currentChecksum = imageChecksumService.calculateSha256((symbol.getImagePath()));

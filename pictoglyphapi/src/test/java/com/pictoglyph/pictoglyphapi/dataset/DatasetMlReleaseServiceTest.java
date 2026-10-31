@@ -143,6 +143,62 @@ class DatasetMlReleaseServiceTest {
 		verifyNoInteractions(symbolRepository, imageChecksumService, mlProcessingJobQueueService);
 	}
 
+	@Test
+	void shouldSkipImagesThatAreNotApprovedSignCrops() {
+		DatasetPreparation preparation = readyDataset();
+
+		Symbol approved = symbol(1L, "/images/one.jpg", CHECKSUM_ONE);
+		Symbol artefact = symbol(2L, "/images/two.jpg", CHECKSUM_TWO);
+
+		((ObjectNode) artefact.getMeta()).put("contentType", "ARTEFACT");
+
+		when(datasetPreparationRepository.findById(DATASET_ID)).thenReturn(Optional.of(preparation));
+		when(datasetPreparationSymbolRepository
+				.findAllByDatasetPreparationIdOrderBySymbolIdAsc(DATASET_ID))
+				.thenReturn(List.of(datasetSymbol(1L), datasetSymbol(2L)));
+
+		when(symbolRepository.findById(1L)).thenReturn(Optional.of(approved));
+
+		when(symbolRepository.findById(2L)).thenReturn(Optional.of(artefact));
+		when(imageChecksumService.calculateSha256("/images/one.jpg")).thenReturn(CHECKSUM_ONE);
+
+		when(mlProcessingJobQueueService.queueImageEmbedding(
+				1L, MODEL_PROFILE, CHECKSUM_ONE))
+				.thenReturn(new MlJobQueueResult(mlJob(101L, 1L), true));
+
+		ReleaseDatasetToMlResponse result = service.release(DATASET_ID, MODEL_PROFILE);
+
+		assertThat(result.symbolCount()).isEqualTo(1);
+		assertThat(result.createdJobCount()).isEqualTo(1);
+
+		verify(mlProcessingJobQueueService).queueImageEmbedding(1L, MODEL_PROFILE, CHECKSUM_ONE);
+		verify(imageChecksumService, never()).calculateSha256("/images/two.jpg");
+		verify(mlProcessingJobQueueService, never()).queueImageEmbedding(2L, MODEL_PROFILE, CHECKSUM_TWO);
+	}
+
+	@Test
+	void shouldRejectDatasetWithoutApprovedSignCrops() {
+		DatasetPreparation preparation = readyDataset();
+
+		Symbol artefact = symbol(1L, "/images/one.jpg", CHECKSUM_ONE);
+
+		((ObjectNode) artefact.getMeta()).put("contentType", "ARTEFACT");
+
+		when(datasetPreparationRepository.findById(DATASET_ID)).thenReturn(Optional.of(preparation));
+
+		when(datasetPreparationSymbolRepository
+				.findAllByDatasetPreparationIdOrderBySymbolIdAsc(DATASET_ID))
+				.thenReturn(List.of(datasetSymbol(1L)));
+
+		when(symbolRepository.findById(1L)).thenReturn(Optional.of(artefact));
+
+		assertThatThrownBy(() -> service.release(DATASET_ID, MODEL_PROFILE))
+				.isInstanceOf(IllegalStateException.class)
+				.hasMessageContaining("no approved, labelled sign crops");
+
+		verifyNoInteractions(imageChecksumService, mlProcessingJobQueueService);
+	}
+
 	private DatasetPreparation readyDataset() {
 		return DatasetPreparation.builder()
 				.id(DATASET_ID)
@@ -161,7 +217,12 @@ class DatasetMlReleaseServiceTest {
 		ObjectNode metadata = new ObjectMapper().createObjectNode();
 
 		metadata.put("imageChecksum", checksum);
-		metadata.put("imageChecksumAlgorithm", ImageChecksumService.CHECKSUM_ALGORITHM);
+		metadata.put("imageChecksumAlgorithm",
+				ImageChecksumService.CHECKSUM_ALGORITHM);
+
+		metadata.put("contentType", "SIGN_CROP");
+		metadata.put("reviewStatus", "APPROVED");
+		metadata.put("signLabel", "G17");
 
 		return Symbol.builder()
 				.id(id)
