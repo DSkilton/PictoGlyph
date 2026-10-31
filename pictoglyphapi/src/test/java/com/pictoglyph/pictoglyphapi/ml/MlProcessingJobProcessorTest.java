@@ -1,5 +1,6 @@
 package com.pictoglyph.pictoglyphapi.ml;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pictoglyph.pictoglyphapi.entities.core.Symbol;
 import com.pictoglyph.pictoglyphapi.entities.ml.MlProcessingJob;
 import com.pictoglyph.pictoglyphapi.entities.ml.MlProcessingStatus;
@@ -67,11 +68,7 @@ public class MlProcessingJobProcessorTest {
 	void shouldProcessPendingJobSuccessfully() {
 		MlProcessingJob job = createPendingJob();
 
-		Symbol symbol = Symbol.builder()
-				.id(42L)
-				.symbolCode("A1")
-				.imagePath(PICTOGLYPH_TEST_FILE_LOCATION)
-				.build();
+		Symbol symbol = approvedSymbol();
 
 		MlProcessingRequest request = new MlProcessingRequest(
 				MlApiContractVersions.V1,
@@ -120,10 +117,7 @@ public class MlProcessingJobProcessorTest {
 	void shouldMarkJobFailedWhenPythonReportsFailure() {
 		MlProcessingJob job = createPendingJob();
 
-		Symbol symbol =
-				Symbol.builder()
-						.id(42L)
-						.build();
+		Symbol symbol = approvedSymbol();
 
 		MlProcessingRequest request = mock(MlProcessingRequest.class);
 
@@ -162,9 +156,7 @@ public class MlProcessingJobProcessorTest {
 	void shouldMarkJobFailedWhenMlClientThrowsException() {
 		MlProcessingJob job = createPendingJob();
 
-		Symbol symbol = Symbol.builder()
-				.id(42L)
-				.build();
+		Symbol symbol = approvedSymbol();
 
 		MlProcessingRequest request = mock(MlProcessingRequest.class);
 
@@ -187,6 +179,44 @@ public class MlProcessingJobProcessorTest {
 		verifyNoInteractions(embeddingPersistenceService);
 	}
 
+	@Test
+	void shouldCancelArtefactWithoutCallingMlService() {
+		var metadata = new ObjectMapper().createObjectNode();
+		metadata.put("contentType", "ARTEFACT");
+
+		Symbol artefact = Symbol.builder()
+				.id(42L)
+				.meta(metadata)
+				.build();
+
+		assertImageExcluded(artefact);
+	}
+
+	@Test
+	void shouldCancelUnclassifiedImageWithoutCallingMlService() {
+		Symbol unclassified = Symbol.builder()
+				.id(42L)
+				.build();
+
+		assertImageExcluded(unclassified);
+	}
+
+	private void assertImageExcluded(Symbol symbol) {
+		MlProcessingJob job = createPendingJob();
+
+		when(jobRepository.findById(25L)).thenReturn(Optional.of(job));
+		when(jobRepository.save(any(MlProcessingJob.class))).thenAnswer(invocation -> invocation.getArgument(0));
+		when(symbolRepository.findById(42L)).thenReturn(Optional.of(symbol));
+
+		MlProcessingJob result = processor.processJob(25L);
+
+		assertThat(result.getStatus()).isEqualTo(MlProcessingStatus.CANCELLED);
+		assertThat(result.getLastError()).contains("not an approved, labelled sign crop");
+		assertThat(result.getCompletedAt()).isNotNull();
+
+		verifyNoInteractions(requestFactory, processingClient, embeddingPersistenceService);
+	}
+
 	private MlProcessingJob createPendingJob() {
 		return MlProcessingJob.builder()
 				.id(25L)
@@ -197,4 +227,20 @@ public class MlProcessingJobProcessorTest {
 				.inputChecksum(ABC_123_CHECKSUM)
 				.build();
 	}
+
+	private Symbol approvedSymbol() {
+		var metadata = new ObjectMapper().createObjectNode();
+
+		metadata.put("contentType", "SIGN_CROP");
+		metadata.put("reviewStatus", "APPROVED");
+		metadata.put("signLabel", "G17");
+
+		return Symbol.builder()
+				.id(42L)
+				.symbolCode("A1")
+				.imagePath(PICTOGLYPH_TEST_FILE_LOCATION)
+				.meta(metadata)
+				.build();
+	}
+
 }

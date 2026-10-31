@@ -1,5 +1,6 @@
 package com.pictoglyph.pictoglyphapi.ml;
 
+import com.pictoglyph.pictoglyphapi.dataset.SignEligibilityPolicy;
 import com.pictoglyph.pictoglyphapi.entities.core.Symbol;
 import com.pictoglyph.pictoglyphapi.entities.ml.MlProcessingJob;
 import com.pictoglyph.pictoglyphapi.entities.ml.MlProcessingStatus;
@@ -50,9 +51,13 @@ public class MlProcessingJobProcessor {
 
 	private void process(MlProcessingJob job) {
 		Symbol symbol = symbolRepository.findById(job.getSymbolId())
-				.orElseThrow(() ->
-						new IllegalStateException("No symbol found for Ml job symbol id: " + job.getSymbolId())
-				);
+				.orElseThrow(() -> new IllegalStateException("No symbol found for ML job symbol id: "+ job.getSymbolId()));
+
+		if (!SignEligibilityPolicy.isApprovedSignCrop(symbol)) {
+			job.cancel();
+			job.setLastError("Excluded from sign processing: image is not an approved, labelled sign crop");
+			return;
+		}
 
 		MlProcessingRequest request = requestFactory.create(job, symbol);
 		MlProcessingResponse response = processingClient.process(request);
@@ -63,7 +68,7 @@ public class MlProcessingJobProcessor {
 		}
 
 		if (response.status() != MlProcessingResultStatus.COMPLETED) {
-			throw new IllegalStateException("Ml service returned an unsupported processing status");
+			throw new IllegalStateException("ML service returned an unsupported processing status");
 		}
 
 		embeddingPersistenceService.persist(job, response);

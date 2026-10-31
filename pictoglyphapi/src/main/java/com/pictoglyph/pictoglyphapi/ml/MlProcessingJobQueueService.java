@@ -15,7 +15,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class MlProcessingJobQueueService {
 
-	private static final List<MlProcessingStatus> DUPLICATE_BLOCKING_STATUSES = List.of(MlProcessingStatus.CANCELLED, MlProcessingStatus.COMPLETED, MlProcessingStatus.FAILED, MlProcessingStatus.PENDING, MlProcessingStatus.PROCESSING);
+	private static final List<MlProcessingStatus> DUPLICATE_BLOCKING_STATUSES = List.of(MlProcessingStatus.COMPLETED, MlProcessingStatus.FAILED, MlProcessingStatus.PENDING, MlProcessingStatus.PROCESSING);
 	private final MlProcessingJobRepository mlProcessingJobRepository;
 
 	@Transactional

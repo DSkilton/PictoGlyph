@@ -17,6 +17,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -71,12 +72,19 @@ class MlProcessingJobQueueServiceTest {
 		assertThat(savedJob.getInputChecksum()).isEqualTo("abc123");
 		assertThat(savedJob.getStatus()).isEqualTo(MlProcessingStatus.PENDING);
 		assertThat(savedJob.getAttemptCount()).isZero();
+
+		verify(repository).findFirstBySymbolIdAndTaskTypeAndModelProfileAndStatusInOrderByRequestedAtDesc(
+				eq(42L),
+				eq(MlProcessingTaskType.GENERATE_IMAGE_EMBEDDING),
+				eq(MODEL_PROFILE),
+				argThat(statuses ->
+						!statuses.contains(MlProcessingStatus.CANCELLED))
+		);
 	}
 
 	@Test
 	void shouldReturnExistingJobWithoutCreatingDuplicate() {
-		MlProcessingJob existingJob =
-				MlProcessingJob.builder()
+		MlProcessingJob existingJob = MlProcessingJob.builder()
 						.id(81L)
 						.symbolId(42L)
 						.taskType(MlProcessingTaskType.GENERATE_IMAGE_EMBEDDING)
@@ -95,19 +103,9 @@ class MlProcessingJobQueueServiceTest {
 
 	@Test
 	void shouldRejectMissingModelProfile() {
-		assertThatThrownBy(() ->
-				service.queueImageEmbedding(
-						42L,
-						" ",
-						null
-				)
-		)
-				.isInstanceOf(
-						IllegalArgumentException.class
-				)
-				.hasMessageContaining(
-						"model profile is required"
-				);
+		assertThatThrownBy(() -> service.queueImageEmbedding(42L, " ", null))
+				.isInstanceOf(IllegalArgumentException.class)
+				.hasMessageContaining("model profile is required");
 
 		verify(repository, never()).save(any(MlProcessingJob.class));
 	}
