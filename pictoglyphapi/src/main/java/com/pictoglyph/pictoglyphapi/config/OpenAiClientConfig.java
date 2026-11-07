@@ -1,3 +1,4 @@
+
 package com.pictoglyph.pictoglyphapi.config;
 
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -9,14 +10,15 @@ import java.time.Duration;
 
 @Configuration
 public class OpenAiClientConfig {
-	private static final int FIVE = 5;
-	private static final int FORTY_FIVE = 45;
 
-	@Bean
+	private static final Duration CONNECT_TIMEOUT = Duration.ofSeconds(5);
+	private static final Duration READ_TIMEOUT = Duration.ofSeconds(45);
+
+	@Bean("openAiRestTemplate")
 	public RestTemplate openAiRestTemplate(RestTemplateBuilder builder) {
 		return builder
-				.setConnectTimeout(Duration.ofSeconds(FIVE))
-				.setReadTimeout(Duration.ofSeconds(FORTY_FIVE))
+				.setConnectTimeout(CONNECT_TIMEOUT)
+				.setReadTimeout(READ_TIMEOUT)
 				.build();
 	}
 }
