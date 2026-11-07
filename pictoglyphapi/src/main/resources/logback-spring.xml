@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+	<property name="LOG_DIR" value="${PICTOGLYPH_LOG_DIR:-logs}"/>
+	<property name="LOG_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{40} - %msg%n"/>
+
+	<appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+		<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+			<level>INFO</level>
+		</filter>
+		<encoder>
+			<pattern>${LOG_PATTERN}</pattern>
+		</encoder>
+	</appender>
+
+	<appender name="APPLICATION" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<file>${LOG_DIR}/application.log</file>
+		<encoder>
+			<pattern>${LOG_PATTERN}</pattern>
+		</encoder>
+		<rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+			<fileNamePattern>${LOG_DIR}/archive/application.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+			<maxFileSize>10MB</maxFileSize>
+			<maxHistory>14</maxHistory>
+			<totalSizeCap>250MB</totalSizeCap>
+		</rollingPolicy>
+	</appender>
+
+	<appender name="PROVENANCE" class="ch.qos.logback.core.FileAppender">
+		<file>${LOG_DIR}/provenance.log</file>
+		<append>true</append>
+		<encoder>
+			<pattern>${LOG_PATTERN}</pattern>
+		</encoder>
+	</appender>
+
+	<logger name="com.pictoglyph.pictoglyphapi.agent.api.AgentInvestigationController" level="DEBUG"/>
+	<logger name="com.pictoglyph.pictoglyphapi.dataset.DatasetMlReleaseController" level="DEBUG"/>
+	<logger name="com.pictoglyph.pictoglyphapi.dataset.DatasetPreparationController" level="DEBUG"/>
+	<logger name="com.pictoglyph.pictoglyphapi.dataset.DatasetSourceProfileQueueController" level="DEBUG"/>
+	<logger name="com.pictoglyph.pictoglyphapi.dataset.DatasetSourceQueueController" level="DEBUG"/>
+	<logger name="com.pictoglyph.pictoglyphapi.dataset.DatasetSourceRetryController" level="DEBUG"/>
+	<logger name="com.pictoglyph.pictoglyphapi.ingestion.api.ApiSourceProfileController" level="DEBUG"/>
+	<logger name="com.pictoglyph.pictoglyphapi.ingestion.api.IngestionController" level="DEBUG"/>
+	<logger name="com.pictoglyph.pictoglyphapi.ingestion.api.IngestionReviewController" level="DEBUG"/>
+	<logger name="com.pictoglyph.pictoglyphapi.ml.web.MlProcessingJobController" level="DEBUG"/>
+	<logger name="PICTOGLYPH_PROVENANCE" level="INFO" additivity="false">
+		<appender-ref ref="PROVENANCE"/>
+	</logger>
+
+	<root level="INFO">
+		<appender-ref ref="CONSOLE"/>
+		<appender-ref ref="APPLICATION"/>
+	</root>
+</configuration>
