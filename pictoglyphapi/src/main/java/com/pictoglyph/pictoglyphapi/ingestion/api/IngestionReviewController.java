@@ -31,21 +31,21 @@ public class IngestionReviewController {
 
 
 	@GetMapping("/review-items")
-	private ResponseEntity<List<IngestionReviewItemResponse>> findByStatus(@RequestParam(defaultValue = "PENDING") IngestionReviewStatus status) {
+	public ResponseEntity<List<IngestionReviewItemResponse>> findByStatus(@RequestParam(defaultValue = "PENDING") IngestionReviewStatus status) {
 		LOGGER.debug("Retrieving ingestion review items: status={}", status);
 
 		return ResponseEntity.ok(reviewItemService.findByStatus(status));
 	}
 
 	@GetMapping("/jobs/{jobId}/review-items")
-	private ResponseEntity<List<IngestionReviewItemResponse>> findByJob(@PathVariable Long jobId) {
+	public ResponseEntity<List<IngestionReviewItemResponse>> findByJob(@PathVariable("jobId") Long jobId) {
 		LOGGER.debug("Retrieving ingestion review items for job {}", jobId);
 
 		return ResponseEntity.ok(reviewItemService.findByJob(jobId));
 	}
 
-	@PatchMapping
-	public ResponseEntity<IngestionReviewItemResponse> update(@PathVariable Long reviewItemId, @Valid @RequestBody UpdateIngestionReviewItemRequest request) {
+	@PatchMapping("/review-items/{reviewItemId}")
+	public ResponseEntity<IngestionReviewItemResponse> update(@PathVariable("reviewItemId") Long reviewItemId, @Valid @RequestBody UpdateIngestionReviewItemRequest request) {
 		LOGGER.info("Updating ingestion review item: reviewItemId={}", reviewItemId);
 
 		IngestionReviewItemResponse response;
@@ -64,7 +64,7 @@ public class IngestionReviewController {
 	}
 
 	@PostMapping("/review-items/{reviewItemId}/reprocess")
-	public ResponseEntity<ReprocessIngestionReviewItemResponse> reprocess(@PathVariable Long reviewItemId, @Valid @RequestBody ReprocessIngestionReviewItemRequest request) {
+	public ResponseEntity<ReprocessIngestionReviewItemResponse> reprocess(@PathVariable("reviewItemId") Long reviewItemId, @Valid @RequestBody ReprocessIngestionReviewItemRequest request) {
 		LOGGER.info("Starting ingestion review reprocessing: reviewItemId={}", reviewItemId);
 
 		ReprocessIngestionReviewItemResponse response;
