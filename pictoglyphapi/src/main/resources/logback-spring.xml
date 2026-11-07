@@ -33,7 +33,16 @@
 		</encoder>
 	</appender>
 
-	<logger name="com.pictoglyph.pictoglyphapi" level="DEBUG"/>
+	<logger name="com.pictoglyph.pictoglyphapi.agent.api.AgentInvestigationController" level="DEBUG"/>
+	<logger name="com.pictoglyph.pictoglyphapi.dataset.DatasetMlReleaseController" level="DEBUG"/>
+	<logger name="com.pictoglyph.pictoglyphapi.dataset.DatasetPreparationController" level="DEBUG"/>
+	<logger name="com.pictoglyph.pictoglyphapi.dataset.DatasetSourceProfileQueueController" level="DEBUG"/>
+	<logger name="com.pictoglyph.pictoglyphapi.dataset.DatasetSourceQueueController" level="DEBUG"/>
+	<logger name="com.pictoglyph.pictoglyphapi.dataset.DatasetSourceRetryController" level="DEBUG"/>
+	<logger name="com.pictoglyph.pictoglyphapi.ingestion.api.ApiSourceProfileController" level="DEBUG"/>
+	<logger name="com.pictoglyph.pictoglyphapi.ingestion.api.IngestionController" level="DEBUG"/>
+	<logger name="com.pictoglyph.pictoglyphapi.ingestion.api.IngestionReviewController" level="DEBUG"/>
+	<logger name="com.pictoglyph.pictoglyphapi.ml.web.MlProcessingJobController" level="DEBUG"/>
 	<logger name="PICTOGLYPH_PROVENANCE" level="INFO" additivity="false">
 		<appender-ref ref="PROVENANCE"/>
 	</logger>
