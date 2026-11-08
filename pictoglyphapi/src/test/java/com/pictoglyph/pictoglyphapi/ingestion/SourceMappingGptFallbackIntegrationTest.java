@@ -12,6 +12,9 @@ import com.pictoglyph.pictoglyphapi.ingestion.mapping.SourceFieldValueReader;
 import com.pictoglyph.pictoglyphapi.ingestion.mapping.SourceMappingConfidenceCalculator;
 import com.pictoglyph.pictoglyphapi.ingestion.mapping.SourceMappingTarget;
 import com.pictoglyph.pictoglyphapi.ingestion.mapping.SourceSampleReader;
+import com.pictoglyph.pictoglyphapi.ingestion.mapping.strategy.DeterministicMappingStrategy;
+import com.pictoglyph.pictoglyphapi.ingestion.mapping.strategy.GptAssistedMappingStrategy;
+import com.pictoglyph.pictoglyphapi.ingestion.mapping.strategy.SourceMappingPipeline;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -48,14 +51,21 @@ class SourceMappingGptFallbackIntegrationTest {
 		RestTemplate restTemplate = new RestTemplate();
 		mockServer = MockRestServiceServer.bindTo(restTemplate).build();
 
+		GptMappingFallbackService fallbackService = new GptMappingFallbackService(advisor, new SourceFieldValueReader(), true);
+		SourceMappingPipeline pipeline = new SourceMappingPipeline(List.of(
+						new DeterministicMappingStrategy(new SourceFieldMatcher()),
+						new GptAssistedMappingStrategy(fallbackService)
+				)
+		);
+
 		service = new SourceMappingProposalService(
 				new SourceSampleReader(restTemplate, new ObjectMapper()),
 				new SourceFieldDiscoveryService(),
-				new SourceFieldMatcher(),
 				new SourceMappingConfidenceCalculator(),
-				new GptMappingFallbackService(advisor, new SourceFieldValueReader(), true)
+				pipeline
 		);
 	}
+
 
 	@Test
 	void shouldAddGptCandidatesWhenRequiredMappingsAreMissing() {

@@ -11,11 +11,16 @@ import com.pictoglyph.pictoglyphapi.ingestion.mapping.SourceFieldMatcher;
 import com.pictoglyph.pictoglyphapi.ingestion.mapping.SourceFieldValueReader;
 import com.pictoglyph.pictoglyphapi.ingestion.mapping.SourceMappingConfidenceCalculator;
 import com.pictoglyph.pictoglyphapi.ingestion.mapping.SourceSampleReader;
+import com.pictoglyph.pictoglyphapi.ingestion.mapping.strategy.DeterministicMappingStrategy;
+import com.pictoglyph.pictoglyphapi.ingestion.mapping.strategy.GptAssistedMappingStrategy;
+import com.pictoglyph.pictoglyphapi.ingestion.mapping.strategy.SourceMappingPipeline;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
+
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -40,16 +45,24 @@ class SourceMappingProposalServiceIntegrationTest {
 		mockServer = MockRestServiceServer.bindTo(restTemplate).build();
 
 		SourceSampleReader sampleReader = new SourceSampleReader(restTemplate,objectMapper);
-
 		SourceFieldDiscoveryService discoveryService = new SourceFieldDiscoveryService();
-
 		SourceFieldMatcher fieldMatcher = new SourceFieldMatcher();
-
 		SourceMappingConfidenceCalculator confidenceCalculator = new SourceMappingConfidenceCalculator();
 
-		service = new SourceMappingProposalService(sampleReader, discoveryService, fieldMatcher, confidenceCalculator,
-				new GptMappingFallbackService(mock(GptMappingAdvisor.class), new SourceFieldValueReader(), false)
-		);
+		GptMappingFallbackService fallbackService = new GptMappingFallbackService(
+						mock(GptMappingAdvisor.class),
+						new SourceFieldValueReader(),
+						false
+				);
+
+		SourceMappingPipeline pipeline = new SourceMappingPipeline(
+						List.of(
+								new DeterministicMappingStrategy(fieldMatcher),
+								new GptAssistedMappingStrategy(fallbackService)
+						)
+				);
+
+		service = new SourceMappingProposalService(sampleReader, discoveryService, confidenceCalculator, pipeline);
 	}
 
 	@Test

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.pictoglyph.pictoglyphapi.ingestion.mapping.FieldMatch;
 import com.pictoglyph.pictoglyphapi.ingestion.mapping.SourceFieldValueReader;
 import com.pictoglyph.pictoglyphapi.ingestion.mapping.SourceMappingTarget;
+import com.pictoglyph.pictoglyphapi.ingestion.mapping.MappingCompleteness;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,7 +36,7 @@ public class GptMappingFallbackService {
 	}
 
 	public Map<SourceMappingTarget, FieldMatch> enrich(String sourceName, Set<String> discoveredFields, List<JsonNode> sampleItems, Map<SourceMappingTarget, FieldMatch> deterministicMatches) {
-		if (!enabled || !missingRequiredMapping(deterministicMatches) || discoveredFields == null || discoveredFields.isEmpty() || sampleItems == null || sampleItems.isEmpty()) {
+		if (!enabled || MappingCompleteness.hasRequiredMappings(deterministicMatches) || discoveredFields == null || discoveredFields.isEmpty() || sampleItems == null || sampleItems.isEmpty()) {
 			return deterministicMatches;
 		}
 
@@ -93,15 +94,6 @@ public class GptMappingFallbackService {
 		LOGGER.info("GPT mapping fallback completed: suggested={}, accepted={}, rejected={}", suggestions.size(), accepted, suggestions.size() - accepted);
 		PROVENANCE_LOGGER.info("event=source_mapping_gpt_fallback_completed suggested={} accepted={} rejected={} status=PROPOSED", suggestions.size(), accepted, suggestions.size() - accepted);
 		return combined;
-	}
-
-	private boolean missingRequiredMapping(Map<SourceMappingTarget, FieldMatch> matches) {
-		for (SourceMappingTarget target : SourceMappingTarget.values()) {
-			if (target.requiredForImport() && (matches == null || !isMapped(matches.get(target)))) {
-				return true;
-			}
-		}
-		return false;
 	}
 
 	private boolean isMapped(FieldMatch match) {
