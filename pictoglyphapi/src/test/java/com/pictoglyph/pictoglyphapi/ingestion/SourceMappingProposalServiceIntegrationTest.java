@@ -4,8 +4,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pictoglyph.pictoglyphapi.ingestion.api.SourceFieldMapping;
 import com.pictoglyph.pictoglyphapi.ingestion.api.SourceMappingProposalRequest;
 import com.pictoglyph.pictoglyphapi.ingestion.api.SourceMappingProposalResponse;
+import com.pictoglyph.pictoglyphapi.ingestion.llm.GptMappingAdvisor;
+import com.pictoglyph.pictoglyphapi.ingestion.llm.GptMappingFallbackService;
 import com.pictoglyph.pictoglyphapi.ingestion.mapping.SourceFieldDiscoveryService;
 import com.pictoglyph.pictoglyphapi.ingestion.mapping.SourceFieldMatcher;
+import com.pictoglyph.pictoglyphapi.ingestion.mapping.SourceFieldValueReader;
 import com.pictoglyph.pictoglyphapi.ingestion.mapping.SourceMappingConfidenceCalculator;
 import com.pictoglyph.pictoglyphapi.ingestion.mapping.SourceSampleReader;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,6 +18,7 @@ import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.test.web.client.ExpectedCount.once;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
@@ -43,7 +47,8 @@ class SourceMappingProposalServiceIntegrationTest {
 
 		SourceMappingConfidenceCalculator confidenceCalculator = new SourceMappingConfidenceCalculator();
 
-		service = new SourceMappingProposalService(sampleReader, discoveryService, fieldMatcher, confidenceCalculator
+		service = new SourceMappingProposalService(sampleReader, discoveryService, fieldMatcher, confidenceCalculator,
+				new GptMappingFallbackService(mock(GptMappingAdvisor.class), new SourceFieldValueReader(), false)
 		);
 	}
 

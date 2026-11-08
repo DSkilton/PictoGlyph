@@ -1,8 +1,11 @@
+
 package com.pictoglyph.pictoglyphapi.ingestion;
 
 import com.pictoglyph.pictoglyphapi.ingestion.api.MappingEvidenceResponse;
+import com.pictoglyph.pictoglyphapi.ingestion.api.SourceFieldMapping;
 import com.pictoglyph.pictoglyphapi.ingestion.api.SourceMappingProposalRequest;
 import com.pictoglyph.pictoglyphapi.ingestion.api.SourceMappingProposalResponse;
+import com.pictoglyph.pictoglyphapi.ingestion.llm.GptMappingFallbackService;
 import com.pictoglyph.pictoglyphapi.ingestion.mapping.FieldMatch;
 import com.pictoglyph.pictoglyphapi.ingestion.mapping.SourceFieldDiscoveryService;
 import com.pictoglyph.pictoglyphapi.ingestion.mapping.SourceFieldMatcher;
@@ -35,15 +38,14 @@ public class SourceMappingProposalService {
 	private final SourceFieldDiscoveryService sourceFieldDiscoveryService;
 	private final SourceFieldMatcher sourceFieldMatcher;
 	private final SourceMappingConfidenceCalculator confidenceCalculator;
+	private final GptMappingFallbackService gptMappingFallbackService;
 
 	public SourceMappingProposalResponse proposeMapping(SourceMappingProposalRequest request) {
 		SourceSample sourceSample = sourceSampleReader.readSample(request.apiUrl(), request.itemArrayField());
-
 		Set<String> discoveredFields = sourceFieldDiscoveryService.discoverFields(sourceSample.sampleItems());
-
 		Map<SourceMappingTarget, FieldMatch> matches = sourceFieldMatcher.matchFields(discoveredFields, sourceSample.sampleItems());
-
-		com.pictoglyph.pictoglyphapi.ingestion.api.SourceFieldMapping proposedMapping = buildSourceFieldMapping(sourceSample.itemArrayField(), matches);
+		matches = gptMappingFallbackService.enrich(request.sourceName(), discoveredFields, sourceSample.sampleItems(), matches);
+		SourceFieldMapping proposedMapping = buildSourceFieldMapping(sourceSample.itemArrayField(), matches);
 
 		return new SourceMappingProposalResponse(
 				request.sourceName(),
@@ -56,8 +58,8 @@ public class SourceMappingProposalService {
 		);
 	}
 
-	private com.pictoglyph.pictoglyphapi.ingestion.api.SourceFieldMapping buildSourceFieldMapping(String itemArrayField, Map<SourceMappingTarget, FieldMatch> matches) {
-		return new com.pictoglyph.pictoglyphapi.ingestion.api.SourceFieldMapping(
+	private SourceFieldMapping buildSourceFieldMapping(String itemArrayField, Map<SourceMappingTarget, FieldMatch> matches) {
+		return new SourceFieldMapping(
 				itemArrayField,
 				sourceField(matches, SYMBOL_CODE),
 				sourceField(matches, IMAGE_PATH),
@@ -81,12 +83,11 @@ public class SourceMappingProposalService {
 			}
 
 			evidence.add(new MappingEvidenceResponse(
-							target.responseFieldName(),
-							match.sourceField(),
-							match.confidence(),
-							match.reason()
-					)
-			);
+					target.responseFieldName(),
+					match.sourceField(),
+					match.confidence(),
+					match.reason()
+			));
 		}
 
 		return evidence;
@@ -95,8 +96,6 @@ public class SourceMappingProposalService {
 	private String sourceField(Map<SourceMappingTarget, FieldMatch> matches, SourceMappingTarget target) {
 		FieldMatch match = matches.get(target);
 
-		return match == null
-				? null
-				: match.sourceField();
+		return match == null ? null : match.sourceField();
 	}
 }
