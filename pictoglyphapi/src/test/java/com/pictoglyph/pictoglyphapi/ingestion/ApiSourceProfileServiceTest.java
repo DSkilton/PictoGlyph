@@ -195,6 +195,8 @@ class ApiSourceProfileServiceTest {
 		assertThat(profile.getApprovedSchemaFields()).isNotNull();
 		assertThat(profile.getApprovedSchemaFields().isArray()).isTrue();
 		assertThat(profile.getApprovedSchemaFields().size()).isEqualTo(3);
+
+		verify(sourceSampleReader).readSample(API_URL, "symbols");
 	}
 
 	@Test
@@ -298,4 +300,54 @@ class ApiSourceProfileServiceTest {
 				.approvedSchemaFields(objectMapper.valueToTree(List.of("imageUrl", "label", "symbolCode")))
 				.build();
 	}
+
+
+	@Test
+	void shouldPreservePeriodFieldWhenCreatingDraft() throws Exception {
+		SourceFieldMapping mappingWithPeriod =
+				new SourceFieldMapping(
+						"symbols",
+						"symbolCode",
+						"imageUrl",
+						null,
+						null,
+						null,
+						"production.period",
+						null,
+						null
+				);
+
+		CreateApiSourceProfileRequest request = new CreateApiSourceProfileRequest("Period mapping test", "Test museum", API_URL, mappingWithPeriod);
+
+		JsonNode item = objectMapper.readTree("""
+            {
+              "symbolCode": "A1",
+              "imageUrl": "https://example.org/a1.png",
+              "production": {
+                "period": "New Kingdom"
+              }
+            }
+            """);
+
+		SourceSample sample = new SourceSample("symbols", List.of(item));
+
+		when(sourceSampleReader.readSample(API_URL, "symbols")).thenReturn(sample);
+		when(sourceMappingValidator.validate(mappingWithPeriod, sample.sampleItems())).thenReturn(
+				new SourceMappingValidationResult(
+						true,
+						List.of(),
+						List.of()
+				)
+		);
+
+		when(repository.save(any(ApiSourceProfile.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+		ApiSourceProfileValidationResponse response = service.createDraft(request);
+
+		assertThat(response.profile()
+				.sourceFieldMapping()
+				.periodField())
+				.isEqualTo("production.period");
+	}
+
 }
