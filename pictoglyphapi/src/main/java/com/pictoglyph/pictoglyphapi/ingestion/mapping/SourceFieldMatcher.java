@@ -1,3 +1,4 @@
+
 package com.pictoglyph.pictoglyphapi.ingestion.mapping;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -36,7 +37,7 @@ public class SourceFieldMatcher {
 
 	private static final double REQUIRED_PATTERN_RATIO = 0.50;
 
-	public Map<SourceMappingTarget, FieldMatch> matchFields(Set<String> discoveredFields, List<JsonNode> sampleItems ) {
+	public Map<SourceMappingTarget, FieldMatch> matchFields(Set<String> discoveredFields, List<JsonNode> sampleItems) {
 		Set<String> discFields = discoveredFields == null ? Set.of() : discoveredFields;
 		List<JsonNode> discItems = sampleItems == null ? List.of() : sampleItems;
 
@@ -44,7 +45,7 @@ public class SourceFieldMatcher {
 		Set<String> usedSourceFields = new HashSet<>();
 
 		for (SourceMappingTarget target : SourceMappingTarget.values()) {
-			FieldMatch match = findBestField(target, discFields, discItems, usedSourceFields);
+			FieldMatch match = findBestField(target, discFields, discItems, usedSourceFields );
 
 			matches.put(target, match);
 
@@ -71,9 +72,15 @@ public class SourceFieldMatcher {
 				continue;
 			}
 
+			if (target == SourceMappingTarget.IMAGE_PATH && isGenericUrlField(discoveredField) && !hasImageValueEvidence(discoveredField, sampleItems)) {
+				continue;
+			}
+
 			double valueScore = calculateValueScore(target, discoveredField, sampleItems);
 			double confidence = round(Math.min(1.0, nameScore + valueScore));
+
 			FieldMatch candidateMatch = new FieldMatch(target, discoveredField, confidence, buildMatchReason(nameScore, valueScore));
+
 			int pathDepth = pathDepth(discoveredField);
 
 			if (bestMatch == null || confidence > bestMatch.confidence() || (confidence == bestMatch.confidence() && pathDepth < bestPathDepth)) {
@@ -92,6 +99,34 @@ public class SourceFieldMatcher {
 		}
 
 		return bestMatch;
+	}
+
+	private boolean isGenericUrlField(String fieldPath) {
+		String fieldName = normalise(lastPathPart(fieldPath));
+
+		return fieldName.equals("url") || fieldName.equals("contenturl");
+	}
+
+	private boolean hasImageValueEvidence(String sourceField, List<JsonNode> sampleItems) {
+		if (sampleItems == null || sampleItems.isEmpty()) {
+			return false;
+		}
+
+		long matchingCount = sampleItems.stream()
+				.flatMap(item -> {
+					JsonNode value = read(item, sourceField);
+
+					if (value == null || value.isNull() || !value.isTextual()) {
+						return java.util.stream.Stream.<String>empty();
+					}
+
+					return java.util.stream.Stream.of(value.asText().trim());
+				})
+				.filter(value -> !value.isBlank())
+				.filter(this::looksLikeImageReference)
+				.count();
+
+		return (double) matchingCount / sampleItems.size() >= REQUIRED_PATTERN_RATIO;
 	}
 
 	private double calculateNameScore(String discoveredField, List<String> candidateNames) {
@@ -189,30 +224,40 @@ public class SourceFieldMatcher {
 	}
 
 	private boolean looksLikeImageReference(String value) {
-		String lowerValue = value.trim().toLowerCase(Locale.ROOT);
-
 		try {
-			if (lowerValue.startsWith("http://") || lowerValue.startsWith("https://")) {
-				String path = URI.create(lowerValue).getPath();
+			URI uri = URI.create(value.trim());
 
-				return path != null && hasSupportedImageExtension(path);
+			if (uri.getScheme() != null) {
+				String scheme = uri.getScheme().toLowerCase(Locale.ROOT);
+
+				if (!scheme.equals("http") && !scheme.equals("https")) {
+					return false;
+				}
+
+				if (uri.getHost() == null) {
+					return false;
+				}
+			} else if (uri.getHost() != null) {
+				return false;
 			}
-				return hasSupportedImageExtension(lowerValue);
+
+			String path = uri.getPath();
+
+			return path != null && hasSupportedImageExtension(path.toLowerCase(Locale.ROOT));
+
 		} catch (IllegalArgumentException exception) {
 			return false;
 		}
 	}
 
 	private boolean hasSupportedImageExtension(String value) {
-		String pathWithoutQuery = value.split("\\?", 2)[0];
-
-		return pathWithoutQuery.endsWith(PNG)
-				|| pathWithoutQuery.endsWith(JPG)
-				|| pathWithoutQuery.endsWith(JPEG)
-				|| pathWithoutQuery.endsWith(WEBP)
-				|| pathWithoutQuery.endsWith(SVG)
-				|| pathWithoutQuery.endsWith(TIF)
-				|| pathWithoutQuery.endsWith(TIFF);
+		return value.endsWith(PNG)
+				|| value.endsWith(JPG)
+				|| value.endsWith(JPEG)
+				|| value.endsWith(WEBP)
+				|| value.endsWith(SVG)
+				|| value.endsWith(TIF)
+				|| value.endsWith(TIFF);
 	}
 
 	private boolean looksLikeSymbolCode(String value) {
@@ -224,14 +269,15 @@ public class SourceFieldMatcher {
 	private boolean looksLikeDate(String value) {
 		String trimmedValue = value.trim();
 
-		return trimmedValue.matches("-?\\d{1,4}") || trimmedValue.matches("(?i).*\\b(?:BC|BCE|AD|CE|century|dynasty)\\b.*"
-		);
+		return trimmedValue.matches("-?\\d{1,4}") || trimmedValue.matches("(?i).*\\b(?:BC|BCE|AD|CE|century|dynasty)\\b.*");
 	}
 
 	private boolean looksLikePlace(String value) {
 		String trimmedValue = value.trim();
 
-		return trimmedValue.length() >= 3 && trimmedValue.length() <= 100 && trimmedValue.matches(".*[A-Za-z].*");
+		return trimmedValue.length() >= 3
+				&& trimmedValue.length() <= 100
+				&& trimmedValue.matches(".*[A-Za-z].*");
 	}
 
 	private String buildMatchReason(double nameScore, double valueScore) {
