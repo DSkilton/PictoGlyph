@@ -126,6 +126,40 @@ class GptMappingFallbackServiceTest {
 		assertThat(result.get(SourceMappingTarget.IMAGE_PATH).sourceField()).isEqualTo("imageUrl");
 	}
 
+
+	@Test
+	void shouldRejectGptSuggestionOfArtefactIdentifier() throws Exception {
+		Map<SourceMappingTarget, FieldMatch> original = new EnumMap<>(SourceMappingTarget.class);
+		Set<String> fields = Set.of("object_number", "imageUrl");
+
+		when(advisor.suggest(eq("Museum"), eq(fields)))
+				.thenReturn(List.of(
+						new GptFieldSuggestion(
+								SourceMappingTarget.SYMBOL_CODE,
+								"object_number",
+								"Possible identifier"
+						)
+				));
+
+		Map<SourceMappingTarget, FieldMatch> result =
+				fallback.enrich(
+						"Museum",
+						fields,
+						samples("""
+                            [
+                              {
+                                "object_number": "EA123",
+                                "imageUrl": "https://example.org/a.jpg"
+                              }
+                            ]
+                            """),
+						original
+				);
+
+		assertThat(result).doesNotContainKey(SourceMappingTarget.SYMBOL_CODE);
+		verify(advisor).suggest("Museum", fields);
+	}
+
 	private Map<SourceMappingTarget, FieldMatch> completeMatches() {
 		Map<SourceMappingTarget, FieldMatch> result = new EnumMap<>(SourceMappingTarget.class);
 		result.put(SourceMappingTarget.SYMBOL_CODE, new FieldMatch(SourceMappingTarget.SYMBOL_CODE, "symbolCode", 0.95, "Matched"));

@@ -5,6 +5,8 @@ import com.pictoglyph.pictoglyphapi.ingestion.mapping.FieldMatch;
 import com.pictoglyph.pictoglyphapi.ingestion.mapping.SourceFieldValueReader;
 import com.pictoglyph.pictoglyphapi.ingestion.mapping.SourceMappingTarget;
 import com.pictoglyph.pictoglyphapi.ingestion.mapping.MappingCompleteness;
+import com.pictoglyph.pictoglyphapi.ingestion.mapping.identifier.SignIdentifierPolicy;
+import com.pictoglyph.pictoglyphapi.ingestion.mapping.identifier.SourceIdentifierAssessment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,11 +20,13 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import static com.pictoglyph.pictoglyphapi.utils.Constants.PICTOGLYPH_PROVENANCE;
+
 @Service
 public class GptMappingFallbackService {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(GptMappingFallbackService.class);
-	private static final Logger PROVENANCE_LOGGER = LoggerFactory.getLogger("PICTOGLYPH_PROVENANCE");
+	private static final Logger PROVENANCE_LOGGER = LoggerFactory.getLogger(PICTOGLYPH_PROVENANCE);
 	private static final double GPT_CANDIDATE_SCORE = 0.50;
 
 	private final GptMappingAdvisor advisor;
@@ -71,9 +75,19 @@ public class GptMappingFallbackService {
 		int accepted = 0;
 
 		for (GptFieldSuggestion suggestion : suggestions) {
-			if (suggestion == null || suggestion.target() == null || !discoveredFields.contains(suggestion.sourceField())
-					|| isMapped(combined.get(suggestion.target())) || usedFields.contains(suggestion.sourceField())) {
+			if (suggestion == null || suggestion.target() == null || suggestion.sourceField() == null || !discoveredFields.contains(suggestion.sourceField()) || isMapped(combined.get(suggestion.target())) || usedFields.contains(suggestion.sourceField())) {
 				continue;
+			}
+
+			if (suggestion.target() == SourceMappingTarget.SYMBOL_CODE) {
+				SourceIdentifierAssessment assessment = SignIdentifierPolicy.assess(suggestion.sourceField());
+
+				if (!assessment.eligibleForAutomaticMapping()) {
+					LOGGER.debug("Rejected GPT sign identifier candidate: classification={}", assessment.role());
+					PROVENANCE_LOGGER.info("event=source_mapping_identifier_candidate_rejected strategy=GPT classification={} status=PROPOSED", assessment.role());
+
+					continue;
+				}
 			}
 
 			long populated = sampleItems.stream()

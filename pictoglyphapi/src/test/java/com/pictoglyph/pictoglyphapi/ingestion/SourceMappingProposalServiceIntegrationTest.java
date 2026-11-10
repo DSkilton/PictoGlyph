@@ -1,3 +1,4 @@
+
 package com.pictoglyph.pictoglyphapi.ingestion;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -44,23 +45,23 @@ class SourceMappingProposalServiceIntegrationTest {
 
 		mockServer = MockRestServiceServer.bindTo(restTemplate).build();
 
-		SourceSampleReader sampleReader = new SourceSampleReader(restTemplate,objectMapper);
+		SourceSampleReader sampleReader = new SourceSampleReader(restTemplate, objectMapper);
 		SourceFieldDiscoveryService discoveryService = new SourceFieldDiscoveryService();
 		SourceFieldMatcher fieldMatcher = new SourceFieldMatcher();
 		SourceMappingConfidenceCalculator confidenceCalculator = new SourceMappingConfidenceCalculator();
 
 		GptMappingFallbackService fallbackService = new GptMappingFallbackService(
-						mock(GptMappingAdvisor.class),
-						new SourceFieldValueReader(),
-						false
-				);
+				mock(GptMappingAdvisor.class),
+				new SourceFieldValueReader(),
+				false
+		);
 
 		SourceMappingPipeline pipeline = new SourceMappingPipeline(
-						List.of(
-								new DeterministicMappingStrategy(fieldMatcher),
-								new GptAssistedMappingStrategy(fallbackService)
-						)
-				);
+				List.of(
+						new DeterministicMappingStrategy(fieldMatcher),
+						new GptAssistedMappingStrategy(fallbackService)
+				)
+		);
 
 		service = new SourceMappingProposalService(sampleReader, discoveryService, confidenceCalculator, pipeline);
 	}
@@ -93,7 +94,12 @@ class SourceMappingProposalServiceIntegrationTest {
 				.andExpect(method(GET))
 				.andRespond(withSuccess(responseJson, MediaType.APPLICATION_JSON));
 
-		SourceMappingProposalRequest request = new SourceMappingProposalRequest("Local mock symbol API", API_URL, null);
+		SourceMappingProposalRequest request = new SourceMappingProposalRequest(
+				"Local mock symbol API",
+				API_URL,
+				null
+		);
+
 		SourceMappingProposalResponse response = service.proposeMapping(request);
 		SourceFieldMapping mapping = response.proposedMapping();
 
@@ -113,19 +119,22 @@ class SourceMappingProposalServiceIntegrationTest {
 		assertThat(mapping.dateEndField()).isNull();
 
 		assertThat(response.overallConfidence()).isGreaterThanOrEqualTo(0.85);
+		assertThat(response.evidence())
+				.anySatisfy(item -> {
+					assertThat(item.targetField()).isEqualTo("symbolCodeField");
+					assertThat(item.sourceField()).isEqualTo("symbolCode");
+					assertThat(item.confidence()).isGreaterThanOrEqualTo(0.85);
+				});
 
-		assertThat(response.evidence()).anySatisfy(item -> {
-			assertThat(item.targetField()).isEqualTo("symbolCodeField");
-			assertThat(item.sourceField()).isEqualTo("symbolCode");
-			assertThat(item.confidence()).isGreaterThanOrEqualTo(0.85);});
+		assertThat(response.evidence())
+				.anySatisfy(item -> {
+					assertThat(item.targetField()).isEqualTo("imagePathField");
+					assertThat(item.sourceField()).isEqualTo("imageUrl");
+					assertThat(item.confidence()).isGreaterThanOrEqualTo(0.90);
+				});
+
 		mockServer.verify();
-
-		assertThat(response.evidence()).anySatisfy(item -> {
-			assertThat(item.targetField()).isEqualTo("imagePathField");
-			assertThat(item.sourceField()).isEqualTo("imageUrl");
-			assertThat(item.confidence()).isGreaterThanOrEqualTo(0.90);});
-			mockServer.verify();
-		}
+	}
 
 	@Test
 	void shouldDiscoverAndMapNestedFields() {
@@ -134,6 +143,7 @@ class SourceMappingProposalServiceIntegrationTest {
 				  "results": [
 				    {
 				      "object_number": "EA123",
+				      "sign_code": "G17",
 				      "display": {
 				        "title": "Hieroglyphic sign"
 				      },
@@ -155,24 +165,28 @@ class SourceMappingProposalServiceIntegrationTest {
 				.andExpect(method(GET))
 				.andRespond(withSuccess(responseJson, MediaType.APPLICATION_JSON));
 
-		SourceMappingProposalResponse response = service.proposeMapping(new SourceMappingProposalRequest("Nested museum API", API_URL, null		));
+		SourceMappingProposalResponse response = service.proposeMapping(
+				new SourceMappingProposalRequest(
+						"Nested museum API",
+						API_URL,
+						null
+				)
+		);
 
 		SourceFieldMapping mapping = response.proposedMapping();
 
 		assertThat(mapping.itemArrayField()).isEqualTo("results");
-
-		assertThat(mapping.symbolCodeField()).isEqualTo("object_number");
-
+		assertThat(mapping.symbolCodeField()).isEqualTo("sign_code");
 		assertThat(mapping.imagePathField()).isEqualTo("media.image_url");
-
 		assertThat(mapping.titleField()).isEqualTo("display.title");
-
 		assertThat(mapping.periodField()).isEqualTo("production.period");
-
 		assertThat(mapping.placeField()).isEqualTo("findspot.place");
 
 		assertThat(mapping.dateStartField()).isNull();
 		assertThat(mapping.dateEndField()).isNull();
+
+		assertThat(response.discoveredFields())
+				.contains("object_number", "sign_code");
 
 		mockServer.verify();
 	}
@@ -195,7 +209,13 @@ class SourceMappingProposalServiceIntegrationTest {
 				.andExpect(method(GET))
 				.andRespond(withSuccess(responseJson, MediaType.APPLICATION_JSON));
 
-		SourceMappingProposalResponse response = service.proposeMapping(new SourceMappingProposalRequest("Misleading source", API_URL, null		));
+		SourceMappingProposalResponse response = service.proposeMapping(
+				new SourceMappingProposalRequest(
+						"Misleading source",
+						API_URL,
+						null
+				)
+		);
 
 		SourceFieldMapping mapping = response.proposedMapping();
 
@@ -226,7 +246,13 @@ class SourceMappingProposalServiceIntegrationTest {
 				.andExpect(method(GET))
 				.andRespond(withSuccess(responseJson, MediaType.APPLICATION_JSON));
 
-		SourceMappingProposalResponse response = service.proposeMapping(new SourceMappingProposalRequest("Incomplete source", API_URL, null));
+		SourceMappingProposalResponse response = service.proposeMapping(
+				new SourceMappingProposalRequest(
+						"Incomplete source",
+						API_URL,
+						null
+				)
+		);
 
 		SourceFieldMapping mapping = response.proposedMapping();
 
@@ -244,16 +270,16 @@ class SourceMappingProposalServiceIntegrationTest {
 	@Test
 	void shouldNotReuseOneSourceFieldForMultipleMappingTargets() {
 		String responseJson = """
-			{
-			  "items": [
-			    {
-			      "id": "A1",
-			      "image": "https://example.org/images/a1.png",
-			      "name": "Seated man"
-			    }
-			  ]
-			}
-			""";
+				{
+				  "items": [
+				    {
+				      "signCode": "A1",
+				      "image": "https://example.org/images/a1.png",
+				      "name": "Seated man"
+				    }
+				  ]
+				}
+				""";
 
 		mockServer.expect(once(), requestTo(API_URL))
 				.andExpect(method(GET))
@@ -269,7 +295,7 @@ class SourceMappingProposalServiceIntegrationTest {
 
 		SourceFieldMapping mapping = response.proposedMapping();
 
-		assertThat(mapping.symbolCodeField()).isEqualTo("id");
+		assertThat(mapping.symbolCodeField()).isEqualTo("signCode");
 		assertThat(mapping.imagePathField()).isEqualTo("image");
 		assertThat(mapping.titleField()).isEqualTo("name");
 
@@ -280,6 +306,43 @@ class SourceMappingProposalServiceIntegrationTest {
 						SourceFieldMapping::titleField
 				)
 				.doesNotHaveDuplicates();
+
+		mockServer.verify();
+	}
+
+	@Test
+	void shouldNotAutomaticallyMapGenericMuseumIdentifier() {
+		String responseJson = """
+				{
+				  "items": [
+				    {
+				      "id": "EA123",
+				      "imageUrl": "https://example.org/ea123.jpg",
+				      "title": "Museum artefact"
+				    }
+				  ]
+				}
+				""";
+
+		mockServer.expect(once(), requestTo(API_URL))
+				.andExpect(method(GET))
+				.andRespond(withSuccess(responseJson, MediaType.APPLICATION_JSON));
+
+		SourceMappingProposalResponse response = service.proposeMapping(
+				new SourceMappingProposalRequest(
+						"Museum collection",
+						API_URL,
+						null
+				)
+		);
+
+		SourceFieldMapping mapping = response.proposedMapping();
+
+		assertThat(mapping.symbolCodeField()).isNull();
+		assertThat(mapping.imagePathField()).isEqualTo("imageUrl");
+		assertThat(mapping.titleField()).isEqualTo("title");
+
+		assertThat(response.discoveredFields()).contains("id");
 
 		mockServer.verify();
 	}

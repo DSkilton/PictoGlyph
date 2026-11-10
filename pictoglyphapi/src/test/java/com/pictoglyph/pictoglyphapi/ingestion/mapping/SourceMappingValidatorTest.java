@@ -1,3 +1,4 @@
+
 package com.pictoglyph.pictoglyphapi.ingestion.mapping;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -7,6 +8,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.stream.StreamSupport;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -25,7 +27,7 @@ class SourceMappingValidatorTest {
 	void shouldAcceptValidNestedMapping() throws Exception {
 		SourceFieldMapping mapping = new SourceFieldMapping(
 				"results",
-				"object_number",
+				"sign_code",
 				"media.image_url",
 				"display.title",
 				null,
@@ -39,6 +41,7 @@ class SourceMappingValidatorTest {
 				[
 				  {
 				    "object_number": "EA123",
+				    "sign_code": "G17",
 				    "media": {
 				      "image_url": "https://example.org/ea123.jpg"
 				    },
@@ -55,8 +58,7 @@ class SourceMappingValidatorTest {
 				]
 				""");
 
-		SourceMappingValidationResult result =
-				validator.validate(mapping, items);
+		SourceMappingValidationResult result = validator.validate(mapping, items);
 
 		assertThat(result.valid()).isTrue();
 		assertThat(result.errors()).isEmpty();
@@ -80,15 +82,18 @@ class SourceMappingValidatorTest {
 
 		assertThat(result.valid()).isFalse();
 
-		assertThat(result.errors()).contains("symbolCodeField must be mapped", "imagePathField must be mapped");
+		assertThat(result.errors())
+				.contains(
+						"symbolCodeField must be mapped",
+						"imagePathField must be mapped"
+				);
 	}
 
 	@Test
-	void shouldRejectRequiredPathThatDoesNotExist()
-			throws Exception {
+	void shouldRejectRequiredPathThatDoesNotExist() throws Exception {
 		SourceFieldMapping mapping = new SourceFieldMapping(
 				"items",
-				"missing.code",
+				"missing.signCode",
 				"media.image_url",
 				null,
 				null,
@@ -108,8 +113,7 @@ class SourceMappingValidatorTest {
 				]
 				""");
 
-		SourceMappingValidationResult result =
-				validator.validate(mapping, items);
+		SourceMappingValidationResult result = validator.validate(mapping, items);
 
 		assertThat(result.valid()).isFalse();
 
@@ -117,16 +121,15 @@ class SourceMappingValidatorTest {
 				.anySatisfy(error ->
 						assertThat(error)
 								.contains("symbolCodeField")
-								.contains("missing.code")
+								.contains("missing.signCode")
 				);
 	}
 
 	@Test
-	void shouldWarnWhenOptionalMappingHasNoValues()
-			throws Exception {
+	void shouldWarnWhenOptionalMappingHasNoValues() throws Exception {
 		SourceFieldMapping mapping = new SourceFieldMapping(
 				"items",
-				"code",
+				"symbolCode",
 				"imageUrl",
 				"title",
 				null,
@@ -139,7 +142,7 @@ class SourceMappingValidatorTest {
 		List<JsonNode> items = itemsFrom("""
 				[
 				  {
-				    "code": "A1",
+				    "symbolCode": "A1",
 				    "imageUrl": "https://example.org/a1.png",
 				    "title": "Seated man"
 				  }
@@ -160,12 +163,11 @@ class SourceMappingValidatorTest {
 	}
 
 	@Test
-	void shouldRejectSameFieldForCodeAndImage()
-			throws Exception {
+	void shouldRejectSameFieldForCodeAndImage() throws Exception {
 		SourceFieldMapping mapping = new SourceFieldMapping(
 				"items",
-				"id",
-				"id",
+				"signCode",
+				"signCode",
 				null,
 				null,
 				null,
@@ -177,48 +179,51 @@ class SourceMappingValidatorTest {
 		List<JsonNode> items = itemsFrom("""
 				[
 				  {
-				    "id": "A1"
+				    "signCode": "A1"
 				  }
 				]
 				""");
 
-		SourceMappingValidationResult result =
-				validator.validate(mapping, items);
+		SourceMappingValidationResult result = validator.validate(mapping, items);
 
 		assertThat(result.valid()).isFalse();
-
-		assertThat(result.errors()).contains("symbolCodeField and imagePathField cannot use the same source field");
-	}
-
-	private List<JsonNode> itemsFrom(String json) throws Exception {
-		JsonNode arrayNode = objectMapper.readTree(json);
-
-		return java.util.stream.StreamSupport
-				.stream(arrayNode.spliterator(), false)
-				.toList();
+		assertThat(result.errors())
+				.contains(
+						"symbolCodeField and imagePathField cannot use the same source field"
+				);
 	}
 
 	@Test
 	void shouldReportActualPercentageWhenOptionalFieldHasLowCoverage() throws Exception {
-		SourceFieldMapping mapping = new SourceFieldMapping("items", "code", "imageUrl", null, null, "place", null, null, null);
+		SourceFieldMapping mapping = new SourceFieldMapping(
+				"items",
+				"symbolCode",
+				"imageUrl",
+				null,
+				null,
+				"place",
+				null,
+				null,
+				null
+		);
 
 		List<JsonNode> items = itemsFrom("""
-			[
-			  {
-			    "code": "A1",
-			    "imageUrl": "https://example.org/a1.png",
-			    "place": "Thebes"
-			  },
-			  {
-			    "code": "A2",
-			    "imageUrl": "https://example.org/a2.png"
-			  },
-			  {
-			    "code": "A3",
-			    "imageUrl": "https://example.org/a3.png"
-			  }
-			]
-			""");
+				[
+				  {
+				    "symbolCode": "A1",
+				    "imageUrl": "https://example.org/a1.png",
+				    "place": "Thebes"
+				  },
+				  {
+				    "symbolCode": "A2",
+				    "imageUrl": "https://example.org/a2.png"
+				  },
+				  {
+				    "symbolCode": "A3",
+				    "imageUrl": "https://example.org/a3.png"
+				  }
+				]
+				""");
 
 		SourceMappingValidationResult result = validator.validate(mapping, items);
 
@@ -230,5 +235,83 @@ class SourceMappingValidatorTest {
 						"placeField maps to place, but only 33% "
 								+ "of sampled records contain a usable value"
 				);
+	}
+
+	@Test
+	void shouldRejectArtefactNumberAsSymbolCode() throws Exception {
+		SourceFieldMapping mapping = new SourceFieldMapping(
+				"items",
+				"object_number",
+				"imageUrl",
+				null,
+				null,
+				null,
+				null,
+				null,
+				null
+		);
+
+		List<JsonNode> items = itemsFrom("""
+				[
+				  {
+				    "object_number": "EA123",
+				    "imageUrl": "https://example.org/ea123.jpg"
+				  }
+				]
+				""");
+
+		SourceMappingValidationResult result = validator.validate(mapping, items);
+
+		assertThat(result.valid()).isFalse();
+		assertThat(result.errors())
+				.anySatisfy(error ->
+						assertThat(error)
+								.contains("symbolCodeField")
+								.contains("object_number")
+								.contains("ARTEFACT_OR_RECORD")
+				);
+	}
+
+	@Test
+	void shouldRequireExplicitSemanticsForGenericId() throws Exception {
+		SourceFieldMapping mapping = new SourceFieldMapping(
+				"items",
+				"id",
+				"imageUrl",
+				null,
+				null,
+				null,
+				null,
+				null,
+				null
+		);
+
+		List<JsonNode> items = itemsFrom("""
+				[
+				  {
+				    "id": "A1",
+				    "imageUrl": "https://example.org/a1.jpg"
+				  }
+				]
+				""");
+
+		SourceMappingValidationResult result = validator.validate(mapping, items);
+
+		assertThat(result.valid()).isFalse();
+		assertThat(result.errors())
+				.anySatisfy(error ->
+						assertThat(error)
+								.contains("symbolCodeField")
+								.contains("id")
+								.contains("UNRESOLVED")
+				);
+	}
+
+	private List<JsonNode> itemsFrom(String json) throws Exception {
+		JsonNode arrayNode = objectMapper.readTree(json);
+
+		return StreamSupport
+				.stream(arrayNode.spliterator(), false)
+				.toList();
 	}
 }

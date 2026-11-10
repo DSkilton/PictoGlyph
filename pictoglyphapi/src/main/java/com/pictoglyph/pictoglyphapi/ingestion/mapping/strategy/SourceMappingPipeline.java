@@ -14,11 +14,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import static com.pictoglyph.pictoglyphapi.utils.Constants.PICTOGLYPH_PROVENANCE;
+
 @Service
 @RequiredArgsConstructor
 public class SourceMappingPipeline {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SourceMappingPipeline.class);
-	private static final Logger PROVENANCE_LOGGER = LoggerFactory.getLogger("PICTOGLYPH_PROVENANCE");
+	private static final Logger PROVENANCE_LOGGER = LoggerFactory.getLogger(PICTOGLYPH_PROVENANCE);
 
 	private final List<SourceMappingStrategy> strategies;
 
@@ -35,7 +37,7 @@ public class SourceMappingPipeline {
 			MappingStep step = Objects.requireNonNull(
 					strategy.apply(context, snapshot), "Mapping strategy returned null"
 			);
-			
+
 			matches.clear();
 			matches.putAll(step.matches());
 

@@ -11,8 +11,7 @@ public final class SourceMappingCandidateCatalog {
 
 	private static final Map<SourceMappingTarget, List<String>> FIELD_CANDIDATES = Map.of(
 			SourceMappingTarget.SYMBOL_CODE,
-				List.of("symbolCode", "symbol_code", "code", "signCode", "sign_code", "glyphCode", "glyph_code", "gardinerCode", "gardiner_code",
-					"objectNumber", "object_number", "accessionNumber", "accession_number", "identifier", "id"
+				List.of("symbolCode", "symbol_code", "signCode", "sign_code", "glyphCode", "glyph_code", "gardinerCode", "gardiner_code"
 			),
 
 			SourceMappingTarget.IMAGE_PATH,
