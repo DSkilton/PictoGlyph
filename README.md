@@ -63,7 +63,11 @@ Further automation, including LLM-assisted source integration, is being explored
 - FastAPI + Uvicorn
 - Pillow, PyTorch, and Hugging Face Transformers
 - SigLIP2 image encoder (`google/siglip2-base-patch16-naflex`) using CUDA
-- Additional research tooling for preprocessing, analysis, and evaluation as experiments develop
+- NumPy and scikit-learn – research experiments, preprocessing, and model evaluation
+- OpenCV – planned and exploratory image-processing workflows
+- Later: additional transformer/attention-based models for sequences and contextual analysis
+
+> NumPy, scikit-learn, and OpenCV remain part of the broader research toolkit; they are not currently declared in `pictoglyphml/requirements.txt`. PyTorch is already used by the SigLIP2 implementation but must be installed separately with CUDA support.
 
 **Database**
 - Domain concepts include:
@@ -162,13 +166,17 @@ Key service paths (not an exhaustive directory tree):
 ```
 
 ## Future Developments
-After the research MVP is working end-to-end:
+Planned research and engineering work (some items can progress before the MVP is complete):
 
-- Scale dataset acquisition and improve field mapping automation, source validation, and labelled sign-crop quality
+- Scale dataset acquisition, improve automated field mapping, validate source changes, and strengthen labelled sign-crop quality
 - Establish real visual-similarity retrieval and evaluate SigLIP2 against suitable baselines
-- Compare visual-only, metadata-only, and combined approaches, including chronology, location, and provenance
-- Improve explainability, reproducibility, uncertainty reporting, and expert review workflows
-- Explore PCA, t-SNE, and UMAP to visualise embedding spaces and investigate possible clusters
-- Investigate sequence modelling, attention/transformers, symbol variants, and multiple possible interpretations
-- Integrate richer datasets, including cuneiform, Egyptian hieroglyphs, Maya glyphs, oracle bone script, and other relevant writing systems
-- Consider Kafka, Docker/Kubernetes, CI/CD, and additional quality tooling where they help reliability or scale
+- Compare visual-only, metadata-only, and combined approaches using chronology, location, trade routes, and provenance
+- Improve explainability, reproducibility, uncertainty reporting, and expert-review workflows
+- Add attention/transformer-based models to explore symbol sequences, context, and relationships between scripts
+- Use dimensionality reduction techniques such as PCA, t-SNE, and UMAP to visualise embedding spaces and explore meaningful clusters
+- Add support for symbol variants and multiple possible interpretations
+- Explore vector search for visually or semantically similar symbols
+- Introduce Kafka for asynchronous ingestion and prediction if the workload justifies it
+- Containerise services with Docker and optionally Kubernetes
+- Add CI/CD with Jenkins and quality checks with SonarQube, or evaluate equivalent tooling as the deployment strategy evolves
+- Integrate richer datasets, such as cuneiform, Egyptian hieroglyphs, Maya glyphs, oracle bone script, and other relevant writing systems
