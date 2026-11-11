@@ -3,7 +3,7 @@ PictoGlyph is an experimental platform for modelling pictographic writing system
 
 The long-term aim is to help explore how symbols, language families, places, time periods, trade routes and cultural context may relate to one another. The project is not intended to provide a simple automatic translation. Instead, it aims to support human investigation by producing evidence-based suggestions, comparisons and possible interpretations.
 
-Good data is central to the project. Before any meaningful AI or ML work can happen, PictoGlyph needs a strong foundation for storing languages, symbols, inscriptions, places, routes, metadata and model outputs in a structured and traceable way.
+Good data is central to the project. Reliable AI and ML experiments depend on a strong foundation for storing languages, symbols, inscriptions, places, routes, metadata and model outputs in a structured and traceable way.
 
 ## Status
 **Active development — progressing towards an end-to-end research MVP.**
@@ -42,7 +42,6 @@ The initial MVP focuses on a small, robust pipeline:
    - Java coordinates ML jobs and records processing evidence
    - Real similarity ranking and candidate-language predictions remain research and implementation goals
    - Predictions will be treated as hypotheses, not final answers
-
 
 ## Data Ingestion and Provenance
 
@@ -92,7 +91,6 @@ Further automation, including LLM-assisted source integration, is being explored
 3. **PostgreSQL**
    - Stores domain records, source/ingestion information, dataset state, processing jobs, and model outputs
    - Historical and geographical metadata can be linked to languages and symbols
-
 
 ## Research Approach
 
