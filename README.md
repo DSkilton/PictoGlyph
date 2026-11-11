@@ -15,7 +15,7 @@ Initial image embedding support uses SigLIP2. Ongoing work focuses on scaling da
 ## Project Details
 - **Java (Spring Boot)** – core API, domain model, ingestion, source profiles, dataset validation, and ML job orchestration
 - **Python (FastAPI + ML)** – image preprocessing and SigLIP2 embeddings; similarity retrieval and language prediction are research goals
-- **PostgreSQL** – storage for languages, symbols, places, trade routes, provenance, and model outputs
+- **PostgreSQL** – relational research data, flexible JSONB metadata, provenance, and model outputs
 
 The long-term vision is to link symbol appearance with historical context (place, time, trade routes, goods) and use modern ML (CNNs, transformers/attention) to explore relationships between known and unknown scripts.
 
@@ -175,7 +175,7 @@ Planned research and engineering work (some items can progress before the MVP is
 - Add attention/transformer-based models to explore symbol sequences, context, and relationships between scripts
 - Use dimensionality reduction techniques such as PCA, t-SNE, and UMAP to visualise embedding spaces and explore meaningful clusters
 - Add support for symbol variants and multiple possible interpretations
-- Explore vector search for visually or semantically similar symbols
+- Evaluate PostgreSQL's pgvector extension for similarity search over image embeddings, alongside relational data and JSONB metadata, rather than maintaining a separate FAISS index
 - Introduce Kafka for asynchronous ingestion and prediction if the workload justifies it
 - Containerise services with Docker and optionally Kubernetes
 - Add CI/CD with Jenkins and quality checks with SonarQube, or evaluate equivalent tooling as the deployment strategy evolves
