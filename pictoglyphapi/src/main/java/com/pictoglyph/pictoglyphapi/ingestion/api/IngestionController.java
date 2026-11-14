@@ -17,12 +17,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+import static com.pictoglyph.pictoglyphapi.utils.Constants.PICTOGLYPH_PROVENANCE;
+
 @RestController
 @RequestMapping("/ingestion")
 @RequiredArgsConstructor
 public class IngestionController {
 	private static final Logger LOGGER = LoggerFactory.getLogger(IngestionController.class);
-	private static final Logger PROVENANCE_LOGGER = LoggerFactory.getLogger("PICTOGLYPH_PROVENANCE");
+	private static final Logger PROVENANCE_LOGGER = LoggerFactory.getLogger(PICTOGLYPH_PROVENANCE);
 
 	private final FolderSymbolIngestionService folderSymbolIngestionService;
 	private final IngestionJobService ingestionJobService;

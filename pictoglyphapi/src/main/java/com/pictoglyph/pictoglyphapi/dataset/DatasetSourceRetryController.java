@@ -9,13 +9,15 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import static com.pictoglyph.pictoglyphapi.utils.Constants.PICTOGLYPH_PROVENANCE;
+
 @RestController
 @RequestMapping("/datasets/preparations")
 @RequiredArgsConstructor
 public class DatasetSourceRetryController {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(DatasetSourceRetryController.class);
-	private static final Logger PROVENANCE_LOGGER = LoggerFactory.getLogger("PICTOGLYPH_PROVENANCE");
+	private static final Logger PROVENANCE_LOGGER = LoggerFactory.getLogger(PICTOGLYPH_PROVENANCE);
 
 	private final DatasetSourceRetryService service;
 

@@ -65,6 +65,7 @@ public class ApiSourceProfileService {
 				.titleField(mapping.titleField())
 				.descriptionField(mapping.descriptionField())
 				.placeField(mapping.placeField())
+				.periodField(mapping.periodField())
 				.dateStartField(mapping.dateStartField())
 				.dateEndField(mapping.dateEndField())
 				.validatedAt(LocalDateTime.now())
@@ -81,8 +82,7 @@ public class ApiSourceProfileService {
 		SourceFieldMapping mapping = toMapping(profile);
 
 		SourceSample sample = sourceSampleReader.readSample(profile.getApiUrl(), mapping.itemArrayField());
-		SourceMappingValidationResult validationResult = validateMapping(profile.getApiUrl(), mapping);
-
+		SourceMappingValidationResult validationResult = sourceMappingValidator.validate(mapping, sample.sampleItems());
 		requireValidMapping(validationResult);
 
 		Set<String> discoveredFields = sourceFieldDiscoveryService.discoverFields(sample.sampleItems());

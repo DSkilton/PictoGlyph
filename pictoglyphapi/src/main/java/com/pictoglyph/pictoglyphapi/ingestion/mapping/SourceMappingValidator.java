@@ -2,6 +2,8 @@ package com.pictoglyph.pictoglyphapi.ingestion.mapping;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.pictoglyph.pictoglyphapi.ingestion.api.SourceFieldMapping;
+import com.pictoglyph.pictoglyphapi.ingestion.mapping.identifier.SignIdentifierPolicy;
+import com.pictoglyph.pictoglyphapi.ingestion.mapping.identifier.SourceIdentifierAssessment;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -29,6 +31,7 @@ public class SourceMappingValidator {
 		validateRequiredMapping("symbolCodeField", mapping.symbolCodeField(), errors);
 		validateRequiredMapping("imagePathField", mapping.imagePathField(), errors);
 		validateDifferentRequiredFields(mapping, errors);
+		validateSignIdentifierRole(mapping.symbolCodeField(), errors);
 
 		List<JsonNode> safeCandidateItems = candidatItems == null ? List.of() : candidatItems;
 		
@@ -47,6 +50,20 @@ public class SourceMappingValidator {
 		validateDuplicateMappings(mappedFields, warnings);
 
 		return new SourceMappingValidationResult(errors.isEmpty(), errors, warnings);
+	}
+
+	private void validateSignIdentifierRole(String sourceFieldPath, List<String> errors) {
+		if (sourceFieldPath == null || sourceFieldPath.isBlank()) {
+			return;
+		}
+
+		SourceIdentifierAssessment assessment = SignIdentifierPolicy.assess(sourceFieldPath);
+
+		if (!assessment.eligibleForAutomaticMapping()) {
+			errors.add("symbolCodeField '" + sourceFieldPath + "' is not eligible for automatic sign mapping ("
+							+ assessment.role() + "): " + assessment.reason()
+			);
+		}
 	}
 
 	private void validateDuplicateMappings(Map<String, String> mappedFields, List<String> warnings) {

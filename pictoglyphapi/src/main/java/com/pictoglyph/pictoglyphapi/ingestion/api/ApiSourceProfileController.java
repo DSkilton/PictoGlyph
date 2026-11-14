@@ -15,13 +15,15 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+import static com.pictoglyph.pictoglyphapi.utils.Constants.PICTOGLYPH_PROVENANCE;
+
 @RestController
 @RequestMapping("/ingestion/api-profiles")
 @RequiredArgsConstructor
 public class ApiSourceProfileController {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ApiSourceProfileController.class);
-	private static final Logger PROVENANCE_LOGGER = LoggerFactory.getLogger("PICTOGLYPH_PROVENANCE");
+	private static final Logger PROVENANCE_LOGGER = LoggerFactory.getLogger(PICTOGLYPH_PROVENANCE);
 
 	private final ApiSourceProfileService apiSourceProfileService;
 
