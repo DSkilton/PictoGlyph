@@ -1,4 +1,7 @@
 package com.pictoglyph.pictoglyphapi.ingestion.research.discovery;
 
-public interface ResearchObjectLookupAdapter {
+import java.util.List;
+
+public interface ResearchObjectLookupAdapter extends ResearchDiscoveryAdapter {
+    ResearchDiscoveryPreview previewObjectIds(List<Integer> objectIds);
 }
