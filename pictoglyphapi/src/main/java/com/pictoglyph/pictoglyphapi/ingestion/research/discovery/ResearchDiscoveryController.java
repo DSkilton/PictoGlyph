@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -17,6 +18,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.util.List;
 
 import static com.pictoglyph.pictoglyphapi.utils.Constants.PICTOGLYPH_PROVENANCE;
 
@@ -25,62 +27,95 @@ import static com.pictoglyph.pictoglyphapi.utils.Constants.PICTOGLYPH_PROVENANCE
 @ConditionalOnProperty(name = "pictoglyph.research-discovery.enabled", havingValue = "true")
 @RequiredArgsConstructor
 public class ResearchDiscoveryController {
-	private static final Logger PROVENANCE_LOGGER = LoggerFactory.getLogger(PICTOGLYPH_PROVENANCE);
-	private final ResearchDiscoveryService service;
+    private static final Logger PROVENANCE_LOGGER = LoggerFactory.getLogger(PICTOGLYPH_PROVENANCE);
+    private final ResearchDiscoveryService service;
 
-	@Value("${pictoglyph.research-import.token:}")
-	private String importToken;
+    @Value("${pictoglyph.research-import.token:}")
+    private String importToken;
 
-	@Value("${pictoglyph.research-import.enabled:false}")
-	private boolean researchImportEnabled;
+    @Value("${pictoglyph.research-import.enabled:false}")
+    private boolean researchImportEnabled;
 
-	@Value("${pictoglyph.research-discovery.import-enabled:false}")
-	private boolean discoveryImportEnabled;
+    @Value("${pictoglyph.research-discovery.import-enabled:false}")
+    private boolean discoveryImportEnabled;
 
-	@GetMapping("/{sourceId}/preview")
-	public ResearchDiscoveryPreview preview(@PathVariable String sourceId, @RequestParam String q,
-											@RequestParam(defaultValue = "5") int limit, @RequestParam(defaultValue = "0") int offset,
-											@RequestHeader(value = "X-PictoGlyph-Import-Token", required = false) String suppliedToken) {
-		authenticate(suppliedToken);
-		validate(q, limit, offset);
+    @GetMapping("/{sourceId}/preview")
+    public ResearchDiscoveryPreview preview(@PathVariable String sourceId, @RequestParam String q,
+            @RequestParam(defaultValue = "5") int limit, @RequestParam(defaultValue = "0") int offset,
+            @RequestHeader(value = "X-PictoGlyph-Import-Token", required = false) String suppliedToken) {
+        authenticate(suppliedToken);
+        validate(q, limit, offset);
 
-		try {
-			return service.preview(sourceId, q.trim(), limit, offset);
-		} catch (IllegalArgumentException exception) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, exception.getMessage(), exception);
-		}
-	}
+        try {
+            return service.preview(sourceId, q.trim(), limit, offset);
+        } catch (IllegalArgumentException exception) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, exception.getMessage(), exception);
+        }
+    }
 
-	@PostMapping("/{sourceId}/import")
-	public ResearchDiscoveryImportResult importPage(@PathVariable String sourceId, @RequestParam String q,
-													@RequestParam(defaultValue = "2") int limit, @RequestParam(defaultValue = "0") int offset,
-													@RequestHeader(value = "X-PictoGlyph-Import-Token", required = false) String suppliedToken) {
-		authenticate(suppliedToken);
+    @PostMapping("/{sourceId}/import")
+    public ResearchDiscoveryImportResult importPage(@PathVariable String sourceId, @RequestParam String q,
+            @RequestParam(defaultValue = "2") int limit, @RequestParam(defaultValue = "0") int offset,
+            @RequestHeader(value = "X-PictoGlyph-Import-Token", required = false) String suppliedToken) {
+        authenticate(suppliedToken);
 
-		if (!researchImportEnabled || !discoveryImportEnabled) {
-			PROVENANCE_LOGGER.warn("event=research_discovery_access_rejected operation=IMPORT sourceId={} reason=IMPORT_DISABLED", sourceId);
-			throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Research discovery import is disabled");
-		}
+        if (!researchImportEnabled || !discoveryImportEnabled) {
+            PROVENANCE_LOGGER.warn("event=research_discovery_access_rejected operation=IMPORT sourceId={} reason=IMPORT_DISABLED", sourceId);
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Research discovery import is disabled");
+        }
 
         validate(q, limit, offset);
 
-		try {
-			return service.importPage(sourceId, q.trim(), limit, offset);
-		} catch (IllegalArgumentException exception) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, exception.getMessage(), exception);
-		}
-	}
+        try {
+            return service.importPage(sourceId, q.trim(), limit, offset);
+        } catch (IllegalArgumentException exception) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, exception.getMessage(), exception);
+        }
+    }
 
-	private void authenticate(String suppliedToken) {
-		if (importToken == null || importToken.isBlank() || suppliedToken == null || !MessageDigest.isEqual(importToken.getBytes(StandardCharsets.UTF_8), suppliedToken.getBytes(StandardCharsets.UTF_8))) {
-			PROVENANCE_LOGGER.warn("event=research_discovery_access_rejected reason=INVALID_OR_MISSING_TOKEN");
-			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Research token missing or invalid");
-		}
-	}
+    @PostMapping("/{sourceId}/preview-ids")
+    public ResearchDiscoveryPreview previewObjectIds(@PathVariable String sourceId, @RequestBody(required = false) List<Integer> objectIds,
+            @RequestHeader(value = "X-PictoGlyph-Import-Token", required = false) String suppliedToken) {
 
-	private static void validate(String query, int limit, int offset) {
-		if (query == null || query.isBlank() || query.length() > 80 || limit < 1 || limit > 20 || offset < 0 || offset > 9980) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Query length 1-80, limit 1-20, offset 0-9980 required");
-		}
-	}
+        authenticate(suppliedToken);
+        validateIds(objectIds);
+
+        return service.previewObjectIds(sourceId, objectIds);
+    }
+
+    @PostMapping("/{sourceId}/import-ids")
+    public ResearchDiscoveryImportResult importObjectIds(@PathVariable String sourceId, @RequestBody(required = false) List<Integer> objectIds,
+            @RequestHeader(value = "X-PictoGlyph-Import-Token", required = false) String suppliedToken) {
+
+        authenticate(suppliedToken);
+
+        if (!researchImportEnabled || !discoveryImportEnabled) {
+            PROVENANCE_LOGGER.warn("event=research_discovery_access_rejected operation=IMPORT_IDS sourceId={} reason=IMPORT_DISABLED", sourceId);
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Research discovery import is disabled");
+        }
+
+        validateIds(objectIds);
+
+        return service.importObjectIds(sourceId, objectIds);
+    }
+
+    private static void validateIds(List<Integer> ids) {
+        if (ids == null || ids.isEmpty() || ids.size() > 10 || ids.stream().anyMatch(id -> id == null || id <= 0)
+                || ids.stream().distinct().count() != ids.size()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Provide 1-10 distinct positive object IDs");
+        }
+    }
+
+    private void authenticate(String suppliedToken) {
+        if (importToken == null || importToken.isBlank() || suppliedToken == null || !MessageDigest.isEqual(importToken.getBytes(StandardCharsets.UTF_8), suppliedToken.getBytes(StandardCharsets.UTF_8))) {
+            PROVENANCE_LOGGER.warn("event=research_discovery_access_rejected reason=INVALID_OR_MISSING_TOKEN");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Research token missing or invalid");
+        }
+    }
+
+    private static void validate(String query, int limit, int offset) {
+        if (query == null || query.isBlank() || query.length() > 80 || limit < 1 || limit > 20 || offset < 0 || offset > 9980) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Query length 1-80, limit 1-20, offset 0-9980 required");
+        }
+    }
 }

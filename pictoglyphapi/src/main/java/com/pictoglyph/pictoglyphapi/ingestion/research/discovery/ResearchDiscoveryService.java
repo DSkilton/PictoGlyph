@@ -37,220 +37,201 @@ import static com.pictoglyph.pictoglyphapi.utils.Constants.PICTOGLYPH_PROVENANCE
 
 @Service
 public class ResearchDiscoveryService {
-	private static final Logger LOGGER = LoggerFactory.getLogger(ResearchDiscoveryService.class);
-	private static final Logger PROVENANCE_LOGGER = LoggerFactory.getLogger(PICTOGLYPH_PROVENANCE);
-	private final Map<String, ResearchDiscoveryAdapter> adapters;
-	private final ResearchRecordService recordService;
-	private final SourceMappingPipeline mappingPipeline;
-	private final SourceFieldDiscoveryService fieldDiscovery;
-	private final SourceMappingValidator mappingValidator;
-	private final ObjectMapper mapper;
+    private static final Logger LOGGER = LoggerFactory.getLogger(ResearchDiscoveryService.class);
+    private static final Logger PROVENANCE_LOGGER = LoggerFactory.getLogger(PICTOGLYPH_PROVENANCE);
+    private final Map<String, ResearchDiscoveryAdapter> adapters;
+    private final ResearchRecordService recordService;
+    private final SourceMappingPipeline mappingPipeline;
+    private final SourceFieldDiscoveryService fieldDiscovery;
+    private final SourceMappingValidator mappingValidator;
+    private final ObjectMapper mapper;
 
-	public ResearchDiscoveryService(List<ResearchDiscoveryAdapter> adapters, ResearchRecordService recordService, SourceMappingPipeline mappingPipeline,
-									SourceFieldDiscoveryService fieldDiscovery, SourceMappingValidator mappingValidator, ObjectMapper mapper) {
-		this.adapters = adapters.stream().collect(Collectors.toUnmodifiableMap(ResearchDiscoveryAdapter::sourceId, Function.identity()));
-		this.recordService = recordService;
-		this.mappingPipeline = mappingPipeline;
-		this.fieldDiscovery = fieldDiscovery;
-		this.mappingValidator = mappingValidator;
-		this.mapper = mapper;
-	}
+    public ResearchDiscoveryService(List<ResearchDiscoveryAdapter> adapters, ResearchRecordService recordService, SourceMappingPipeline mappingPipeline,
+                                    SourceFieldDiscoveryService fieldDiscovery, SourceMappingValidator mappingValidator, ObjectMapper mapper) {
+        this.adapters = adapters.stream().collect(Collectors.toUnmodifiableMap(ResearchDiscoveryAdapter::sourceId, Function.identity()));
+        this.recordService = recordService;
+        this.mappingPipeline = mappingPipeline;
+        this.fieldDiscovery = fieldDiscovery;
+        this.mappingValidator = mappingValidator;
+        this.mapper = mapper;
+    }
 
-	public ResearchDiscoveryPreview preview(String sourceId, String query, int limit, int offset) {
-		ResearchDiscoveryAdapter adapter = adapters.get(sourceId);
+    public ResearchDiscoveryPreview preview(String sourceId, String query, int limit, int offset) {
+        ResearchDiscoveryAdapter adapter = adapters.get(sourceId);
 
-		if (adapter == null) {
-			PROVENANCE_LOGGER.warn("event=research_discovery_source_rejected sourceId={} reason=UNKNOWN_SOURCE", sourceId);
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Unknown research API source");
-		}
+        if (adapter == null) {
+            PROVENANCE_LOGGER.warn("event=research_discovery_source_rejected sourceId={} reason=UNKNOWN_SOURCE", sourceId);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Unknown research API source");
+        }
 
-		long started = System.nanoTime();
-		try {
-			ResearchDiscoveryPreview result = adapter.preview(query, limit, offset);
-			long elapsedMs = (System.nanoTime() - started) / 1_000_000;
+        long started = System.nanoTime();
 
-			LOGGER.info("event=research_discovery_preview sourceId={} candidates={} limit={} offset={} elapsedMs={}",
-					sourceId, result.candidates().size(), limit, offset, elapsedMs);
-			PROVENANCE_LOGGER.info("event=research_discovery_preview_completed sourceId={} candidates={} limit={} offset={} status=PREVIEW_ONLY elapsedMs={}",
-					sourceId, result.candidates().size(), limit, offset, elapsedMs);
+        try {
+            ResearchDiscoveryPreview result = adapter.preview(query, limit, offset);
+            long elapsedMs = (System.nanoTime() - started) / 1_000_000;
 
-			return result;
-		} catch (RuntimeException exception) {
+            LOGGER.info("event=research_discovery_preview sourceId={} candidates={} limit={} offset={} elapsedMs={}",
+                    sourceId, result.candidates().size(), limit, offset, elapsedMs);
+            PROVENANCE_LOGGER.info("event=research_discovery_preview_completed sourceId={} candidates={} limit={} offset={} status=PREVIEW_ONLY elapsedMs={}",
+                    sourceId, result.candidates().size(), limit, offset, elapsedMs);
 
-			LOGGER.error("event=research_discovery_preview_failed sourceId={} limit={} offset={}", sourceId, limit, offset, exception);
-			PROVENANCE_LOGGER.warn("event=research_discovery_preview_failed sourceId={} limit={} offset={} errorType={}",
-					sourceId, limit, offset, exception.getClass().getSimpleName());
-			throw exception;
-		}
-	}
+            return result;
+        } catch (RuntimeException exception) {
+            LOGGER.error("event=research_discovery_preview_failed sourceId={} limit={} offset={}", sourceId, limit, offset, exception);
+            PROVENANCE_LOGGER.warn("event=research_discovery_preview_failed sourceId={} limit={} offset={} errorType={}",
+                    sourceId, limit, offset, exception.getClass().getSimpleName());
+            throw exception;
+        }
+    }
 
-	public ResearchDiscoveryImportResult importPage(String sourceId, String query, int limit, int offset) {
-		ResearchDiscoveryPreview page = preview(sourceId, query, limit, offset);
-		int created = 0;
-		int reused = 0;
-		int imagesCreated = 0;
-		int skipped = 0;
-		int signProposals = 0;
-		String activeRecordId = null;
+    public ResearchDiscoveryPreview previewObjectIds(String sourceId, List<Integer> objectIds) {
+        ExactObjectLookupPolicy.validate(objectIds);
 
-		PROVENANCE_LOGGER.info("event=research_discovery_import_started sourceId={} candidates={} limit={} offset={} status=IN_PROGRESS",
-				sourceId, page.candidates().size(), limit, offset);
-		try {
-			for (ResearchDiscoveryPreview.Candidate candidate : page.candidates()) {
-				activeRecordId = candidate.sourceRecordId();
+        ResearchDiscoveryAdapter adapter = adapters.get(sourceId);
+        if (!(adapter instanceof ResearchObjectLookupAdapter lookup)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Source does not support exact object ID lookup");
+        }
+        ResearchDiscoveryPreview page = lookup.previewObjectIds(objectIds);
+        PROVENANCE_LOGGER.info("event=research_exact_id_preview_completed sourceId={} objects={} status=PREVIEW_ONLY",
+                sourceId, page.candidates().size());
+        return page;
+    }
 
-				if (activeRecordId == null || activeRecordId.isBlank()) {
-					skipped++;
-					LOGGER.warn("event=research_discovery_record_skipped sourceId={} reason=MISSING_SOURCE_ID", sourceId);
-					PROVENANCE_LOGGER.warn("event=research_discovery_record_skipped sourceId={} reason=MISSING_SOURCE_ID status=NOT_IMPORTED", sourceId);
-					continue;
-				}
+    public ResearchDiscoveryImportResult importObjectIds(String sourceId, List<Integer> objectIds) {
+        return importCandidates(previewObjectIds(sourceId, objectIds));
+    }
 
-				if (candidate.rawRecord() == null || !candidate.rawRecord().isObject()) {
-					skipped++;
-					LOGGER.warn("event=research_discovery_record_skipped sourceId={} sourceRecordId={} reason=INVALID_RAW_RECORD", sourceId, activeRecordId);
-					PROVENANCE_LOGGER.warn("event=research_discovery_record_skipped sourceId={} sourceRecordId={} reason=INVALID_RAW_RECORD status=NOT_IMPORTED", sourceId, activeRecordId);
-					continue;
-				}
+    public ResearchDiscoveryImportResult importPage(String sourceId, String query, int limit, int offset) {
+        return importCandidates(preview(sourceId, query, limit, offset));
+    }
 
-				ObjectNode provenance = mapper.createObjectNode();
-				provenance.put("acquisitionMode", "API_METADATA_REFERENCE");
-				provenance.put("discoveryUrl", page.requestUrl());
-				provenance.put("sourceRecordId", activeRecordId);
-				provenance.put("rightsStatement", candidate.rights() == null ? "NOT_STATED" : candidate.rights());
-				provenance.put("trainingDataApproved", false);
+    private ResearchDiscoveryImportResult importCandidates(ResearchDiscoveryPreview page) {
+        String sourceId = page.sourceId();
+        int created = 0;
+        int reused = 0;
+        int imagesCreated = 0;
+        int skipped = 0;
+        int signProposals = 0;
+        String activeRecordId = null;
 
-				if (candidate.explicitSignEvidence()) {
-					ObjectNode assessment = assessSignEvidence(page, candidate);
-					provenance.set("signMappingAssessment", assessment);
-					String mappingStatus = assessment.path("status").asText("NEEDS_REVIEW");
+        PROVENANCE_LOGGER.info("event=research_discovery_import_started sourceId={} candidates={} discoveryUrl={} status=IN_PROGRESS",
+                sourceId, page.candidates().size(), page.requestUrl());
+        try {
+            for (ResearchDiscoveryPreview.Candidate candidate : page.candidates()) {
+                activeRecordId = candidate.sourceRecordId();
+                if (activeRecordId == null || activeRecordId.isBlank()) {
+                    skipped++;
+                    LOGGER.warn("event=research_discovery_record_skipped sourceId={} reason=MISSING_SOURCE_ID", sourceId);
+                    PROVENANCE_LOGGER.warn("event=research_discovery_record_skipped sourceId={} reason=MISSING_SOURCE_ID status=NOT_IMPORTED", sourceId);
+                    continue;
+                }
+                if (candidate.rawRecord() == null || !candidate.rawRecord().isObject()) {
+                    skipped++;
+                    LOGGER.warn("event=research_discovery_record_skipped sourceId={} sourceRecordId={} reason=INVALID_RAW_RECORD", sourceId, activeRecordId);
+                    PROVENANCE_LOGGER.warn("event=research_discovery_record_skipped sourceId={} sourceRecordId={} reason=INVALID_RAW_RECORD status=NOT_IMPORTED", sourceId, activeRecordId);
+                    continue;
+                }
 
-					if ("PROPOSED_VALID".equals(mappingStatus)) {
-						signProposals++;
-					}
+                ObjectNode provenance = mapper.createObjectNode();
+                provenance.put("acquisitionMode", "API_METADATA_REFERENCE");
+                provenance.put("discoveryUrl", page.requestUrl());
+                provenance.put("sourceRecordId", activeRecordId);
+                provenance.put("rightsStatement", candidate.rights() == null ? "NOT_STATED" : candidate.rights());
+                provenance.put("trainingDataApproved", false);
 
-					PROVENANCE_LOGGER.info("event=research_sign_mapping_assessed sourceId={} sourceRecordId={} mappingStatus={} verificationStatus=UNVERIFIED",
-							sourceId, activeRecordId, mappingStatus);
-				} else {
-					provenance.put("signMappingStatus", "NOT_APPLICABLE_ARTEFACT");
-				}
+                if (candidate.explicitSignEvidence()) {
+                    ObjectNode assessment = assessSignEvidence(page, candidate);
+                    provenance.set("signMappingAssessment", assessment);
+                    String mappingStatus = assessment.path("status").asText("NEEDS_REVIEW");
+                    if ("PROPOSED_VALID".equals(mappingStatus)) signProposals++;
+                    PROVENANCE_LOGGER.info("event=research_sign_mapping_assessed sourceId={} sourceRecordId={} mappingStatus={} verificationStatus=UNVERIFIED",
+                            sourceId, activeRecordId, mappingStatus);
+                } else {
+                    provenance.put("signMappingStatus", "NOT_APPLICABLE_ARTEFACT");
+                }
 
-				ObjectNode context = mapper.createObjectNode();
-				context.put("title", candidate.title() == null ? "" : candidate.title());
-				context.put("interpretationStatus", "UNVERIFIED");
-				context.put("sourceObjectId", activeRecordId);
+                ObjectNode context = mapper.createObjectNode();
+                context.put("title", candidate.title() == null ? "" : candidate.title());
+                context.put("interpretationStatus", "UNVERIFIED");
+                context.put("sourceObjectId", activeRecordId);
 
-				List<ResearchImageAssetRequest> images = imageReferences(candidate);
-				String recordUrl = candidate.objectUrl() == null || candidate.objectUrl().isBlank() ?
-						page.requestUrl() :
-						candidate.objectUrl();
+                List<ResearchImageAssetRequest> images = imageReferences(candidate);
+                String recordUrl = candidate.objectUrl() == null || candidate.objectUrl().isBlank() ? page.requestUrl() : candidate.objectUrl();
+                ResearchRecordRequest request = new ResearchRecordRequest(sourceId, "object:" + activeRecordId,
+                        candidate.explicitSignEvidence() ? "SIGN_CANDIDATE" : "ARTEFACT", recordUrl,
+                        context, candidate.rawRecord().deepCopy(), provenance, images);
 
-				ResearchRecordRequest request = new ResearchRecordRequest(sourceId, "object:" + activeRecordId, candidate.explicitSignEvidence() ?
-						"SIGN_CANDIDATE" : 
-						"ARTEFACT", recordUrl, context, candidate.rawRecord().deepCopy(), provenance, images);
+                ResearchRecordResponse response = recordService.importRecord(request);
+                if (response.created()) created++; else reused++;
+                imagesCreated += response.imageAssetsCreated();
+                LOGGER.debug("event=research_discovery_record_processed sourceId={} recordKey={} created={} imagesCreated={}",
+                        sourceId, request.recordKey(), response.created(), response.imageAssetsCreated());
+            }
 
-				ResearchRecordResponse response = recordService.importRecord(request);
+            PROVENANCE_LOGGER.info("event=research_discovery_import_completed sourceId={} candidates={} recordsCreated={} recordsReused={} imageReferencesCreated={} skipped={} signProposals={} status=COMPLETED",
+                    sourceId, page.candidates().size(), created, reused, imagesCreated, skipped, signProposals);
+            return new ResearchDiscoveryImportResult(sourceId, page.requestUrl(), page.candidates().size(), created, reused,
+                    imagesCreated, skipped, signProposals);
+        } catch (RuntimeException exception) {
+            LOGGER.error("event=research_discovery_import_failed sourceId={} sourceRecordId={} createdBeforeFailure={} reusedBeforeFailure={}",
+                    sourceId, activeRecordId, created, reused, exception);
+            PROVENANCE_LOGGER.warn("event=research_discovery_import_failed sourceId={} sourceRecordId={} recordsCreatedBeforeFailure={} recordsReusedBeforeFailure={} imageReferencesCreatedBeforeFailure={} status=PARTIAL_COMMIT_POSSIBLE errorType={}",
+                    sourceId, activeRecordId, created, reused, imagesCreated, exception.getClass().getSimpleName());
+            throw exception;
+        }
+    }
 
-				if (response.created()) {
-					created++;
-				} else {
-					reused++;
-				}
+    private ObjectNode assessSignEvidence(ResearchDiscoveryPreview page, ResearchDiscoveryPreview.Candidate candidate) {
+        SourceSample sample = new SourceSample(null, List.of(candidate.rawRecord()));
+        Map<SourceMappingTarget, FieldMatch> matches = mappingPipeline.resolve(new SourceMappingContext(
+                page.sourceId(), page.requestUrl(), sample, fieldDiscovery.discoverFields(sample.sampleItems())));
 
-				imagesCreated += response.imageAssetsCreated();
-				LOGGER.debug("event=research_discovery_record_processed sourceId={} recordKey={} created={} imagesCreated={}",
-						sourceId, request.recordKey(), response.created(), response.imageAssetsCreated());
-			}
+        ObjectNode result = mapper.createObjectNode();
+        result.put("status", "NEEDS_REVIEW");
+        result.set("proposedMappings", mapper.valueToTree(matches));
+        if (!MappingCompleteness.hasRequiredMappings(matches)) return result;
 
-			PROVENANCE_LOGGER.info("event=research_discovery_import_completed sourceId={} candidates={} recordsCreated={} recordsReused={} imageReferencesCreated={} skipped={} signProposals={} status=COMPLETED",
-					sourceId, page.candidates().size(), created, reused, imagesCreated, skipped, signProposals);
+        SourceFieldMapping mapping = new SourceFieldMapping(null, field(matches, SourceMappingTarget.SYMBOL_CODE),
+                field(matches, SourceMappingTarget.IMAGE_PATH), field(matches, SourceMappingTarget.TITLE),
+                field(matches, SourceMappingTarget.DESCRIPTION), field(matches, SourceMappingTarget.PLACE),
+                field(matches, SourceMappingTarget.PERIOD), field(matches, SourceMappingTarget.DATE_START),
+                field(matches, SourceMappingTarget.DATE_END));
+        SourceMappingValidationResult validation = mappingValidator.validate(mapping, sample.sampleItems());
+        result.set("validationErrors", mapper.valueToTree(validation.errors()));
+        result.set("validationWarnings", mapper.valueToTree(validation.warnings()));
+        if (validation.valid() && validation.warnings().isEmpty()) result.put("status", "PROPOSED_VALID");
+        return result;
+    }
 
-			return new ResearchDiscoveryImportResult(sourceId, page.requestUrl(), page.candidates().size(), created, reused, imagesCreated, skipped, signProposals);
-		} catch (RuntimeException exception) {
-			LOGGER.error("event=research_discovery_import_failed sourceId={} sourceRecordId={} createdBeforeFailure={} reusedBeforeFailure={}",
-					sourceId, activeRecordId, created, reused, exception);
-			PROVENANCE_LOGGER.warn("event=research_discovery_import_failed sourceId={} sourceRecordId={} recordsCreatedBeforeFailure={} recordsReusedBeforeFailure={} imageReferencesCreatedBeforeFailure={} status=PARTIAL_COMMIT_POSSIBLE errorType={}",
-					sourceId, activeRecordId, created, reused, imagesCreated, exception.getClass().getSimpleName());
-			throw exception;
-		}
-	}
+    private static String field(Map<SourceMappingTarget, FieldMatch> matches, SourceMappingTarget target) {
+        FieldMatch match = matches.get(target);
+        return match == null ? null : match.sourceField();
+    }
 
-	private ObjectNode assessSignEvidence(ResearchDiscoveryPreview page, ResearchDiscoveryPreview.Candidate candidate) {
-		SourceSample sample = new SourceSample(null, List.of(candidate.rawRecord()));
-		Map<SourceMappingTarget, FieldMatch> matches = mappingPipeline.resolve(new SourceMappingContext(page.sourceId(), page.requestUrl(), sample, fieldDiscovery.discoverFields(sample.sampleItems())));
+    private List<ResearchImageAssetRequest> imageReferences(ResearchDiscoveryPreview.Candidate candidate) {
+        Map<String, ResearchImageAssetRequest> images = new LinkedHashMap<>();
+        if (candidate.imageUrls() == null) return List.of();
+        for (String url : candidate.imageUrls()) {
+            if (url == null || url.length() > 4000) continue;
+            URI uri;
+            try { uri = URI.create(url); } catch (IllegalArgumentException exception) { continue; }
+            if (!"https".equalsIgnoreCase(uri.getScheme()) || uri.getHost() == null || uri.getUserInfo() != null) continue;
+            String key = "image:" + sha256(url);
+            ObjectNode analysis = mapper.createObjectNode();
+            analysis.put("evaluationStatus", "NOT_EVALUATED");
+            analysis.put("downloadStatus", "REMOTE_REFERENCE_ONLY");
+            analysis.put("trainingDataApproved", false);
+            images.putIfAbsent(key, new ResearchImageAssetRequest(key, url, "REMOTE_MUSEUM_IMAGE_REFERENCE",
+                    candidate.rights(), null, analysis));
+        }
+        return List.copyOf(images.values());
+    }
 
-		ObjectNode result = mapper.createObjectNode();
-		result.put("status", "NEEDS_REVIEW");
-		result.set("proposedMappings", mapper.valueToTree(matches));
-
-		if (!MappingCompleteness.hasRequiredMappings(matches)) {
-			return result;
-		}
-
-		SourceFieldMapping mapping = new SourceFieldMapping(null, field(matches, SourceMappingTarget.SYMBOL_CODE),
-				field(matches, SourceMappingTarget.IMAGE_PATH), field(matches, SourceMappingTarget.TITLE),
-				field(matches, SourceMappingTarget.DESCRIPTION), field(matches, SourceMappingTarget.PLACE),
-				field(matches, SourceMappingTarget.PERIOD), field(matches, SourceMappingTarget.DATE_START),
-				field(matches, SourceMappingTarget.DATE_END));
-
-		SourceMappingValidationResult validation = mappingValidator.validate(mapping, sample.sampleItems());
-		result.set("validationErrors", mapper.valueToTree(validation.errors()));
-		result.set("validationWarnings", mapper.valueToTree(validation.warnings()));
-
-		if (validation.valid() && validation.warnings().isEmpty()) {
-			result.put("status", "PROPOSED_VALID");
-		}
-
-		return result;
-	}
-
-	private static String field(Map<SourceMappingTarget, FieldMatch> matches, SourceMappingTarget target) {
-		FieldMatch match = matches.get(target);
-		return match == null ?
-				null :
-				match.sourceField();
-	}
-
-	private List<ResearchImageAssetRequest> imageReferences(ResearchDiscoveryPreview.Candidate candidate) {
-		Map<String, ResearchImageAssetRequest> images = new LinkedHashMap<>();
-
-		if (candidate.imageUrls() == null) {
-			return List.of();
-		}
-
-		for (String url : candidate.imageUrls()) {
-			if (url == null || url.length() > 4000) {
-				continue;
-			}
-
-			URI uri;
-			try {
-				uri = URI.create(url);
-			} catch (IllegalArgumentException exception) {
-				continue;
-			}
-			if (!"https".equalsIgnoreCase(uri.getScheme()) || uri.getHost() == null || uri.getUserInfo() != null) {
-				continue;
-			}
-
-			String key = "image:" + sha256(url);
-
-			ObjectNode analysis = mapper.createObjectNode();
-			analysis.put("evaluationStatus", "NOT_EVALUATED");
-			analysis.put("downloadStatus", "REMOTE_REFERENCE_ONLY");
-			analysis.put("trainingDataApproved", false);
-
-			images.putIfAbsent(key, new ResearchImageAssetRequest(key, url, "REMOTE_MUSEUM_IMAGE_REFERENCE",
-					candidate.rights(), null, analysis));
-		}
-		return List.copyOf(images.values());
-	}
-
-	private static String sha256(String value) {
-		try {
-			return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(value.getBytes(StandardCharsets.UTF_8)));
-		} catch (NoSuchAlgorithmException exception) {
-			throw new IllegalStateException("SHA-256 is unavailable", exception);
-		}
-	}
+    private static String sha256(String value) {
+        try {
+            return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(value.getBytes(StandardCharsets.UTF_8)));
+        } catch (NoSuchAlgorithmException exception) {
+            throw new IllegalStateException("SHA-256 is unavailable", exception);
+        }
+    }
 }
