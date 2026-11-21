@@ -52,16 +52,16 @@ public class ResearchRecordController {
 			throw exception;
 		}
 	}
-	@PostMapping("/{recordId}/image-assets")
-	public ResponseEntity<ResearchRecordResponse> attachImageAsset(@PathVariable Long recordId,
+	@PostMapping("/{sourceId}/records/{recordKey}/image-assets")
+	public ResponseEntity<ResearchRecordResponse> attachImageAsset(@PathVariable String sourceId, @PathVariable String recordKey,
 			@RequestHeader(value = "X-PictoGlyph-Import-Token", required = false) String suppliedToken,
 			@Valid @RequestBody ResearchImageAssetRequest image) {
 		checkAccess(suppliedToken);
-		if (recordId == null || recordId <= 0) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Positive research record ID required");
+		if (sourceId.isBlank() || recordKey.isBlank()) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Source and record key required");
 		}
 		try {
-			ResearchRecordResponse result = service.attachImageAsset(recordId, image);
+			ResearchRecordResponse result = service.attachImageAsset(sourceId, recordKey, image);
 			return ResponseEntity.status(result.imageAssetsCreated() > 0 ? HttpStatus.CREATED : HttpStatus.OK).body(result);
 		} catch (IllegalArgumentException exception) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, exception.getMessage(), exception);
