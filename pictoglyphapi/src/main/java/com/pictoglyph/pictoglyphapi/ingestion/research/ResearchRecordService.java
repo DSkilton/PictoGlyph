@@ -130,7 +130,10 @@ public class ResearchRecordService {
 	 * original museum metadata or source-image references.
 	 */
 	@Transactional
-	public ResearchRecordResponse attachImageAsset(Long recordId, ResearchImageAssetRequest image) {
+	public ResearchRecordResponse attachImageAsset(String sourceId, String recordKey, ResearchImageAssetRequest image) {
+		if (isBlank(sourceId) || isBlank(recordKey)) {
+			throw new IllegalArgumentException("Research source ID and record key are required");
+		}
 		validateImage(image);
 		if (image.checksumSha256() == null) {
 			throw new IllegalArgumentException("Curated image attachments require a SHA-256 checksum");
@@ -138,10 +141,10 @@ public class ResearchRecordService {
 		if (!image.analysis().has("trainingDataApproved") || image.analysis().path("trainingDataApproved").asBoolean(true)) {
 			throw new IllegalArgumentException("Curated image attachment must explicitly prohibit automatic ML approval");
 		}
-		ResearchSourceRecord record = recordRepository.findById(recordId)
+		ResearchSourceRecord record = recordRepository.findBySourceIdAndRecordKey(sourceId, recordKey)
 				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Research record not found"));
 		ResearchImageAsset existing = imageRepository
-				.findByResearchSourceRecord_IdAndAssetKey(recordId, image.assetKey()).orElse(null);
+				.findByResearchSourceRecord_IdAndAssetKey(record.getId(), image.assetKey()).orElse(null);
 		if (existing != null) {
 			if (!Objects.equals(existing.getSourcePath(), image.sourcePath())
 					|| !Objects.equals(existing.getImageKind(), image.imageKind())
@@ -150,7 +153,7 @@ public class ResearchRecordService {
 					|| !Objects.equals(existing.getAnalysis(), image.analysis())) {
 				throw new ResearchEvidenceConflictException("Curated image attachment changed: review required for " + image.assetKey());
 			}
-			return new ResearchRecordResponse(recordId, false, 0, 0);
+			return new ResearchRecordResponse(record.getId(), false, 0, 0);
 		}
 		ResearchImageAsset asset = new ResearchImageAsset();
 		asset.setResearchSourceRecord(record);
@@ -165,12 +168,12 @@ public class ResearchRecordService {
 			TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
 				@Override
 				public void afterCommit() {
-					PROVENANCE_LOGGER.info("event=research_curated_asset_committed recordId={} assetKey={} sha256={} trainingDataApproved=false",
-							recordId, image.assetKey(), image.checksumSha256());
+					PROVENANCE_LOGGER.info("event=research_curated_asset_committed sourceId={} recordKey={} assetKey={} sha256={} trainingDataApproved=false",
+							sourceId, recordKey, image.assetKey(), image.checksumSha256());
 				}
 			});
 		}
-		return new ResearchRecordResponse(recordId, false, 1, 0);
+		return new ResearchRecordResponse(record.getId(), false, 1, 0);
 	}
 
 	private void logCommittedImport(
