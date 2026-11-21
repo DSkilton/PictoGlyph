@@ -187,10 +187,10 @@ class ResearchRecordServiceTest {
 		ResearchSourceRecord existing = existingRecord();
 		ResearchImageAssetRequest image = curatedImageRequest();
 
-		when(recordRepository.findById(42L)).thenReturn(Optional.of(existing));
+		when(recordRepository.findBySourceIdAndRecordKey("egyptian", "object:EA123")).thenReturn(Optional.of(existing));
 		when(imageRepository.findByResearchSourceRecord_IdAndAssetKey(42L, "commons:550876")).thenReturn(Optional.empty());
 
-		ResearchRecordResponse response = service.attachImageAsset(42L, image);
+		ResearchRecordResponse response = service.attachImageAsset("egyptian", "object:EA123", image);
 
 		assertThat(response.created()).isFalse();
 		assertThat(response.recordId()).isEqualTo(42L);
@@ -215,10 +215,10 @@ class ResearchRecordServiceTest {
 		asset.setChecksumSha256(request.checksumSha256());
 		asset.setAnalysis(request.analysis().deepCopy());
 
-		when(recordRepository.findById(42L)).thenReturn(Optional.of(existing));
+		when(recordRepository.findBySourceIdAndRecordKey("egyptian", "object:EA123")).thenReturn(Optional.of(existing));
 		when(imageRepository.findByResearchSourceRecord_IdAndAssetKey(42L, "commons:550876")).thenReturn(Optional.of(asset));
 
-		ResearchRecordResponse response = service.attachImageAsset(42L, request);
+		ResearchRecordResponse response = service.attachImageAsset("egyptian", "object:EA123", request);
 
 		assertThat(response.imageAssetsCreated()).isZero();
 		assertThat(response.imageAssetsUpdated()).isZero();
@@ -237,10 +237,10 @@ class ResearchRecordServiceTest {
 		asset.setChecksumSha256("d".repeat(64));
 		asset.setAnalysis(request.analysis().deepCopy());
 
-		when(recordRepository.findById(42L)).thenReturn(Optional.of(existing));
+		when(recordRepository.findBySourceIdAndRecordKey("egyptian", "object:EA123")).thenReturn(Optional.of(existing));
 		when(imageRepository.findByResearchSourceRecord_IdAndAssetKey(42L, "commons:550876")).thenReturn(Optional.of(asset));
 
-		assertThatThrownBy(() -> service.attachImageAsset(42L, request))
+		assertThatThrownBy(() -> service.attachImageAsset("egyptian", "object:EA123", request))
 				.isInstanceOf(ResearchEvidenceConflictException.class)
 				.hasMessageContaining("review required");
 		verify(imageRepository, never()).save(any(ResearchImageAsset.class));
@@ -250,11 +250,11 @@ class ResearchRecordServiceTest {
 	void shouldRejectCuratedImageWithoutChecksumOrExplicitMlGate() {
 		ResearchImageAssetRequest image = curatedImageRequest();
 
-		assertThatThrownBy(() -> service.attachImageAsset(42L, new ResearchImageAssetRequest(
+		assertThatThrownBy(() -> service.attachImageAsset("egyptian", "object:EA123", new ResearchImageAssetRequest(
 				image.assetKey(), image.sourcePath(), image.imageKind(), image.rights(), null, image.analysis())))
 				.isInstanceOf(IllegalArgumentException.class).hasMessageContaining("SHA-256");
 
-		assertThatThrownBy(() -> service.attachImageAsset(42L, new ResearchImageAssetRequest(
+		assertThatThrownBy(() -> service.attachImageAsset("egyptian", "object:EA123", new ResearchImageAssetRequest(
 				image.assetKey(), image.sourcePath(), image.imageKind(), image.rights(),
 				image.checksumSha256(), json.deepCopy())))
 				.isInstanceOf(IllegalArgumentException.class).hasMessageContaining("ML approval");
