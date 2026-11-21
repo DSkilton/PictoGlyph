@@ -138,7 +138,7 @@ public class ResearchRecordService {
 		if (image.checksumSha256() == null) {
 			throw new IllegalArgumentException("Curated image attachments require a SHA-256 checksum");
 		}
-		if (!image.analysis().has("trainingDataApproved") || image.analysis().path("trainingDataApproved").asBoolean(true)) {
+		if (!image.analysis().path("trainingDataApproved").isBoolean() || image.analysis().path("trainingDataApproved").booleanValue()) {
 			throw new IllegalArgumentException("Curated image attachment must explicitly prohibit automatic ML approval");
 		}
 		ResearchSourceRecord record = recordRepository.findBySourceIdAndRecordKey(sourceId, recordKey)
@@ -230,7 +230,6 @@ public class ResearchRecordService {
 
 
 	private void validateImage(ResearchImageAssetRequest image) {
-
 		if (image == null || isBlank(image.assetKey()) || image.assetKey().length() > 100 || isBlank(image.sourcePath()) || isBlank(image.imageKind()) || image.analysis() == null || !image.analysis().isObject()) {
 			throw new IllegalArgumentException("Image asset identity and analysis are required");
 		}
@@ -238,7 +237,6 @@ public class ResearchRecordService {
 		if (image.checksumSha256() != null && !image.checksumSha256().matches("(?i)[a-f0-9]{64}")) {
 			throw new IllegalArgumentException("Image checksum must be SHA-256 hex");
 		}
-
 	}
 
 	private boolean isBlank(String value) {
