@@ -52,6 +52,7 @@ public class ResearchRecordController {
 			throw exception;
 		}
 	}
+
 	@PostMapping("/{sourceId}/records/{recordKey}/image-assets")
 	public ResponseEntity<ResearchRecordResponse> attachImageAsset(@PathVariable String sourceId, @PathVariable String recordKey,
 			@RequestHeader(value = "X-PictoGlyph-Import-Token", required = false) String suppliedToken,
@@ -78,7 +79,5 @@ public class ResearchRecordController {
 			LOGGER.warn("event=research_import_access_rejected reason=INVALID_OR_MISSING_TOKEN");
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Missing or invalid import token");
 		}
-
 	}
-
 }
