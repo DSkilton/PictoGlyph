@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -122,6 +124,55 @@ public class ResearchRecordService {
 	}
 
 
+
+	/**
+	 * Registers a curated image against an existing research record without replacing the
+	 * original museum metadata or source-image references.
+	 */
+	@Transactional
+	public ResearchRecordResponse attachImageAsset(Long recordId, ResearchImageAssetRequest image) {
+		validateImage(image);
+		if (image.checksumSha256() == null) {
+			throw new IllegalArgumentException("Curated image attachments require a SHA-256 checksum");
+		}
+		if (!image.analysis().has("trainingDataApproved") || image.analysis().path("trainingDataApproved").asBoolean(true)) {
+			throw new IllegalArgumentException("Curated image attachment must explicitly prohibit automatic ML approval");
+		}
+		ResearchSourceRecord record = recordRepository.findById(recordId)
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Research record not found"));
+		ResearchImageAsset existing = imageRepository
+				.findByResearchSourceRecord_IdAndAssetKey(recordId, image.assetKey()).orElse(null);
+		if (existing != null) {
+			if (!Objects.equals(existing.getSourcePath(), image.sourcePath())
+					|| !Objects.equals(existing.getImageKind(), image.imageKind())
+					|| !Objects.equals(existing.getRights(), image.rights())
+					|| !Objects.equals(existing.getChecksumSha256(), image.checksumSha256())
+					|| !Objects.equals(existing.getAnalysis(), image.analysis())) {
+				throw new ResearchEvidenceConflictException("Curated image attachment changed: review required for " + image.assetKey());
+			}
+			return new ResearchRecordResponse(recordId, false, 0, 0);
+		}
+		ResearchImageAsset asset = new ResearchImageAsset();
+		asset.setResearchSourceRecord(record);
+		asset.setAssetKey(image.assetKey());
+		asset.setSourcePath(image.sourcePath());
+		asset.setImageKind(image.imageKind());
+		asset.setRights(image.rights());
+		asset.setChecksumSha256(image.checksumSha256());
+		asset.setAnalysis(image.analysis().deepCopy());
+		imageRepository.save(asset);
+		if (TransactionSynchronizationManager.isActualTransactionActive() && TransactionSynchronizationManager.isSynchronizationActive()) {
+			TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+				@Override
+				public void afterCommit() {
+					PROVENANCE_LOGGER.info("event=research_curated_asset_committed recordId={} assetKey={} sha256={} trainingDataApproved=false",
+							recordId, image.assetKey(), image.checksumSha256());
+				}
+			});
+		}
+		return new ResearchRecordResponse(recordId, false, 1, 0);
+	}
+
 	private void logCommittedImport(
 			ResearchRecordRequest request,
 			ResearchRecordResponse response,
@@ -167,18 +218,24 @@ public class ResearchRecordService {
 		Set<String> seen = new HashSet<>();
 
 		for (ResearchImageAssetRequest image : request.images()) {
-			if (image == null || isBlank(image.assetKey()) || image.assetKey().length() > 100 || isBlank(image.sourcePath()) || isBlank(image.imageKind()) || image.analysis() == null || !image.analysis().isObject()) {
-				throw new IllegalArgumentException("Image asset identity and analysis are required");
-			}
-
-			if (image.checksumSha256() != null && !image.checksumSha256().matches("(?i)[a-f0-9]{64}")) {
-				throw new IllegalArgumentException("Image checksum must be SHA-256 hex");
-			}
-
+			validateImage(image);
 			if (!seen.add(image.assetKey())) {
 				throw new IllegalArgumentException("Duplicate asset key in source record: " + image.assetKey());
 			}
 		}
+	}
+
+
+	private void validateImage(ResearchImageAssetRequest image) {
+
+		if (image == null || isBlank(image.assetKey()) || image.assetKey().length() > 100 || isBlank(image.sourcePath()) || isBlank(image.imageKind()) || image.analysis() == null || !image.analysis().isObject()) {
+			throw new IllegalArgumentException("Image asset identity and analysis are required");
+		}
+
+		if (image.checksumSha256() != null && !image.checksumSha256().matches("(?i)[a-f0-9]{64}")) {
+			throw new IllegalArgumentException("Image checksum must be SHA-256 hex");
+		}
+
 	}
 
 	private boolean isBlank(String value) {
