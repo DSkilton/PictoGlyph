@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -33,15 +34,7 @@ public class ResearchRecordController {
 
 	@PostMapping
 	public ResponseEntity<ResearchRecordResponse> importRecord(@RequestHeader(value = "X-PictoGlyph-Import-Token", required = false) String suppliedToken, @Valid @RequestBody ResearchRecordRequest request) {
-		if (!enabled) {
-			LOGGER.warn("event=research_import_access_rejected reason=IMPORT_DISABLED");
-			throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Research record import is disabled");
-		}
-
-		if (importToken == null || importToken.isBlank() || suppliedToken == null || !MessageDigest.isEqual(importToken.getBytes(StandardCharsets.UTF_8), suppliedToken.getBytes(StandardCharsets.UTF_8))) {
-			LOGGER.warn("event=research_import_access_rejected reason=INVALID_OR_MISSING_TOKEN");
-			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Missing or invalid import token");
-		}
+		checkAccess(suppliedToken);
 
 		try {
 			ResearchRecordResponse result = service.importRecord(request);
@@ -59,4 +52,33 @@ public class ResearchRecordController {
 			throw exception;
 		}
 	}
+	@PostMapping("/{recordId}/image-assets")
+	public ResponseEntity<ResearchRecordResponse> attachImageAsset(@PathVariable Long recordId,
+			@RequestHeader(value = "X-PictoGlyph-Import-Token", required = false) String suppliedToken,
+			@Valid @RequestBody ResearchImageAssetRequest image) {
+		checkAccess(suppliedToken);
+		if (recordId == null || recordId <= 0) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Positive research record ID required");
+		}
+		try {
+			ResearchRecordResponse result = service.attachImageAsset(recordId, image);
+			return ResponseEntity.status(result.imageAssetsCreated() > 0 ? HttpStatus.CREATED : HttpStatus.OK).body(result);
+		} catch (IllegalArgumentException exception) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, exception.getMessage(), exception);
+		}
+	}
+
+	private void checkAccess(String suppliedToken) {
+		if (!enabled) {
+			LOGGER.warn("event=research_import_access_rejected reason=IMPORT_DISABLED");
+			throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Research record import is disabled");
+		}
+
+		if (importToken == null || importToken.isBlank() || suppliedToken == null || !MessageDigest.isEqual(importToken.getBytes(StandardCharsets.UTF_8), suppliedToken.getBytes(StandardCharsets.UTF_8))) {
+			LOGGER.warn("event=research_import_access_rejected reason=INVALID_OR_MISSING_TOKEN");
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Missing or invalid import token");
+		}
+
+	}
+
 }
