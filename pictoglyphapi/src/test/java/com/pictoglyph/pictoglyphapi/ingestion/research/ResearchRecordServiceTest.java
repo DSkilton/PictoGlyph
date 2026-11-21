@@ -262,6 +262,18 @@ class ResearchRecordServiceTest {
 		verifyNoInteractions(recordRepository, imageRepository);
 	}
 
+
+	@Test
+	void shouldNotAttachImageToUnknownResearchRecord() {
+		when(recordRepository.findBySourceIdAndRecordKey("egyptian", "object:EA123"))
+				.thenReturn(Optional.empty());
+
+		assertThatThrownBy(() -> service.attachImageAsset("egyptian", "object:EA123", curatedImageRequest()))
+				.isInstanceOf(org.springframework.web.server.ResponseStatusException.class)
+				.hasMessageContaining("Research record not found");
+		verifyNoInteractions(imageRepository);
+	}
+
 	private ResearchImageAssetRequest curatedImageRequest() {
 		return new ResearchImageAssetRequest("commons:550876", "/mnt/i/PictoGlyph/commons-pilot/met-550876.jpg",
 				"LOCAL_RESEARCH_IMAGE", "CC0-1.0", "c".repeat(64),
