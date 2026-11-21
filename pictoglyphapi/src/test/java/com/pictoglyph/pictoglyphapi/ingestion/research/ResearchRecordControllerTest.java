@@ -36,10 +36,10 @@ class ResearchRecordControllerTest {
 
     @Test
     void shouldAttachCuratedAssetWithValidToken() throws Exception {
-        when(service.attachImageAsset(eq(16234L), any(ResearchImageAssetRequest.class)))
+        when(service.attachImageAsset(eq("met-openaccess-metadata"), eq("object:550876"), any(ResearchImageAssetRequest.class)))
                 .thenReturn(new ResearchRecordResponse(16234L, false, 1, 0));
 
-        mvc.perform(post("/ingestion/research-records/16234/image-assets")
+        mvc.perform(post("/ingestion/research-records/met-openaccess-metadata/records/object:550876/image-assets")
                         .header("X-PictoGlyph-Import-Token", "test-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(imageJson()))
@@ -50,10 +50,10 @@ class ResearchRecordControllerTest {
 
     @Test
     void shouldReturnOkOnIdempotentAttachment() throws Exception {
-        when(service.attachImageAsset(eq(16234L), any(ResearchImageAssetRequest.class)))
+        when(service.attachImageAsset(eq("met-openaccess-metadata"), eq("object:550876"), any(ResearchImageAssetRequest.class)))
                 .thenReturn(new ResearchRecordResponse(16234L, false, 0, 0));
 
-        mvc.perform(post("/ingestion/research-records/16234/image-assets")
+        mvc.perform(post("/ingestion/research-records/met-openaccess-metadata/records/object:550876/image-assets")
                         .header("X-PictoGlyph-Import-Token", "test-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(imageJson()))
@@ -63,7 +63,7 @@ class ResearchRecordControllerTest {
 
     @Test
     void shouldRejectMissingToken() throws Exception {
-        mvc.perform(post("/ingestion/research-records/16234/image-assets")
+        mvc.perform(post("/ingestion/research-records/met-openaccess-metadata/records/object:550876/image-assets")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(imageJson()))
                 .andExpect(status().isUnauthorized());
@@ -73,7 +73,7 @@ class ResearchRecordControllerTest {
     @Test
     void shouldRespectDisabledImportGate() throws Exception {
         ReflectionTestUtils.setField(controller, "enabled", false);
-        mvc.perform(post("/ingestion/research-records/16234/image-assets")
+        mvc.perform(post("/ingestion/research-records/met-openaccess-metadata/records/object:550876/image-assets")
                         .header("X-PictoGlyph-Import-Token", "test-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(imageJson()))
