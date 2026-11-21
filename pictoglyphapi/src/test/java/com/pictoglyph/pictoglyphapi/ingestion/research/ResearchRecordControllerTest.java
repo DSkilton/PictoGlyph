@@ -81,6 +81,20 @@ class ResearchRecordControllerTest {
         verifyNoInteractions(service);
     }
 
+
+    @Test
+    void shouldReturnConflictWhenExistingAttachmentEvidenceChanges() throws Exception {
+        when(service.attachImageAsset(eq("met-openaccess-metadata"), eq("object:550876"),
+                any(ResearchImageAssetRequest.class)))
+                .thenThrow(new ResearchEvidenceConflictException("Curated image attachment changed"));
+
+        mvc.perform(post("/ingestion/research-records/met-openaccess-metadata/records/object:550876/image-assets")
+                        .header("X-PictoGlyph-Import-Token", "test-token")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(imageJson()))
+                .andExpect(status().isConflict());
+    }
+
     private String imageJson() {
         return """
                 {
