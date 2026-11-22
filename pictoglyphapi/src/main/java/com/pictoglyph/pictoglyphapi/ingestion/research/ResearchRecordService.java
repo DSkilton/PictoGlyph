@@ -1,8 +1,11 @@
 package com.pictoglyph.pictoglyphapi.ingestion.research;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.pictoglyph.pictoglyphapi.ingestion.ImageChecksumService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -10,6 +13,9 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.Objects;
@@ -28,6 +34,10 @@ public class ResearchRecordService {
 
     private final ResearchSourceRecordRepository recordRepository;
     private final ResearchImageAssetRepository imageRepository;
+    private final ImageChecksumService imageChecksumService;
+
+    @Value("${pictoglyph.research-images.root:}")
+    private String researchImageRoot;
 
     @Transactional
     public ResearchRecordResponse importRecord(ResearchRecordRequest request) {
@@ -68,7 +78,8 @@ public class ResearchRecordService {
         int assetCreated = 0;
         int assetUpdated = 0;
         for (ResearchImageAssetRequest image : request.images()) {
-            ResearchImageAsset asset = imageRepository.findByResearchSourceRecord_IdAndAssetKey(record.getId(), image.assetKey()).orElse(null);
+            ResearchImageAsset asset = imageRepository.findByResearchSourceRecord_IdAndAssetKey(record.getId(), image.assetKey())
+                    .orElse(null);
 
             if (asset == null) {
                 asset = new ResearchImageAsset();
@@ -124,6 +135,18 @@ public class ResearchRecordService {
             throw new IllegalArgumentException("Curated image attachment must explicitly prohibit automatic ML approval");
         }
 
+        if (!"LOCAL_RESEARCH_IMAGE".equals(image.imageKind())) {
+            throw new IllegalArgumentException("Curated attachment requires LOCAL_RESEARCH_IMAGE kind");
+        }
+
+        if ("met-openaccess-metadata".equals(sourceId)) {
+            JsonNode metObjectId = image.analysis().path("metObjectId");
+
+            if (!metObjectId.canConvertToLong() || !recordKey.equals("object:" + metObjectId.asLong())) {
+                throw new IllegalArgumentException("Met image object ID does not match the research record");
+            }
+        }
+
         ResearchSourceRecord record = recordRepository.findBySourceIdAndRecordKey(sourceId, recordKey)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Research record not found"));
 
@@ -139,9 +162,13 @@ public class ResearchRecordService {
                     || !Objects.equals(existing.getAnalysis(), image.analysis())) {
                 throw new ResearchEvidenceConflictException("Curated image attachment changed: review required for " + image.assetKey());
             }
-
-            return new ResearchRecordResponse(record.getId(), false, 0, 0);
         }
+
+        verifyCuratedChecksum(image);
+
+            if (existing != null) {
+                return new ResearchRecordResponse(record.getId(), false, 0, 0);
+            }
 
         ResearchImageAsset asset = new ResearchImageAsset();
         asset.setResearchSourceRecord(record);
@@ -163,6 +190,35 @@ public class ResearchRecordService {
             });
         }
         return new ResearchRecordResponse(record.getId(), false, 1, 0);
+    }
+
+    private void verifyCuratedChecksum(ResearchImageAssetRequest image) {
+        if (researchImageRoot == null || researchImageRoot.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Research image directory is not configured");
+        }
+
+        try {
+            Path root = Path.of(researchImageRoot).toRealPath();
+            Path requested = Path.of(image.sourcePath());
+
+            if (!requested.isAbsolute() || Files.isSymbolicLink(requested)) {
+                throw new IllegalArgumentException("Curated image must have an absolute, non-symlink path");
+            }
+
+            Path resolved = requested.toRealPath();
+
+            if (!resolved.startsWith(root) || !Files.isRegularFile(resolved)) {
+                throw new IllegalArgumentException("Curated image must be inside the trusted research image directory");
+            }
+
+            String actualChecksum = imageChecksumService.calculateSha256(resolved.toString());
+
+            if (!actualChecksum.equalsIgnoreCase(image.checksumSha256())) {
+                throw new ResearchEvidenceConflictException("Curated image SHA-256 mismatch");
+            }
+        } catch (IOException e) {
+            throw new IllegalArgumentException("Curated image file cannot be accessed", e);
+        }
     }
 
     private void logCommittedImport(ResearchRecordRequest request, ResearchRecordResponse response, long startedNanos) {
@@ -214,8 +270,7 @@ public class ResearchRecordService {
     }
 
     private void validateImage(ResearchImageAssetRequest image) {
-        if (image == null || isBlank(image.assetKey()) || image.assetKey().length() > 100 || isBlank(image.sourcePath())
-                || isBlank(image.imageKind()) || image.analysis() == null || !image.analysis().isObject()) {
+        if (image == null || isBlank(image.assetKey()) || image.assetKey().length() > 100 || isBlank(image.sourcePath()) || isBlank(image.imageKind()) || image.analysis() == null || !image.analysis().isObject()) {
             throw new IllegalArgumentException("Image asset identity and analysis are required");
         }
         if (image.checksumSha256() != null && !image.checksumSha256().matches("(?i)[a-f0-9]{64}")) {

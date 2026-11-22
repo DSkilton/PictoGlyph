@@ -2,13 +2,19 @@ package com.pictoglyph.pictoglyphapi.ingestion.research;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.pictoglyph.pictoglyphapi.ingestion.ImageChecksumService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 
@@ -29,13 +35,38 @@ class ResearchRecordServiceTest {
     @Mock
     private ResearchImageAssetRepository imageRepository;
 
+    @TempDir
+	Path imageDirectory;
+
     private ResearchRecordService service;
     private ObjectNode json;
+    private ImageChecksumService imageChecksumService;
 
     @BeforeEach
-    void setUp() {
-        service = new ResearchRecordService(recordRepository, imageRepository);
+    void setUp() throws IOException {
+        imageChecksumService = new ImageChecksumService();
+        service = new ResearchRecordService(recordRepository, imageRepository, imageChecksumService);
+        ReflectionTestUtils.setField(service, "researchImageRoot", imageDirectory.toString());
+
+        Files.writeString(imageDirectory.resolve("met-550876.jpg"), "test image contents");
         json = new ObjectMapper().createObjectNode().put("period", "New Kingdom");
+    }
+
+    @Test
+    void shouldRejectCuratedImageWhenFileChecksumDiffers() throws IOException {
+        ResearchSourceRecord existing = existingRecord();
+        ResearchImageAssetRequest image = curatedImageRequest();
+
+        Files.writeString(Path.of(image.sourcePath()), "changed image contents");
+
+        when(recordRepository.findBySourceIdAndRecordKey("egyptian", "object:EA123")).thenReturn(Optional.of(existing));
+        when(imageRepository.findByResearchSourceRecord_IdAndAssetKey(42L, image.assetKey())).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.attachImageAsset("egyptian", "object:EA123", image))
+                .isInstanceOf(ResearchEvidenceConflictException.class)
+                .hasMessageContaining("SHA-256 mismatch");
+
+        verify(imageRepository, never()).save(any(ResearchImageAsset.class));
     }
 
     @Test
@@ -180,7 +211,7 @@ class ResearchRecordServiceTest {
         verify(imageRepository).save(captor.capture());
 
         assertThat(captor.getValue().getResearchSourceRecord()).isSameAs(existing);
-        assertThat(captor.getValue().getChecksumSha256()).isEqualTo("c".repeat(64));
+        assertThat(captor.getValue().getChecksumSha256()).isEqualTo(image.checksumSha256());
         assertThat(captor.getValue().getAnalysis().path("trainingDataApproved").asBoolean()).isFalse();
     }
 
@@ -252,9 +283,19 @@ class ResearchRecordServiceTest {
     }
 
     private ResearchImageAssetRequest curatedImageRequest() {
-        return new ResearchImageAssetRequest("commons:550876", "/mnt/i/PictoGlyph/data/research-datasets/met-pilot/commons-pilot/met-550876.jpg",
-                "LOCAL_RESEARCH_IMAGE", "CC0-1.0", "c".repeat(64),
-                new ObjectMapper().createObjectNode().put("trainingDataApproved", false).put("distributionSource", "Wikimedia Commons"));
+        Path path = imageDirectory.resolve("met-550876.jpg");
+        String checksum = imageChecksumService.calculateSha256(path.toString());
+
+        return new ResearchImageAssetRequest(
+                "commons:550876",
+                path.toString(),
+                "LOCAL_RESEARCH_IMAGE",
+                "CC0-1.0",
+                checksum,
+                new ObjectMapper().createObjectNode()
+                        .put("trainingDataApproved", false)
+                        .put("distributionSource", "Wikimedia Commons")
+        );
     }
 
     private ResearchSourceRecord existingRecord() {
