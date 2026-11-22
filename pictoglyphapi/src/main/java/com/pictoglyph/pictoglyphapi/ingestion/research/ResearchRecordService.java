@@ -77,7 +77,13 @@ public class ResearchRecordService {
 
         int assetCreated = 0;
         int assetUpdated = 0;
+
         for (ResearchImageAssetRequest image : request.images()) {
+
+            if ("LOCAL_RESEARCH_IMAGE".equals(image.imageKind())) {
+                throw new IllegalArgumentException("Local research images must use the curated attachment endpoint");
+            }
+
             ResearchImageAsset asset = imageRepository.findByResearchSourceRecord_IdAndAssetKey(record.getId(), image.assetKey())
                     .orElse(null);
 
