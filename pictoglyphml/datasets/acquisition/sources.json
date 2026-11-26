@@ -631,9 +631,64 @@
       "priority": "medium",
       "download_url": null,
       "download_support": "needs_method_or_rights_review"
+    },
+    {
+      "id": "omniglot-background",
+      "label": "Omniglot handwritten character images — background",
+      "group": "scripts",
+      "scripts": [
+        "Multiple alphabets (source-defined)"
+      ],
+      "kind": "labelled_glyph_images",
+      "state": "ready",
+      "method": "http",
+      "url": "https://raw.githubusercontent.com/brendenlake/omniglot/057f034baf2ecb8530bc5710e5a23584d2a519cc/python/images_background.zip",
+      "filename": "images_background.zip",
+      "landing": "https://github.com/brendenlake/omniglot",
+      "licence": "MIT (publisher repository; preserve copyright notice)",
+      "caution": "Preserve original background partition and alphabet/class identifiers. Unicode identity and language require independent mapping; do not infer material from digital images. Cite Lake, Salakhutdinov and Tenenbaum (2015).",
+      "download_url": "https://raw.githubusercontent.com/brendenlake/omniglot/057f034baf2ecb8530bc5710e5a23584d2a519cc/python/images_background.zip",
+      "priority": "high",
+      "download_support": "supported_by_existing_downloader"
+    },
+    {
+      "id": "omniglot-evaluation",
+      "label": "Omniglot handwritten character images — evaluation",
+      "group": "scripts",
+      "scripts": [
+        "Multiple alphabets (source-defined)"
+      ],
+      "kind": "labelled_glyph_images",
+      "state": "ready",
+      "method": "http",
+      "url": "https://raw.githubusercontent.com/brendenlake/omniglot/057f034baf2ecb8530bc5710e5a23584d2a519cc/python/images_evaluation.zip",
+      "filename": "images_evaluation.zip",
+      "landing": "https://github.com/brendenlake/omniglot",
+      "licence": "MIT (publisher repository; preserve copyright notice)",
+      "caution": "Held-out evaluation partition; do not use for model fitting or tuning in the original protocol. Preserve source class IDs; no automatic Unicode mapping. Cite Lake, Salakhutdinov and Tenenbaum (2015).",
+      "download_url": "https://raw.githubusercontent.com/brendenlake/omniglot/057f034baf2ecb8530bc5710e5a23584d2a519cc/python/images_evaluation.zip",
+      "priority": "high",
+      "download_support": "supported_by_existing_downloader"
+    },
+    {
+      "id": "unicode-ucd-17",
+      "label": "Unicode Character Database 17.0.0",
+      "group": "context",
+      "scripts": [],
+      "kind": "character_properties",
+      "state": "ready",
+      "method": "http",
+      "url": "https://www.unicode.org/Public/17.0.0/ucd/UCD.zip",
+      "filename": "UCD.zip",
+      "landing": "https://www.unicode.org/ucd/",
+      "licence": "Unicode-3.0 (check included notices)",
+      "caution": "Character properties and scripts, not images or proof of language, date, meaning or geographic origin. Pin the version; preserve included licence notices.",
+      "download_url": "https://www.unicode.org/Public/17.0.0/ucd/UCD.zip",
+      "priority": "high",
+      "download_support": "supported_by_existing_downloader"
     }
   ],
-  "catalogue_updated_at": "2026-10-29",
+  "catalogue_updated_at": "2026-11-26",
   "download_root": "/mnt/i/PictoGlyph/data/research-datasets",
-  "source_count": 35
+  "source_count": 38
 }
