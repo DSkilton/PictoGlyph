@@ -6,16 +6,19 @@ import logging
 import os
 import re
 import time
-from datetime import datetime, timezone
 from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
-SOURCE_ID = "met-openaccess-metadata"
+from acquisition_io import sha256_file, utc_now as timestamp, write_json_atomic
+
+from acquisition_constants import (CHUNK_SIZE_BYTES, DEFAULT_DATA_ROOT, JSON_CONTENT_TYPE, MET_SOURCE_ID, PROVENANCE_LOGGER_NAME)
+
+SOURCE_ID = MET_SOURCE_ID
 OBJECTS_URL = "https://collectionapi.metmuseum.org/public/collection/v1/objects"
 CSV_URL = "https://media.githubusercontent.com/media/metmuseum/openaccess/master/MetObjects.csv"
-PROVENANCE_LOGGER = logging.getLogger("PICTOGLYPH_PROVENANCE")
-DEFAULT_ROOT = Path("/mnt/i/PictoGlyph/data/research-datasets/manifests/met-catalogue")
+PROVENANCE_LOGGER = logging.getLogger(PROVENANCE_LOGGER_NAME)
+DEFAULT_ROOT = DEFAULT_DATA_ROOT / "manifests" / "met-catalogue"
 REQUIRED_COLUMNS = {"Object ID", "Title", "Object Name", "Is Public Domain", "Department"}
 TEXT_FIELDS = ("Title", "Object Name", "Classification", "Tags", "Culture", "Period", "Dynasty")
 META_FIELDS = ("Object ID", "Object Number", "Is Public Domain", "Department", "Object Name", "Title", "Culture",
@@ -26,19 +29,7 @@ STRONG = ("hieroglyph", "hieroglyphic", "hieratic", "demotic", "cuneiform", "ins
           "linear a", "linear b", "maya", "mayan", "indus script", "proto-elamite", "proto-sinaitic", "coptic")
 WEAK = ("seal", "scarab", "tablet", "relief", "fragment", "amulet", "plaque", "cylinder", "vessel")
 RELEVANT_DEPARTMENTS = ("egyptian art", "ancient near eastern art", "greek and roman art", "islamic art",
-                        "arts of africa, oceania, and the americas", "asian art")
-
-
-def timestamp():
-    return datetime.now(timezone.utc).isoformat()
-
-
-def sha256_file(path):
-    digest = hashlib.sha256()
-    with path.open("rb") as handle:
-        for block in iter(lambda: handle.read(1024 * 1024), b""):
-            digest.update(block)
-    return digest.hexdigest()
+                        "arts of africa, oceania, and the americas", "asian art", "ancient west asian art")
 
 
 def sha256_json(value):
@@ -46,20 +37,10 @@ def sha256_json(value):
     return hashlib.sha256(payload).hexdigest()
 
 
-def write_json_atomic(path, value):
-    temp = path.with_name(path.name + ".tmp")
-    with temp.open("w", encoding="utf-8") as handle:
-        json.dump(value, handle, indent=2, ensure_ascii=False)
-        handle.write("\n")
-        handle.flush()
-        os.fsync(handle.fileno())
-    temp.replace(path)
-
-
 def get_bytes(url, max_bytes=25 * 1024 * 1024):
     for attempt in range(4):
         try:
-            request = Request(url, headers={"User-Agent": "PictoGlyph-MSc-research/1.0", "Accept": "application/json"})
+            request = Request(url, headers={"User-Agent": "PictoGlyph-MSc-research/1.0", "Accept": JSON_CONTENT_TYPE})
             with urlopen(request, timeout=60) as response:
                 data = response.read(max_bytes + 1)
                 if len(data) > max_bytes:
@@ -108,7 +89,7 @@ def download_csv(path):
         with urlopen(request, timeout=90) as response, temp.open("wb") as output:
             total = 0
             next_report = 25 * 1024 * 1024
-            while chunk := response.read(1024 * 1024):
+            while chunk := response.read(CHUNK_SIZE_BYTES):
                 total += len(chunk)
                 if total > 600 * 1024 * 1024:
                     raise ValueError("Met CSV exceeds the configured 600 MiB limit")

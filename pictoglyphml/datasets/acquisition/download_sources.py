@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """PictoGlyph research source fetcher and safe archive extractor.
 
 Downloads explicitly requested sources, safely unpacks ZIP and JSON.GZ archives,
@@ -15,7 +14,6 @@ import stat
 import tempfile
 from collections import Counter
 from pathlib import PurePosixPath
-import hashlib
 import json
 import os
 import shutil
@@ -25,17 +23,16 @@ import time
 import urllib.error
 import urllib.request
 import zipfile
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from acquisition_io import sha256_file, utc_now
+
+from acquisition_constants import (CHUNK_SIZE_BYTES, DEFAULT_DATA_ROOT, JSON_CONTENT_TYPE)
+
 MANIFEST = Path(__file__).with_name("sources.json")
-DEFAULT_ROOT = Path("/mnt/i/PictoGlyph/data/research-datasets")
+DEFAULT_ROOT = DEFAULT_DATA_ROOT
 USER_AGENT = "PictoGlyph-MSc-research-downloader/1.0 (one-at-a-time; source citations in manifest)"
-
-
-def utc_now() -> str:
-    return datetime.now(timezone.utc).isoformat()
 
 
 def request(url: str, headers: dict[str, str] | None = None) -> urllib.request.Request:
@@ -43,7 +40,7 @@ def request(url: str, headers: dict[str, str] | None = None) -> urllib.request.R
 
 
 def get_json(url: str) -> dict[str, Any]:
-    with urllib.request.urlopen(request(url, {"Accept": "application/json"}), timeout=60) as response:
+    with urllib.request.urlopen(request(url, {"Accept": JSON_CONTENT_TYPE}), timeout=60) as response:
         return json.load(response)
 
 
@@ -94,7 +91,7 @@ def fetch_http(url: str, path: Path, max_bytes: int) -> None:
                     raise RuntimeError("Download exceeds --max-mb limit based on Content-Length")
                 downloaded = existing
                 with partial.open(mode) as out:
-                    while chunk := response.read(1024 * 1024):
+                    while chunk := response.read(CHUNK_SIZE_BYTES):
                         downloaded += len(chunk)
                         if downloaded > max_bytes:
                             raise RuntimeError("Download exceeded --max-mb safety limit")
@@ -106,14 +103,6 @@ def fetch_http(url: str, path: Path, max_bytes: int) -> None:
                 raise
             print(f"  retry {attempt}/3 after {type(e).__name__}: {e}", flush=True)
             time.sleep(2 ** attempt)
-
-
-def sha256_file(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as stream:
-        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
-            digest.update(chunk)
-    return digest.hexdigest()
 
 
 def validate_archive(path: Path) -> None:

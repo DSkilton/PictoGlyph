@@ -1,28 +1,19 @@
-#!/usr/bin/env python3
-"""PG-ING-09: acquire catalogued research sources from a list of landing URLs.
-
-Only approved catalogue entries with an existing manifest adapter are executed.
-No arbitrary-site crawling, sign classification or database import occurs here.
-"""
 from __future__ import annotations
 
 import argparse
 import json
 import subprocess
 import sys
-from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import urlsplit, urlunsplit
+
+from acquisition_io import utc_now
 
 HERE = Path(__file__).resolve().parent
 CATALOGUE = HERE / "sources.json"
 DOWNLOAD_SCRIPT = HERE / "download_sources.py"
 MANIFEST_SCRIPT = HERE / "build_multiscript_manifest.py"
 SUPPORTED_MANIFESTS = {"indus-lipi", "cretan-hieroglyphic", "lineara-corpus"}
-
-
-def utc_now() -> str:
-    return datetime.now(timezone.utc).isoformat()
 
 
 def canonical_url(value: str) -> str:

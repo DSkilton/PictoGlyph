@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """PictoGlyph research manifest builder.
 
 Read extracted Indus, Cretan Hieroglyphic and Linear A collections without
@@ -10,13 +9,16 @@ from __future__ import annotations
 import argparse
 import csv
 from collections import Counter, defaultdict
-from datetime import datetime, timezone
 import json
 from pathlib import Path
 import re
 import sys
 
-DEFAULT_ROOT = Path('/mnt/i/PictoGlyph/data/research-datasets')
+from acquisition_io import utc_now
+
+from acquisition_constants import (DEFAULT_DATA_ROOT)
+
+DEFAULT_ROOT = DEFAULT_DATA_ROOT
 IMAGE_EXT = {'.jpg', '.jpeg', '.png', '.webp', '.tif', '.tiff', '.bmp'}
 MANIFEST_FIELDS = [
     'source_id','script','image_path','image_relpath','image_filename',
@@ -292,7 +294,7 @@ def main():
     write_csv(out/'images.csv',MANIFEST_FIELDS,imgs)
     write_csv(out/'inscriptions.csv',RECORD_FIELDS,records)
     write_csv(out/'provisional_crops.csv',CROP_FIELDS,crops)
-    report={'generated_at':datetime.now(timezone.utc).isoformat(),
+    report={'generated_at':utc_now(),
         'input_root':str(root),'output_dir':str(out), 'sources':summaries,
         'totals':{'images':len(imgs),'inscription_records':len(records),'provisional_crop_regions':len(crops)},
         'warnings':[

@@ -1,29 +1,34 @@
-#!/usr/bin/env python3
 """Preview and optionally import exact Met object IDs through PictoGlyph's local API."""
 
 import argparse
-import hashlib
 import json
 import logging
 import os
 import sys
 import time
-from datetime import datetime, timezone
 from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlsplit
 from urllib.request import HTTPRedirectHandler, ProxyHandler, Request, build_opener
 
-SOURCE_ID = "met-openaccess-metadata"
+from acquisition_io import append_jsonl, sha256_file, utc_now, write_json_atomic
+
+from acquisition_constants import (
+    COMPLETE, DEFAULT_API_BASE, FAILED, IMPORT_TOKEN_ENV, IMPORT_TOKEN_HEADER, JSON_CONTENT_TYPE,
+    MET_MAX_BATCH_SIZE, MET_PUBLIC_DOMAIN_RIGHTS, MET_SOURCE_ID, PREVIEW_ONLY, PROVENANCE_LOGGER_NAME,
+    SKIPPED_NO_IMAGE, SKIPPED_RIGHTS,
+)
+
+SOURCE_ID = MET_SOURCE_ID
 API_PATH = f"/ingestion/research-discovery/{SOURCE_ID}"
-PROVENANCE_LOGGER = logging.getLogger("PICTOGLYPH_PROVENANCE")
-DEFAULT_API_BASE = "http://127.0.0.1:8080"
-PUBLIC_DOMAIN_RIGHTS = "PUBLIC_DOMAIN_REPORTED_BY_SOURCE"
+PROVENANCE_LOGGER = logging.getLogger(PROVENANCE_LOGGER_NAME)
+PUBLIC_DOMAIN_RIGHTS = MET_PUBLIC_DOMAIN_RIGHTS
 IMAGE_HOST_PREFIX = "https://images.metmuseum.org/"
-MAX_BATCH_SIZE = 10
+MAX_BATCH_SIZE = MET_MAX_BATCH_SIZE
 MAX_RESPONSE_BYTES = 16 * 1024 * 1024
 CHECKPOINT_VERSION = 1
-RETRYABLE_SKIPS = {"SKIPPED_RIGHTS", "SKIPPED_NO_IMAGE"}
+IMPORTED = "IMPORTED"
+RETRYABLE_SKIPS = {SKIPPED_RIGHTS, SKIPPED_NO_IMAGE}
 
 
 class NoRedirectHandler(HTTPRedirectHandler):
@@ -31,40 +36,11 @@ class NoRedirectHandler(HTTPRedirectHandler):
         return None
 
 
-def utc_now():
-    return datetime.now(timezone.utc).isoformat()
-
-
-def sha256_file(path):
-    digest = hashlib.sha256()
-    
-    with path.open("rb") as stream:
-        for block in iter(lambda: stream.read(1024 * 1024), b""):
-            digest.update(block)
-    
-    return digest.hexdigest()
-
-
-def write_json_atomic(path, value):
-    temporary = path.with_name(path.name + ".tmp")
-    
-    with temporary.open("w", encoding="utf-8") as stream:
-        json.dump(value, stream, indent=2, ensure_ascii=False)
-        stream.write("\n")
-        stream.flush()
-        os.fsync(stream.fileno())
-        
-    temporary.replace(path)
-
-
 def append_audit(path, event, **details):
     record = {"timestamp": utc_now(), "sourceId": SOURCE_ID, "event": event, **details}
     
-    with path.open("a", encoding="utf-8") as stream:
-        stream.write(json.dumps(record, ensure_ascii=False) + "\n")
-        stream.flush()
-        os.fsync(stream.fileno())
-    
+    append_jsonl(path, record)
+
     PROVENANCE_LOGGER.info("event=%s %s", event, json.dumps(details, sort_keys=True))
 
 
@@ -132,8 +108,8 @@ def validate_api_base(api_base):
 def post_json(api_base, operation, object_ids, token, timeout):
     url = f"{api_base}{API_PATH}/{operation}"
     request = Request(url, data=json.dumps(object_ids).encode("utf-8"), method="POST", headers={
-        "Content-Type": "application/json", "Accept": "application/json",
-        "X-PictoGlyph-Import-Token": token
+        "Content-Type": JSON_CONTENT_TYPE, "Accept": JSON_CONTENT_TYPE,
+        IMPORT_TOKEN_HEADER: token
     })
     
     try:
@@ -191,9 +167,9 @@ def assess_preview(response, requested_ids):
             raise ValueError(f"Preview contains invalid image references for ID {object_id}")
         
         if raw_record.get("isPublicDomain") is not True or candidate.get("rights") != PUBLIC_DOMAIN_RIGHTS:
-            status = "SKIPPED_RIGHTS"
+            status = SKIPPED_RIGHTS
         elif not images:
-            status = "SKIPPED_NO_IMAGE"
+            status = SKIPPED_NO_IMAGE
         else:
             status = "READY_FOR_IMPORT"
         
@@ -231,7 +207,7 @@ def load_checkpoint(path, input_hash, api_base):
     
     processed = checkpoint.get("processed")
     
-    if not isinstance(processed, dict) or any(not str(key).isdecimal() or value not in ("IMPORTED", *RETRYABLE_SKIPS)
+    if not isinstance(processed, dict) or any(not str(key).isdecimal() or value not in (IMPORTED, *RETRYABLE_SKIPS)
                                                   for key, value in processed.items()):
         raise ValueError("Checkpoint contains invalid processed IDs")
     
@@ -265,7 +241,7 @@ def run(args):
     if args.recheck_skipped and not args.execute:
         raise ValueError("--recheck-skipped requires --execute")
     api_base = validate_api_base(args.api_base)
-    token = os.environ.get("PICTOGLYPH_RESEARCH_IMPORT_TOKEN", "")
+    token = os.environ.get(IMPORT_TOKEN_ENV, "")
     
     if not token:
         raise ValueError("Set PICTOGLYPH_RESEARCH_IMPORT_TOKEN before calling the protected API")
@@ -282,10 +258,10 @@ def run(args):
     checkpoint = load_checkpoint(checkpoint_path, input_hash, api_base) if args.execute else None
     previous = checkpoint["processed"] if checkpoint else {}
     completed_ids = {int(key) for key, status in previous.items()
-                     if status == "IMPORTED" or (status in RETRYABLE_SKIPS and not args.recheck_skipped)}
+                     if status == IMPORTED or (status in RETRYABLE_SKIPS and not args.recheck_skipped)}
     pending = [object_id for object_id in ids if object_id not in completed_ids]
 
-    report = {"sourceId": SOURCE_ID, "startedAt": utc_now(), "mode": "EXECUTE" if args.execute else "PREVIEW_ONLY",
+    report = {"sourceId": SOURCE_ID, "startedAt": utc_now(), "mode": "EXECUTE" if args.execute else PREVIEW_ONLY,
               "input": str(source), "inputSha256": input_hash, "selectedObjects": len(ids),
               "excludedByCsvRights": csv_skipped, "previouslyProcessed": len(ids) - len(pending),
               "previewedThisRun": 0, "readyThisRun": 0, "importedThisRun": 0,
@@ -301,8 +277,8 @@ def run(args):
             preview = post_json(api_base, "preview-ids", batch, token, args.timeout)
             outcomes = assess_preview(preview, batch)
             ready = [object_id for object_id in batch if outcomes[object_id]["status"] == "READY_FOR_IMPORT"]
-            skipped_rights = sum(outcomes[value]["status"] == "SKIPPED_RIGHTS" for value in batch)
-            skipped_images = sum(outcomes[value]["status"] == "SKIPPED_NO_IMAGE" for value in batch)
+            skipped_rights = sum(outcomes[value]["status"] == SKIPPED_RIGHTS for value in batch)
+            skipped_images = sum(outcomes[value]["status"] == SKIPPED_NO_IMAGE for value in batch)
             report["previewedThisRun"] += len(batch)
             report["readyThisRun"] += len(ready)
             report["skippedRightsThisRun"] += skipped_rights
@@ -321,7 +297,7 @@ def run(args):
                                  imageReferencesCreated=result["imageReferencesCreated"])
                     
                 for object_id in batch:
-                    checkpoint["processed"][str(object_id)] = "IMPORTED" if object_id in ready else outcomes[object_id]["status"]
+                    checkpoint["processed"][str(object_id)] = IMPORTED if object_id in ready else outcomes[object_id]["status"]
                 checkpoint["updatedAt"] = utc_now()
                 write_json_atomic(checkpoint_path, checkpoint)
 
@@ -332,10 +308,10 @@ def run(args):
             if batch_number < len(batches) and args.pause_seconds:
                 time.sleep(args.pause_seconds)
         
-        report["status"] = "COMPLETE"
+        report["status"] = COMPLETE
     
     except Exception as exception:
-        report["status"] = "FAILED"
+        report["status"] = FAILED
         report["errorType"] = type(exception).__name__
         report["error"] = str(exception)
         append_audit(audit_path, "met_exact_id_run_failed", errorType=type(exception).__name__)

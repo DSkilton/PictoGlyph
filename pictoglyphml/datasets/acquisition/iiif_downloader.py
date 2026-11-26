@@ -1,12 +1,14 @@
 import argparse
-import hashlib
 import requests
 import json
 import re
-from datetime import datetime, timezone
 from pathlib import Path
 
-DATA_ROOT = Path("/mnt/i/PictoGlyph/data/research-datasets/iiif")
+from acquisition_io import sha256_file as calculate_sha256, utc_now
+
+from acquisition_constants import (CHUNK_SIZE_BYTES, DEFAULT_DATA_ROOT)
+
+DATA_ROOT = DEFAULT_DATA_ROOT / "iiif"
 
 DOWNLOAD_PREVIEWS = False
 SHOW_CANVASES = False
@@ -184,7 +186,7 @@ def download_image(image_url: str, image_path: Path) -> None:
         with requests.get(image_url, timeout=60, stream=True) as response:
             response.raise_for_status()
             with temporary_path.open("wb") as file:
-                for chunk in response.iter_content(chunk_size=1024 * 1024):
+                for chunk in response.iter_content(chunk_size=CHUNK_SIZE_BYTES):
                     if chunk:
                         file.write(chunk)
         temporary_path.replace(image_path)
@@ -229,14 +231,6 @@ def inspect_image_service(service_url: str, data_dir: Path, index: int) -> dict:
     return image_info
 
 
-def calculate_sha256(file_path: Path) -> str:
-    checksum = hashlib.sha256()
-    with file_path.open("rb") as file:
-        for chunk in iter(lambda: file.read(1024 * 1024), b""):
-            checksum.update(chunk)
-    return checksum.hexdigest()
-
-
 def save_acquisition_metadata(manifest: dict, images: list[dict], source_id: str, manifest_url: str, data_dir: Path) -> None:
     records = []
 
@@ -279,7 +273,7 @@ def save_acquisition_metadata(manifest: dict, images: list[dict], source_id: str
 
     metadata = {
         "source_id": source_id,
-        "metadata_recorded_at": datetime.now(timezone.utc).isoformat(),
+        "metadata_recorded_at": utc_now(),
         "manifest_url": manifest_url,
         "manifest_id": manifest.get("id") or manifest.get("@id"),
         "manifest_metadata": manifest.get("metadata", []),

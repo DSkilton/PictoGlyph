@@ -1,10 +1,3 @@
-#!/usr/bin/env python3
-"""PG-ING-10: import archaeological research manifests without inventing sign labels.
-
-Reads build_multiscript_manifest.py CSV output, preserves unlinked images as
-independent records, adds checksums/triage/crop proposals, and optionally POSTs
-idempotent records to the PG-ING-08 Spring API. Defaults to local preview only.
-"""
 from __future__ import annotations
 
 import argparse
@@ -21,6 +14,10 @@ from collections import defaultdict
 from pathlib import Path
 from urllib.parse import urlsplit
 
+from acquisition_io import sha256_file as sha256
+
+from acquisition_constants import (IMPORT_TOKEN_ENV, IMPORT_TOKEN_HEADER, JSON_CONTENT_TYPE)
+
 HERE = Path(__file__).resolve().parent
 TRIAGE_SCRIPT = HERE.parent.parent / "experiments" / "triage_archaeological_images.py"
 MANIFEST_SCRIPT = HERE / "build_multiscript_manifest.py"
@@ -32,14 +29,6 @@ def read_csv(path: Path) -> list[dict]:
         raise FileNotFoundError(path)
     with path.open(encoding="utf-8-sig", newline="") as stream:
         return list(csv.DictReader(stream))
-
-
-def sha256(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as stream:
-        for block in iter(lambda: stream.read(1024 * 1024), b""):
-            digest.update(block)
-    return digest.hexdigest()
 
 
 def within_root(raw: str, root: Path, max_bytes: int) -> Path:
@@ -185,7 +174,7 @@ def report_progress(stage: str, done: int, total: int, started: float, last_repo
 
 def post_record(url: str, payload: dict, token: str) -> None:
     request = urllib.request.Request(url, data=json.dumps(payload).encode("utf-8"),
-                                     headers={"Content-Type": "application/json", "X-PictoGlyph-Import-Token": token}, method="POST")
+                                     headers={"Content-Type": JSON_CONTENT_TYPE, IMPORT_TOKEN_HEADER: token}, method="POST")
     with urllib.request.urlopen(request, timeout=45) as response:
         if response.status not in (200, 201):
             raise RuntimeError(f"Unexpected API status: {response.status}")
@@ -206,7 +195,7 @@ def main() -> int:
         parser.error("Image limits must be non-negative, with --max-image-mb >= 1")
     if args.execute and urlsplit(args.api_url).hostname not in ("localhost", "127.0.0.1", "::1"):
         parser.error("Only local API endpoints supported in this pilot")
-    token = os.getenv("PICTOGLYPH_RESEARCH_IMPORT_TOKEN", "")
+    token = os.getenv(IMPORT_TOKEN_ENV, "")
     if args.execute and not token:
         parser.error("Set PICTOGLYPH_RESEARCH_IMPORT_TOKEN before --execute")
     manifest = args.manifest.resolve()

@@ -10,17 +10,22 @@ from urllib.parse import urlsplit
 from urllib.request import ProxyHandler, Request, build_opener
 
 from import_met_object_ids import (NoRedirectHandler, SOURCE_ID, append_audit, assess_preview,
-                                   load_candidates, post_json, sha256_file, utc_now, validate_api_base,
-                                   write_json_atomic)
+                                   load_candidates, post_json, validate_api_base)
+from acquisition_io import sha256_file, utc_now, write_json_atomic
 
-DEFAULT_API_BASE = "http://127.0.0.1:8080"
+from acquisition_constants import (
+    CHUNK_SIZE_BYTES, COMPLETE, DEFAULT_API_BASE, DOWNLOADED, FAILED, IMPORT_TOKEN_ENV, JPEG_CONTENT_TYPE,
+    JPEG_END, JPEG_START, MET_MAX_BATCH_SIZE, MET_PUBLIC_DOMAIN_RIGHTS, PREVIEW_ONLY, REUSED, SKIPPED_NO_IMAGE,
+    SKIPPED_RIGHTS,
+)
+
 IMAGE_HOST = "images.metmuseum.org"
-RIGHTS_STATEMENT = "PUBLIC_DOMAIN_REPORTED_BY_SOURCE"
-MAX_BATCH_SIZE = 10
+RIGHTS_STATEMENT = MET_PUBLIC_DOMAIN_RIGHTS
+MAX_BATCH_SIZE = MET_MAX_BATCH_SIZE
 MAX_IMAGES_PER_OBJECT = 20
 DEFAULT_MAX_IMAGE_BYTES = 25 * 1024 * 1024
-CHUNK_BYTES = 1024 * 1024
-JPEG_CONTENT_TYPES = {"image/jpeg", "image/jpg"}
+CHUNK_BYTES = CHUNK_SIZE_BYTES
+JPEG_CONTENT_TYPES = {JPEG_CONTENT_TYPE, "image/jpg"}
 SCHEMA_VERSION = 1
 
 
@@ -77,7 +82,7 @@ def verify_existing(image_path, metadata_path, object_id, url):
 
 def fetch_jpeg(url, destination, max_bytes, timeout):
     validate_image_url(url)
-    request = Request(url, headers={"User-Agent": "PictoGlyph-MSc-image-acquisition/1.0", "Accept": "image/jpeg"})
+    request = Request(url, headers={"User-Agent": "PictoGlyph-MSc-image-acquisition/1.0", "Accept": JPEG_CONTENT_TYPE})
     opener = build_opener(ProxyHandler({}), NoRedirectHandler())
     temporary_path = None
 
@@ -116,7 +121,7 @@ def fetch_jpeg(url, destination, max_bytes, timeout):
                 temporary.flush()
                 os.fsync(temporary.fileno())
 
-            if total < 5 or first_bytes != b"\xff\xd8\xff" or last_bytes != b"\xff\xd9":
+            if total < 5 or first_bytes != JPEG_START or last_bytes != JPEG_END:
                 raise ValueError("Downloaded content is not a complete JPEG by signature")
 
             if destination.exists() or destination.is_symlink():
@@ -145,7 +150,7 @@ def acquire_image(output_dir, object_id, url, raw_record, timeout, max_bytes):
     previous = verify_existing(image_path, metadata_path, object_id, url)
 
     if previous is not None:
-        return "REUSED", previous
+        return REUSED, previous
 
     downloaded = fetch_jpeg(url, image_path, max_bytes, timeout)
     metadata = {"schemaVersion": SCHEMA_VERSION, "sourceId": SOURCE_ID, "objectId": object_id,
@@ -157,7 +162,7 @@ def acquire_image(output_dir, object_id, url, raw_record, timeout, max_bytes):
                 "trainingDataApproved": False, "linkedToPostgreSql": False}
     write_json_atomic(metadata_path, metadata)
 
-    return "DOWNLOADED", metadata
+    return DOWNLOADED, metadata
 
 
 def chunks(items, batch_size):
@@ -190,7 +195,7 @@ def run(args):
         raise ValueError("Timeout must be positive")
 
     api_base = validate_api_base(args.api_base)
-    token = os.environ.get("PICTOGLYPH_RESEARCH_IMPORT_TOKEN", "")
+    token = os.environ.get(IMPORT_TOKEN_ENV, "")
 
     if not token:
         raise ValueError("Set PICTOGLYPH_RESEARCH_IMPORT_TOKEN before calling the protected API")
@@ -208,7 +213,7 @@ def run(args):
     audit_path = root / "met-image-acquisition-audit.jsonl"
     report_path = root / "met-image-acquisition-last-run.json"
     report = {"sourceId": SOURCE_ID, "startedAt": utc_now(),
-              "mode": "EXECUTE" if args.execute else "PREVIEW_ONLY", "input": str(shortlist),
+              "mode": "EXECUTE" if args.execute else PREVIEW_ONLY, "input": str(shortlist),
               "inputSha256": sha256_file(shortlist), "selectedObjects": len(object_ids),
               "excludedByCsvRights": skipped_csv_rights, "previewedObjects": 0, "eligibleObjects": 0,
               "skippedRights": 0, "skippedNoImage": 0, "imageReferences": 0,
@@ -227,12 +232,12 @@ def run(args):
             for object_id, candidate in zip(batch, response["candidates"]):
                 outcome = outcomes[object_id]["status"]
 
-                if outcome == "SKIPPED_RIGHTS":
+                if outcome == SKIPPED_RIGHTS:
                     report["skippedRights"] += 1
                     append_audit(audit_path, "met_image_object_skipped", objectId=object_id, reason="RIGHTS")
                     continue
 
-                if outcome == "SKIPPED_NO_IMAGE":
+                if outcome == SKIPPED_NO_IMAGE:
                     report["skippedNoImage"] += 1
                     append_audit(audit_path, "met_image_object_skipped", objectId=object_id, reason="NO_IMAGE")
                     continue
@@ -251,7 +256,7 @@ def run(args):
 
                     action, metadata = acquire_image(root, object_id, url, candidate["rawRecord"], args.timeout,
                                                      args.max_image_mb * 1024 * 1024)
-                    report["imagesDownloaded" if action == "DOWNLOADED" else "imagesReused"] += 1
+                    report["imagesDownloaded" if action == DOWNLOADED else "imagesReused"] += 1
                     append_audit(audit_path, "met_image_" + action.lower(), objectId=object_id,
                                  url=url, localPath=metadata["localPath"], sha256=metadata["sha256"],
                                  fileSize=metadata["fileSize"], rights=metadata["rights"])
@@ -259,10 +264,10 @@ def run(args):
             print(f"Batch {batch_number}: previewed={len(batch)} eligible={sum(outcomes[x]['status'] == 'READY_FOR_IMPORT' for x in batch)} "
                   f"downloaded={report['imagesDownloaded']} reused={report['imagesReused']}", flush=True)
 
-        report["status"] = "COMPLETE"
+        report["status"] = COMPLETE
 
     except Exception as exception:
-        report["status"] = "FAILED"
+        report["status"] = FAILED
         report["errorType"] = type(exception).__name__
         report["error"] = str(exception)
         append_audit(audit_path, "met_image_run_failed", errorType=type(exception).__name__, message=str(exception))
