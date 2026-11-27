@@ -172,9 +172,9 @@ public class ResearchRecordService {
 
         verifyCuratedChecksum(image);
 
-            if (existing != null) {
-                return new ResearchRecordResponse(record.getId(), false, 0, 0);
-            }
+        if (existing != null) {
+            return new ResearchRecordResponse(record.getId(), false, 0, 0);
+        }
 
         ResearchImageAsset asset = new ResearchImageAsset();
         asset.setResearchSourceRecord(record);
