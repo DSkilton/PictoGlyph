@@ -13,6 +13,8 @@ import os
 import sys
 import tempfile
 import time
+import warnings
+
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
 from pathlib import Path
@@ -20,37 +22,25 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode, urlsplit
 from urllib.request import ProxyHandler, Request, build_opener
 
-from import_met_object_ids import NoRedirectHandler, SOURCE_ID, load_candidates, validate_api_base
+from PIL import Image, UnidentifiedImageError
 
-from acquisition_io import append_jsonl, sha256_file, utc_now as now, write_json_atomic as _write_json_atomic
+from import_met_object_ids import NoRedirectHandler, SOURCE_ID, load_candidates, sha256_file, validate_api_base
 
-from acquisition_constants import (
-    CC0_LICENCE, CHUNK_SIZE_BYTES, COMMONS_API_HOST, COMMONS_UPLOAD_HOST, DEFAULT_API_BASE, DOWNLOADED,
-    DOWNLOADED_LOCAL, FAILED, IMPORT_TOKEN_ENV, IMPORT_TOKEN_HEADER, JPEG_CONTENT_TYPE, JPEG_END, JPEG_START,
-    JSON_CONTENT_TYPE, LOCAL_RESEARCH_IMAGE, REUSED,
-)
-
-COMMONS_API = f"https://{COMMONS_API_HOST}/w/api.php"
+COMMONS_API = "https://commons.wikimedia.org/w/api.php"
 MET_PROPERTY = "P3634"
 DEFAULT_USER_AGENT = "PictoGlyphResearch/0.1 (academic acquisition; https://github.com/DSkilton/PictoGlyph)"
 RETRYABLE_HTTP = {429, 500, 502, 503, 504}
-CHUNK_SIZE = CHUNK_SIZE_BYTES
+CHUNK_SIZE = 1024 * 1024
 MAX_API_BYTES = 8 * 1024 * 1024
 MAX_MATCHES = 50
-ATTACHED = "ATTACHED"
-NO_STRUCTURED_MATCH = "NO_STRUCTURED_MATCH"
-REVIEW_REQUIRED = "REVIEW_REQUIRED"
-LEGACY_PILOT_ALREADY_ATTACHED = "LEGACY_PILOT_ALREADY_ATTACHED"
-PREVIEW_READY = "PREVIEW_READY"
-ALREADY_PROCESSED = "ALREADY_PROCESSED"
-TERMINAL_STATUSES = {ATTACHED, DOWNLOADED, NO_STRUCTURED_MATCH, REVIEW_REQUIRED, LEGACY_PILOT_ALREADY_ATTACHED}
+TERMINAL_STATUSES = {"ATTACHED", "DOWNLOADED", "NO_STRUCTURED_MATCH", "REVIEW_REQUIRED", "LEGACY_PILOT_ALREADY_ATTACHED"}
 LEGACY_PILOT_OBJECT_IDS = {550876, 550878}
 MAX_NETWORK_ATTEMPTS = 3
 MAX_AUTOMATIC_RETRY_SECONDS = 120
 TRANSIENT_COMMONS_API_CODES = {"cirrussearch-too-busy-error", "maxlag", "ratelimited"}
 COMMONS_API_BUSY_INITIAL_DELAY_SECONDS = 30
 COMMONS_API_BUSY_COOLDOWN_SECONDS = 180
-WIKIMEDIA_HOSTS = {COMMONS_API_HOST, COMMONS_UPLOAD_HOST}
+WIKIMEDIA_HOSTS = {"commons.wikimedia.org", "upload.wikimedia.org"}
 LAST_WIKIMEDIA_REQUEST = None
 MIN_WIKIMEDIA_INTERVAL = 2.0
 
@@ -124,9 +114,31 @@ def retry_remote(operation, url, stage):
     raise RuntimeError("Unreachable retry state")
 
 
+def now():
+    return datetime.now(timezone.utc).isoformat()
+
+
 def write_json_atomic(path, value):
     path.parent.mkdir(parents=True, exist_ok=True)
-    _write_json_atomic(path, value)
+    with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", dir=path.parent,
+                                     prefix=".pictoglyph-", suffix=".part", delete=False) as stream:
+        temporary = Path(stream.name)
+        try:
+            json.dump(value, stream, indent=2, ensure_ascii=False)
+            stream.write("\n")
+            stream.flush()
+            os.fsync(stream.fileno())
+        except BaseException:
+            temporary.unlink(missing_ok=True)
+            raise
+    temporary.replace(path)
+
+
+def append_jsonl(path, record):
+    with path.open("a", encoding="utf-8") as stream:
+        stream.write(json.dumps(record, ensure_ascii=False) + "\n")
+        stream.flush()
+        os.fsync(stream.fileno())
 
 
 def request_bytes(url, user_agent, timeout=45, limit=MAX_API_BYTES, method="GET", payload=None, headers=None):
@@ -134,7 +146,7 @@ def request_bytes(url, user_agent, timeout=45, limit=MAX_API_BYTES, method="GET"
     target = urlsplit(url)
     if target.scheme != "https" and not (target.scheme == "http" and target.hostname in ("127.0.0.1", "localhost", "::1")):
         raise ValueError("Only HTTPS or the local PictoGlyph API are allowed")
-    request_headers = {"User-Agent": user_agent, "Accept": JSON_CONTENT_TYPE, **(headers or {})}
+    request_headers = {"User-Agent": user_agent, "Accept": "application/json", **(headers or {})}
 
     def read_once():
         request = Request(url, data=payload, headers=request_headers, method=method)
@@ -155,7 +167,7 @@ def commons_json(url, user_agent, timeout):
         if code not in TRANSIENT_COMMONS_API_CODES:
             return response
         if attempt == MAX_NETWORK_ATTEMPTS - 1:
-            cooldown = RemoteCooldown("api-request", COMMONS_API_HOST, RuntimeError(code), COMMONS_API_BUSY_COOLDOWN_SECONDS)
+            cooldown = RemoteCooldown("api-request", "commons.wikimedia.org", RuntimeError(code), COMMONS_API_BUSY_COOLDOWN_SECONDS)
             cooldown.api_error_code = code
             raise cooldown
         delay = COMMONS_API_BUSY_INITIAL_DELAY_SECONDS * (2 ** attempt)
@@ -207,33 +219,51 @@ def commons_imageinfo(title, user_agent, timeout):
     fields = info.get("extmetadata", {})
     license_name = str(fields.get("LicenseShortName", {}).get("value", ""))
     license_url = str(fields.get("LicenseUrl", {}).get("value", ""))
-    if info.get("mime") != JPEG_CONTENT_TYPE:
+    if info.get("mime") != "image/jpeg":
         raise ValueError(f"Commons file is not JPEG: {info.get('mime')}")
     if "cc0" not in license_name.lower() and "creativecommons.org/publicdomain/zero/1.0" not in license_url.lower():
         raise ValueError(f"Commons CC0 licence not verified: {license_name}")
     url = info.get("url", "")
     parsed = urlsplit(url)
-    if parsed.scheme != "https" or parsed.hostname != COMMONS_UPLOAD_HOST or parsed.username or parsed.password:
+    if parsed.scheme != "https" or parsed.hostname != "upload.wikimedia.org" or parsed.username or parsed.password:
         raise ValueError("Commons original file URL is not an authorised HTTPS upload URL")
     page_url = info.get("descriptionurl", "")
-    if urlsplit(page_url).hostname != COMMONS_API_HOST:
+    if urlsplit(page_url).hostname != "commons.wikimedia.org":
         raise ValueError("Commons description URL is invalid")
     return {"downloadUrl": url, "pageUrl": page_url, "license": license_name, "licenseUrl": license_url,
             "commonsSha1": info.get("sha1"), "bytesReported": info.get("size")}
 
 
+def validate_jpeg_file(path):
+    """Validate a complete JPEG without discarding legitimate trailing metadata."""
+    with path.open("rb") as stream:
+        if stream.read(3) != b"\xff\xd8\xff":
+            raise ValueError("Commons download lacks a JPEG start marker")
+        stream.seek(0)
+        previous = b""
+        eoi_found = False
+        for block in iter(lambda: stream.read(CHUNK_SIZE), b""):
+            if b"\xff\xd9" in previous + block:
+                eoi_found = True
+            previous = block[-1:]
+    if not eoi_found:
+        raise ValueError("Commons JPEG lacks an end-of-image marker")
+    try:
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", Image.DecompressionBombWarning)
+            with Image.open(path) as image:
+                if image.format != "JPEG":
+                    raise ValueError("Commons download is not a JPEG")
+                image.load()
+    except (OSError, UnidentifiedImageError, Image.DecompressionBombWarning) as error:
+        raise ValueError("Commons JPEG cannot be fully decoded") from error
+
+
 def sha256_file_verified(path):
     if path.is_symlink() or not path.is_file():
         raise ValueError(f"Image path is not a regular file: {path}")
-    size = path.stat().st_size
-    with path.open("rb") as stream:
-        start = stream.read(3)
-        if size >= 2:
-            stream.seek(-2, 2)
-        end = stream.read(2)
-    if size < 5 or start != JPEG_START or end != JPEG_END:
-        raise ValueError("Local file does not have JPEG start/end markers")
-    return {"sha256": sha256_file(path), "fileSize": size}
+    validate_jpeg_file(path)
+    return {"sha256": sha256_file(path), "fileSize": path.stat().st_size}
 
 
 def acquire_file_once(info, destination, user_agent, timeout, max_bytes):
@@ -245,45 +275,39 @@ def acquire_file_once(info, destination, user_agent, timeout, max_bytes):
         verified = sha256_file_verified(destination)
         if previous.get("downloadUrl") != info["downloadUrl"] or any(previous.get(key) != value for key, value in verified.items()):
             raise ValueError("Existing image differs from recorded evidence")
-        return REUSED, previous
+        return "REUSED", previous
 
     destination.parent.mkdir(parents=True, exist_ok=True)
     url = info["downloadUrl"]
     opener = build_opener(ProxyHandler({}), NoRedirectHandler())
-    request = Request(url, headers={"User-Agent": user_agent, "Accept": JPEG_CONTENT_TYPE})
+    request = Request(url, headers={"User-Agent": user_agent, "Accept": "image/jpeg"})
     temporary = None
     try:
         with opener.open(request, timeout=timeout) as response:
             content_type = response.headers.get("Content-Type", "").split(";", 1)[0].strip().lower()
-            if content_type != JPEG_CONTENT_TYPE:
+            if content_type != "image/jpeg":
                 raise ValueError(f"Commons returned non-JPEG content type: {content_type}")
             size_header = response.headers.get("Content-Length")
             if size_header is not None and int(size_header) > max_bytes:
                 raise ValueError("Commons image exceeds configured maximum")
             digest = hashlib.sha256()
             size = 0
-            start = b""
-            end = b""
             with tempfile.NamedTemporaryFile(mode="wb", prefix=".commons-", suffix=".part", dir=destination.parent, delete=False) as stream:
                 temporary = Path(stream.name)
                 for block in iter(lambda: response.read(CHUNK_SIZE), b""):
                     size += len(block)
                     if size > max_bytes:
                         raise ValueError("Commons image exceeded size limit")
-                    if len(start) < 3:
-                        start += block[:3 - len(start)]
-                    end = (end + block)[-2:]
                     digest.update(block)
                     stream.write(block)
                 stream.flush()
                 os.fsync(stream.fileno())
-            if size < 5 or start != JPEG_START or end != JPEG_END:
-                raise ValueError("Commons download is not a JPEG by start/end markers")
+            validate_jpeg_file(temporary)
             if destination.exists() or metadata_path.exists():
                 raise ValueError("Destination appeared during download; refusing overwrite")
             temporary.replace(destination)
             temporary = None
-            return DOWNLOADED, {"sha256": digest.hexdigest(), "fileSize": size, **info}
+            return "DOWNLOADED", {"sha256": digest.hexdigest(), "fileSize": size, **info}
     finally:
         if temporary is not None:
             temporary.unlink(missing_ok=True)
@@ -297,18 +321,18 @@ def acquire_file(info, destination, user_agent, timeout, max_bytes):
 def local_post(api_base, object_id, pageid, metadata, image_path, user_agent, timeout, token):
     path = f"/ingestion/research-records/{SOURCE_ID}/records/object:{object_id}/image-assets"
     asset = {"assetKey": f"commons:met:{object_id}:{pageid}", "sourcePath": str(image_path.resolve()),
-             "imageKind": LOCAL_RESEARCH_IMAGE, "rights": CC0_LICENCE, "checksumSha256": metadata["sha256"],
+             "imageKind": "LOCAL_RESEARCH_IMAGE", "rights": "CC0-1.0", "checksumSha256": metadata["sha256"],
              "analysis": {"distributionSource": "Wikimedia Commons", "distributionFilePage": metadata["pageUrl"],
                           "distributionUrl": metadata["downloadUrl"], "commonsPageId": pageid,
                           "commonsLicence": metadata["license"], "commonsLicenceUrl": metadata["licenseUrl"],
                           "commonsSha1": metadata.get("commonsSha1"), "metObjectId": object_id,
                           "matchProperty": MET_PROPERTY, "matchMethod": "VERIFIED_COMMONS_STRUCTURED_ID",
-                          "downloadStatus": DOWNLOADED_LOCAL, "fileSizeBytes": metadata["fileSize"],
+                          "downloadStatus": "DOWNLOADED_LOCAL", "fileSizeBytes": metadata["fileSize"],
                           "trainingDataApproved": False}}
     url = api_base + path
     payload = json.dumps(asset).encode("utf-8")
     response = json.loads(request_bytes(url, user_agent, timeout, method="POST", payload=payload,
-                        headers={"Content-Type": JSON_CONTENT_TYPE, IMPORT_TOKEN_HEADER: token}))
+                        headers={"Content-Type": "application/json", "X-PictoGlyph-Import-Token": token}))
     if response.get("imageAssetsCreated") not in (0, 1) or response.get("imageAssetsUpdated") != 0:
         raise ValueError(f"Unexpected attach response for Met {object_id}: {response}")
     return response
@@ -316,12 +340,12 @@ def local_post(api_base, object_id, pageid, metadata, image_path, user_agent, ti
 
 def process_object(object_id, args, root, token):
     if args.attach and object_id in LEGACY_PILOT_OBJECT_IDS:
-        return {"status": LEGACY_PILOT_ALREADY_ATTACHED, "files": []}
+        return {"status": "LEGACY_PILOT_ALREADY_ATTACHED", "files": []}
     matches = search_met_files(object_id, args.user_agent, args.timeout)
     if not matches:
-        return {"status": NO_STRUCTURED_MATCH, "files": []}
+        return {"status": "NO_STRUCTURED_MATCH", "files": []}
     if len(matches) > args.max_images_per_object:
-        return {"status": REVIEW_REQUIRED, "reason": "TOO_MANY_MATCHES", "matches": matches, "files": []}
+        return {"status": "REVIEW_REQUIRED", "reason": "TOO_MANY_MATCHES", "matches": matches, "files": []}
     verified = []
     issues = []
     for match in matches:
@@ -333,14 +357,14 @@ def process_object(object_id, args, root, token):
             issues.append({"pageid": match["pageid"], "title": match["title"], "reason": str(error)})
         time.sleep(args.pause_seconds)
     if issues:
-        return {"status": REVIEW_REQUIRED, "reason": "MATCH_OR_LICENCE_UNVERIFIED", "issues": issues, "matches": matches, "files": []}
+        return {"status": "REVIEW_REQUIRED", "reason": "MATCH_OR_LICENCE_UNVERIFIED", "issues": issues, "matches": matches, "files": []}
     if not args.execute:
-        return {"status": PREVIEW_READY, "files": verified}
+        return {"status": "PREVIEW_READY", "files": verified}
     files = []
     for item in verified:
         image_path = root / "images" / "commons-met" / str(object_id) / f"{item['pageid']}.jpg"
         outcome, metadata = acquire_file(item, image_path, args.user_agent, args.timeout, args.max_image_mb * 1024 * 1024)
-        if outcome == DOWNLOADED:
+        if outcome == "DOWNLOADED":
             write_json_atomic(image_path.with_suffix(".json"), metadata)
         attachment = None
         if args.attach:
@@ -349,7 +373,7 @@ def process_object(object_id, args, root, token):
         files.append({"pageid": item["pageid"], "title": item["title"], "localPath": str(image_path),
                       "sha256": metadata["sha256"], "outcome": outcome, "attachment": attachment})
         time.sleep(args.pause_seconds)
-    return {"status": ATTACHED if args.attach else DOWNLOADED, "files": files}
+    return {"status": "ATTACHED" if args.attach else "DOWNLOADED", "files": files}
 
 
 def build_parser():
@@ -362,22 +386,11 @@ def build_parser():
     parser.add_argument("--pause-seconds", type=float, default=2.0)
     parser.add_argument("--timeout", type=float, default=45)
     parser.add_argument("--user-agent", default=os.environ.get("PICTOGLYPH_COMMONS_USER_AGENT", DEFAULT_USER_AGENT))
-    parser.add_argument("--api-base", default=DEFAULT_API_BASE)
+    parser.add_argument("--api-base", default="http://127.0.0.1:8080")
     parser.add_argument("--execute", action="store_true")
     parser.add_argument("--attach", action="store_true", help="Attach files to existing PostgreSQL research records (requires --execute)")
     parser.add_argument("--retry-unmatched", action="store_true", help="Revisit NO_STRUCTURED_MATCH and REVIEW_REQUIRED entries")
     return parser
-
-
-def should_skip_previous(prior, args):
-    if not args.execute or not prior:
-        return False
-    status = prior["status"]
-    if status not in TERMINAL_STATUSES:
-        return False
-    if args.retry_unmatched and status in {NO_STRUCTURED_MATCH, REVIEW_REQUIRED}:
-        return False
-    return not (args.attach and status == DOWNLOADED)
 
 
 def run(args):
@@ -391,7 +404,7 @@ def run(args):
         raise ValueError("--attach requires --execute")
     api_base = validate_api_base(args.api_base)
     args.api_base = api_base
-    token = os.environ.get(IMPORT_TOKEN_ENV, "")
+    token = os.environ.get("PICTOGLYPH_RESEARCH_IMPORT_TOKEN", "")
     if args.attach and not token:
         raise ValueError("Attaching to PostgreSQL requires PICTOGLYPH_RESEARCH_IMPORT_TOKEN")
     source = args.input.expanduser().resolve(strict=True)
@@ -416,16 +429,19 @@ def run(args):
     paused_for_network = False
     for index, object_id in enumerate(selected_ids, 1):
         prior = checkpoint["processed"].get(str(object_id))
-        if should_skip_previous(prior, args):
-            results.append({"objectId": object_id, "status": ALREADY_PROCESSED, "previous": prior["status"]})
-            continue
+        if args.execute and prior and prior["status"] in TERMINAL_STATUSES and (not args.retry_unmatched or prior["status"] not in {"NO_STRUCTURED_MATCH", "REVIEW_REQUIRED"}):
+            if args.attach and prior["status"] == "DOWNLOADED":
+                pass
+            else:
+                results.append({"objectId": object_id, "status": "ALREADY_PROCESSED", "previous": prior["status"]})
+                continue
         try:
             outcome = process_object(object_id, args, root, token)
             entry = {"objectId": object_id, "timestamp": now(), **outcome}
             consecutive_network_failures = 0
             print(f"[{index}/{len(selected_ids)}] Met {object_id}: {outcome['status']} ({len(outcome.get('files', []))} files)", flush=True)
         except (OSError, ValueError, RuntimeError, HTTPError, URLError, TimeoutError, KeyError, json.JSONDecodeError) as error:
-            entry = {"objectId": object_id, "timestamp": now(), "status": FAILED, "errorType": type(error).__name__, "error": str(error)}
+            entry = {"objectId": object_id, "timestamp": now(), "status": "FAILED", "errorType": type(error).__name__, "error": str(error)}
             if isinstance(error, AcquisitionNetworkError):
                 entry.update(errorStage=error.stage, remoteHost=error.host, httpStatus=error.http_status)
                 if hasattr(error, "api_error_code"):
@@ -457,7 +473,7 @@ def run(args):
               "trainingDataApproved": False, "results": results}
     write_json_atomic(report_path, report)
     print(json.dumps({key: value for key, value in report.items() if key != "results"}, indent=2), flush=True)
-    return 1 if counts.get(FAILED) else 0
+    return 1 if counts.get("FAILED") else 0
 
 
 def main():

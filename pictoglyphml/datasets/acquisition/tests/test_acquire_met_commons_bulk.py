@@ -1,6 +1,8 @@
 import json
 import sys
 import tempfile
+from io import BytesIO
+from PIL import Image
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
@@ -10,6 +12,12 @@ test_directory = Path(__file__).resolve().parent
 acquisition_directory = test_directory.parent if test_directory.name == "tests" else test_directory
 sys.path.insert(0, str(acquisition_directory))
 import acquire_met_commons_bulk as subject
+
+
+def jpeg_image(suffix=b""):
+    output = BytesIO()
+    Image.new("RGB", (4, 4), (20, 40, 60)).save(output, format="JPEG")
+    return output.getvalue() + suffix
 
 
 class CommonsAcquisitionTests(unittest.TestCase):
@@ -42,7 +50,7 @@ class CommonsAcquisitionTests(unittest.TestCase):
     def test_jpeg_signature_and_digest(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "sample.jpg"
-            data = b"\xff\xd8\xff" + b"example" + b"\xff\xd9"
+            data = jpeg_image()
             path.write_bytes(data)
             result = subject.sha256_file_verified(path)
             self.assertEqual(result["fileSize"], len(data))
@@ -85,7 +93,7 @@ class CommonsNetworkRecoveryTests(unittest.TestCase):
         from io import BytesIO
         from hashlib import sha256
         from unittest.mock import MagicMock
-        image = b"\xff\xd8\xff" + b"good content" + b"\xff\xd9"
+        image = jpeg_image()
         response = BytesIO(image)
         response.headers = {"Content-Type": "image/jpeg", "Content-Length": str(len(image))}
         response.__enter__ = lambda self: self
@@ -176,23 +184,6 @@ class CommonsNetworkRecoveryTests(unittest.TestCase):
 
 
 
-class CommonsCheckpointPolicyTests(unittest.TestCase):
-    def test_skip_policy_preserves_retry_and_attachment_behaviour(self):
-        for status, execute, attach, retry, expected in (
-            ("ATTACHED", True, True, False, True),
-            ("DOWNLOADED", True, True, False, False),
-            ("DOWNLOADED", True, False, False, True),
-            ("REVIEW_REQUIRED", True, False, True, False),
-            ("NO_STRUCTURED_MATCH", True, False, False, True),
-            ("FAILED", True, True, False, False),
-            ("ATTACHED", False, False, False, False),
-        ):
-            with self.subTest(status=status, execute=execute, attach=attach, retry=retry):
-                args = SimpleNamespace(execute=execute, attach=attach, retry_unmatched=retry)
-                self.assertEqual(expected, subject.should_skip_previous({"status": status}, args))
-        self.assertFalse(subject.should_skip_previous(None, SimpleNamespace(execute=True)))
-
-
 class CommonsApiOverloadTests(unittest.TestCase):
     def test_search_retries_json_busy_error_and_recovers(self):
         busy = b'{"error":{"code":"cirrussearch-too-busy-error","info":"Search is currently too busy"}}'
@@ -226,6 +217,47 @@ class CommonsApiOverloadTests(unittest.TestCase):
         with patch.object(subject, "request_bytes", side_effect=[busy,good]), patch.object(subject.time, "sleep") as sleep:
             self.assertTrue(subject.verify_structured_met_id(123, 10020, "agent", 30))
         sleep.assert_called_once_with(30)
+
+
+class CommonsJpegValidationTests(unittest.TestCase):
+    def test_trailing_seft_is_accepted_without_rewriting_source(self):
+        original = jpeg_image(b"\x00" * 9103 + b"SEFT")
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "original.jpg"
+            path.write_bytes(original)
+            metadata = subject.sha256_file_verified(path)
+            self.assertEqual(len(original), metadata["fileSize"])
+            self.assertEqual(original, path.read_bytes())
+
+    def test_truncated_jpeg_missing_eoi_is_rejected(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "truncated.jpg"
+            path.write_bytes(jpeg_image()[:-2])
+            with self.assertRaisesRegex(ValueError, "end-of-image"):
+                subject.sha256_file_verified(path)
+
+    def test_truncated_image_with_eoi_is_rejected_by_decoder(self):
+        original = jpeg_image()
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "corrupt.jpg"
+            path.write_bytes(original[:len(original) // 2] + original[-2:])
+            with self.assertRaisesRegex(ValueError, "fully decoded"):
+                subject.sha256_file_verified(path)
+
+    def test_download_accepts_jpeg_with_trailing_seft(self):
+        from unittest.mock import MagicMock
+        image = jpeg_image(b"\x00" * 9103 + b"SEFT")
+        response = BytesIO(image)
+        response.headers = {"Content-Type": "image/jpeg", "Content-Length": str(len(image))}
+        opener = MagicMock()
+        opener.open.return_value = response
+        with tempfile.TemporaryDirectory() as directory, patch.object(subject, "build_opener", return_value=opener), \
+             patch.object(subject, "pace_wikimedia"):
+            path = Path(directory) / "image.jpg"
+            status, metadata = subject.acquire_file({"downloadUrl": "https://upload.wikimedia.org/a.jpg"}, path, "agent", 10, 20000)
+            self.assertEqual("DOWNLOADED", status)
+            self.assertEqual(image, path.read_bytes())
+            self.assertEqual(len(image), metadata["fileSize"])
 
 
 if __name__ == "__main__":
