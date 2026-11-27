@@ -1,0 +1,229 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Review-only source leads and Commons query presets; not an executable download_sources.py catalogue. No automatic approval or claimed coverage. Existing discovery catalogue remains unchanged.",
+  "scriptQueries": {
+    "latin": "\"Latin alphabet\"",
+    "greek": "\"Greek\"",
+    "ancient-greek": "\"ancient Greek\"",
+    "cyrillic": "\"Cyrillic\"",
+    "arabic": "\"Arabic\"",
+    "hebrew": "\"Hebrew\"",
+    "bengali": "\"Bengali\"",
+    "devanagari": "\"Devanagari\"",
+    "han": "\"Chinese characters\"",
+    "japanese": "\"Japanese\"",
+    "hangul": "\"Hangul\"",
+    "coptic": "\"Coptic\""
+  },
+  "mediumQueries": {
+    "gravestone": "gravestone",
+    "inscription": "inscription",
+    "sign": "sign",
+    "manuscript": "manuscript",
+    "handwriting": "handwriting",
+    "plaque": "plaque",
+    "printing": "printed text"
+  },
+  "datasetLeads": [
+    {
+      "id": "omniglot",
+      "url": "https://github.com/brendenlake/omniglot",
+      "scriptLeads": [
+        "multiple"
+      ],
+      "state": "existing",
+      "notes": "Use existing background/evaluation entries; source class is not necessarily Unicode."
+    },
+    {
+      "id": "emnist",
+      "url": "https://www.nist.gov/itl/products-and-services/emnist-dataset",
+      "scriptLeads": [
+        "latin"
+      ],
+      "state": "review",
+      "notes": "IDX/MAT adapter; check download terms and labels."
+    },
+    {
+      "id": "ahcd",
+      "url": "https://github.com/mloey/Arabic-Handwritten-Characters-Dataset",
+      "scriptLeads": [
+        "arabic"
+      ],
+      "state": "review",
+      "notes": "Check archive and dataset rights separately from code."
+    },
+    {
+      "id": "banglalekha",
+      "url": "https://data.mendeley.com/datasets/hf6sf8zrkc/2",
+      "scriptLeads": [
+        "bengali"
+      ],
+      "state": "review",
+      "notes": "Inspect dataset version and file licences."
+    },
+    {
+      "id": "kmnist",
+      "url": "https://github.com/rois-codh/kmnist",
+      "scriptLeads": [
+        "japanese"
+      ],
+      "state": "review",
+      "notes": "Historical Japanese handwriting; NPZ adapter."
+    },
+    {
+      "id": "kanji-vg",
+      "url": "https://github.com/KanjiVG/kanjivg",
+      "scriptLeads": [
+        "japanese",
+        "han"
+      ],
+      "state": "existing",
+      "notes": "Existing Japanese SVG inventory; do not assume Chinese reading."
+    },
+    {
+      "id": "noto",
+      "url": "https://fonts.google.com/noto/",
+      "scriptLeads": [
+        "latin",
+        "greek",
+        "ancient-greek",
+        "cyrillic",
+        "arabic",
+        "hebrew",
+        "bengali",
+        "devanagari",
+        "han",
+        "japanese",
+        "hangul",
+        "coptic"
+      ],
+      "state": "review",
+      "notes": "Font licence and character coverage per font; generated images not photographs."
+    },
+    {
+      "id": "unicode-ucd-17",
+      "url": "https://www.unicode.org/ucd/",
+      "scriptLeads": [
+        "latin",
+        "greek",
+        "ancient-greek",
+        "cyrillic",
+        "arabic",
+        "hebrew",
+        "bengali",
+        "devanagari",
+        "han",
+        "japanese",
+        "hangul",
+        "coptic"
+      ],
+      "state": "existing",
+      "notes": "Existing reference metadata, not images."
+    },
+    {
+      "id": "cldr",
+      "url": "https://cldr.unicode.org/",
+      "scriptLeads": [
+        "latin",
+        "greek",
+        "ancient-greek",
+        "cyrillic",
+        "arabic",
+        "hebrew",
+        "bengali",
+        "devanagari",
+        "han",
+        "japanese",
+        "hangul",
+        "coptic"
+      ],
+      "state": "review",
+      "notes": "Language/script/territory reference; pin release."
+    },
+    {
+      "id": "glottolog",
+      "url": "https://glottolog.org/download",
+      "scriptLeads": [
+        "latin",
+        "greek",
+        "ancient-greek",
+        "cyrillic",
+        "arabic",
+        "hebrew",
+        "bengali",
+        "devanagari",
+        "han",
+        "japanese",
+        "hangul",
+        "coptic"
+      ],
+      "state": "review",
+      "notes": "Language-family data; not direct glyph labels."
+    },
+    {
+      "id": "icdar-mlt",
+      "url": "https://rrc.cvc.uab.es/?ch=15",
+      "scriptLeads": [
+        "latin",
+        "arabic",
+        "han",
+        "japanese",
+        "hangul",
+        "bengali",
+        "devanagari"
+      ],
+      "state": "review",
+      "notes": "Check registered download terms and precise script coverage; text regions not character crops."
+    },
+    {
+      "id": "edh",
+      "url": "https://edh.ub.uni-heidelberg.de/",
+      "scriptLeads": [
+        "latin",
+        "ancient-greek"
+      ],
+      "state": "review",
+      "notes": "Historical epigraphy; verify image links and rights separately."
+    },
+    {
+      "id": "europeana",
+      "url": "https://www.europeana.eu/en/apis",
+      "scriptLeads": [
+        "latin",
+        "greek",
+        "ancient-greek",
+        "cyrillic",
+        "arabic",
+        "hebrew",
+        "bengali",
+        "devanagari",
+        "han",
+        "japanese",
+        "hangul",
+        "coptic"
+      ],
+      "state": "review",
+      "notes": "API discovery and item rights; use IIIF when available."
+    },
+    {
+      "id": "commons",
+      "url": "https://commons.wikimedia.org/",
+      "scriptLeads": [
+        "latin",
+        "greek",
+        "ancient-greek",
+        "cyrillic",
+        "arabic",
+        "hebrew",
+        "bengali",
+        "devanagari",
+        "han",
+        "japanese",
+        "hangul",
+        "coptic"
+      ],
+      "state": "pilot",
+      "notes": "Use the new preview/execute adapter; queries are not verified labels."
+    }
+  ]
+}
