@@ -1,0 +1,2766 @@
+{
+  "schema_version": "2.0",
+  "name": "PictoGlyph Master Source Discovery Catalogue",
+  "created_utc": "2026-11-11",
+  "scope": "Research institutions and existing project sources identified for ancient writing, symbols, and contextual data. Not an exhaustive list of every collection worldwide.",
+  "not_executable": "Discovery catalogue only. Do not pass directly to download_sources.py or run_source_list.py or auto-download all sources.",
+  "original_catalogue": "pictoglyphml/datasets/acquisition/sources.json",
+  "selection_policy": {
+    "uk_research_basis": "UK Copyright, Designs and Patents Act section 29A may permit copies for computational analysis for non-commercial research where access is lawful and acknowledgment is sufficient; this does not authorise bypassing access controls or public redistribution.",
+    "legal_reference": "https://www.legislation.gov.uk/ukpga/1988/48/section/29A",
+    "rights_separate": [
+      "metadata_rights",
+      "image_rights",
+      "text_rights",
+      "model_output_reuse_rights"
+    ],
+    "before_download": [
+      "Check lawful access and any applicable terms, access mechanisms and rate limits",
+      "Confirm a machine-readable endpoint exists or secure permission for bulk access",
+      "Keep item-level rights, attribution, provenance and retrieval dates",
+      "Do not circumvent authentication, CAPTCHAs or technical restrictions",
+      "Do not assume item with an image link has a sign image or verified label"
+    ],
+    "recommended_ingestion": [
+      "Discover object IDs first",
+      "Filter script and inscription relevance using object metadata",
+      "Inspect image licence and research use basis",
+      "Acquire selected image and preserve URL/IIIF manifest plus checksum",
+      "Retain unknown linking/labels as unverified",
+      "Apply throttling, retries, checkpoints and per-source progress"
+    ],
+    "automatic_download_enabled_by_default": false
+  },
+  "source_count": 73,
+  "existing_catalogue_source_count": 35,
+  "new_source_count": 38,
+  "source_categories": {
+    "scripts": 24,
+    "translation_keys": 1,
+    "context": 3,
+    "trade": 5,
+    "museum": 16,
+    "aggregator": 3,
+    "digital_library": 3,
+    "research_archive": 17,
+    "research_project": 1
+  },
+  "sources": [
+    {
+      "id": "egyptian-mmm",
+      "name": "MMM Egyptian isolated signs",
+      "category": "scripts",
+      "priority": "P0",
+      "script_tags": [
+        "egyptian-hieroglyphs"
+      ],
+      "content_types": [
+        "raster-images",
+        "sign-labels"
+      ],
+      "landing_url": "https://github.com/imak-ai-lab/egyptian-hieroglyph-datasets",
+      "access_method": "gdrive",
+      "endpoints": [],
+      "documentation_url": null,
+      "image_availability": "yes",
+      "access_requirements": "source_specific_review_required",
+      "rights_note": "Check rights at the individual asset and source level.",
+      "integration_state": "acquired_existing",
+      "existing_catalogue_id": "egyptian-mmm",
+      "verification": "existing_repository_catalogue",
+      "evidence_urls": [],
+      "notes": "",
+      "automatic_download_enabled": false,
+      "catalogue_reference": "pictoglyphml/datasets/acquisition/sources.json"
+    },
+    {
+      "id": "egyptian-meh",
+      "name": "MEH Egyptian page images and boxes",
+      "category": "scripts",
+      "priority": "P0",
+      "script_tags": [
+        "egyptian-hieroglyphs"
+      ],
+      "content_types": [
+        "raster-images",
+        "annotations"
+      ],
+      "landing_url": "https://github.com/imak-ai-lab/egyptian-hieroglyph-datasets",
+      "access_method": "gdrive",
+      "endpoints": [],
+      "documentation_url": null,
+      "image_availability": "yes",
+      "access_requirements": "source_specific_review_required",
+      "rights_note": "Check rights at the individual asset and source level.",
+      "integration_state": "acquired_existing",
+      "existing_catalogue_id": "egyptian-meh",
+      "verification": "existing_repository_catalogue",
+      "evidence_urls": [],
+      "notes": "",
+      "automatic_download_enabled": false,
+      "catalogue_reference": "pictoglyphml/datasets/acquisition/sources.json"
+    },
+    {
+      "id": "egyptian-mummy",
+      "name": "MuMMy multimodal Egyptian dataset",
+      "category": "scripts",
+      "priority": "P0",
+      "script_tags": [
+        "egyptian-hieroglyphs"
+      ],
+      "content_types": [
+        "raster-images",
+        "transcriptions"
+      ],
+      "landing_url": "https://github.com/imak-ai-lab/egyptian-hieroglyph-datasets",
+      "access_method": "gdrive",
+      "endpoints": [],
+      "documentation_url": null,
+      "image_availability": "yes",
+      "access_requirements": "source_specific_review_required",
+      "rights_note": "Check rights at the individual asset and source level.",
+      "integration_state": "acquired_existing",
+      "existing_catalogue_id": "egyptian-mummy",
+      "verification": "existing_repository_catalogue",
+      "evidence_urls": [],
+      "notes": "",
+      "automatic_download_enabled": false,
+      "catalogue_reference": "pictoglyphml/datasets/acquisition/sources.json"
+    },
+    {
+      "id": "kanji-vg",
+      "name": "KanjiVG stroke vector inventory",
+      "category": "scripts",
+      "priority": "P3",
+      "script_tags": [
+        "kanji"
+      ],
+      "content_types": [
+        "vector-images",
+        "sign-inventory"
+      ],
+      "landing_url": "https://github.com/KanjiVG/kanjivg",
+      "access_method": "github",
+      "endpoints": [],
+      "documentation_url": null,
+      "image_availability": "vector_only",
+      "access_requirements": "source_specific_review_required",
+      "rights_note": "Check rights at the individual asset and source level.",
+      "integration_state": "acquired_existing",
+      "existing_catalogue_id": "kanji-vg",
+      "verification": "existing_repository_catalogue",
+      "evidence_urls": [],
+      "notes": "",
+      "automatic_download_enabled": false,
+      "catalogue_reference": "pictoglyphml/datasets/acquisition/sources.json"
+    },
+    {
+      "id": "coptic-scriptorium",
+      "name": "Coptic SCRIPTORIUM",
+      "category": "scripts",
+      "priority": "P1",
+      "script_tags": [
+        "coptic"
+      ],
+      "content_types": [
+        "annotated-text"
+      ],
+      "landing_url": "https://github.com/CopticScriptorium/corpora",
+      "access_method": "github",
+      "endpoints": [],
+      "documentation_url": null,
+      "image_availability": "no_bundled_images_confirmed",
+      "access_requirements": "source_specific_review_required",
+      "rights_note": "Check rights at the individual asset and source level.",
+      "integration_state": "acquired_existing",
+      "existing_catalogue_id": "coptic-scriptorium",
+      "verification": "existing_repository_catalogue",
+      "evidence_urls": [],
+      "notes": "",
+      "automatic_download_enabled": false,
+      "catalogue_reference": "pictoglyphml/datasets/acquisition/sources.json"
+    },
+    {
+      "id": "greek-perseus-treebank",
+      "name": "Perseus Ancient Greek treebank",
+      "category": "scripts",
+      "priority": "P2",
+      "script_tags": [
+        "ancient-greek"
+      ],
+      "content_types": [
+        "annotated-text"
+      ],
+      "landing_url": "https://github.com/PerseusDL/treebank_data",
+      "access_method": "github",
+      "endpoints": [],
+      "documentation_url": null,
+      "image_availability": "no_bundled_images_confirmed",
+      "access_requirements": "source_specific_review_required",
+      "rights_note": "Check rights at the individual asset and source level.",
+      "integration_state": "acquired_existing",
+      "existing_catalogue_id": "greek-perseus-treebank",
+      "verification": "existing_repository_catalogue",
+      "evidence_urls": [],
+      "notes": "",
+      "automatic_download_enabled": false,
+      "catalogue_reference": "pictoglyphml/datasets/acquisition/sources.json"
+    },
+    {
+      "id": "indus-lipi",
+      "name": "Lipi Indus inscriptions",
+      "category": "scripts",
+      "priority": "P0",
+      "script_tags": [
+        "indus"
+      ],
+      "content_types": [
+        "raster-images",
+        "inscriptions"
+      ],
+      "landing_url": "https://github.com/yajnadevam/lipi",
+      "access_method": "github",
+      "endpoints": [],
+      "documentation_url": null,
+      "image_availability": "yes",
+      "access_requirements": "source_specific_review_required",
+      "rights_note": "Check rights at the individual asset and source level.",
+      "integration_state": "pilot_database_integrated",
+      "existing_catalogue_id": "indus-lipi",
+      "verification": "existing_repository_catalogue",
+      "evidence_urls": [],
+      "notes": "",
+      "automatic_download_enabled": false,
+      "catalogue_reference": "pictoglyphml/datasets/acquisition/sources.json"
+    },
+    {
+      "id": "lineara-corpus",
+      "name": "Linear A cross-referenced corpus",
+      "category": "scripts",
+      "priority": "P0",
+      "script_tags": [
+        "linear-a"
+      ],
+      "content_types": [
+        "inscriptions",
+        "transcriptions"
+      ],
+      "landing_url": "https://github.com/Navarre-AI/linear-a",
+      "access_method": "github",
+      "endpoints": [],
+      "documentation_url": null,
+      "image_availability": "no_bundled_images_confirmed",
+      "access_requirements": "source_specific_review_required",
+      "rights_note": "Check rights at the individual asset and source level.",
+      "integration_state": "pilot_database_integrated",
+      "existing_catalogue_id": "lineara-corpus",
+      "verification": "existing_repository_catalogue",
+      "evidence_urls": [],
+      "notes": "",
+      "automatic_download_enabled": false,
+      "catalogue_reference": "pictoglyphml/datasets/acquisition/sources.json"
+    },
+    {
+      "id": "cretan-hieroglyphic",
+      "name": "Cretan Hieroglyphic Explorer",
+      "category": "scripts",
+      "priority": "P0",
+      "script_tags": [
+        "cretan-hieroglyphs"
+      ],
+      "content_types": [
+        "raster-images",
+        "inscriptions"
+      ],
+      "landing_url": "https://github.com/mwenge/linear0.xyz",
+      "access_method": "github",
+      "endpoints": [],
+      "documentation_url": null,
+      "image_availability": "yes",
+      "access_requirements": "source_specific_review_required",
+      "rights_note": "Check rights at the individual asset and source level.",
+      "integration_state": "pilot_database_integrated",
+      "existing_catalogue_id": "cretan-hieroglyphic",
+      "verification": "existing_repository_catalogue",
+      "evidence_urls": [],
+      "notes": "",
+      "automatic_download_enabled": false,
+      "catalogue_reference": "pictoglyphml/datasets/acquisition/sources.json"
+    },
+    {
+      "id": "cypro-minoan-pasp",
+      "name": "PASP Cypro-Minoan metadata",
+      "category": "scripts",
+      "priority": "P1",
+      "script_tags": [
+        "cypro-minoan"
+      ],
+      "content_types": [
+        "inscriptions",
+        "metadata"
+      ],
+      "landing_url": "https://dataverse.tdl.org/dataset.xhtml?persistentId=doi:10.18738/T8/GDUFXG",
+      "access_method": "manual",
+      "endpoints": [],
+      "documentation_url": null,
+      "image_availability": "unknown",
+      "access_requirements": "source_specific_review_required",
+      "rights_note": "Check rights at the individual asset and source level.",
+      "integration_state": "needs_access_or_method_review",
+      "existing_catalogue_id": "cypro-minoan-pasp",
+      "verification": "existing_repository_catalogue",
+      "evidence_urls": [],
+      "notes": "",
+      "automatic_download_enabled": false,
+      "catalogue_reference": "pictoglyphml/datasets/acquisition/sources.json"
+    },
+    {
+      "id": "maya-bonn",
+      "name": "Bonn Maya Hieroglyphic Text and Image Archive",
+      "category": "scripts",
+      "priority": "P0",
+      "script_tags": [
+        "maya"
+      ],
+      "content_types": [
+        "raster-images",
+        "inscriptions",
+        "metadata"
+      ],
+      "landing_url": "https://digitale-sammlungen.ulb.uni-bonn.de/maya",
+      "access_method": "portal",
+      "endpoints": [
+        {
+          "kind": "maya_collection",
+          "url": "https://digitale-sammlungen.ulb.uni-bonn.de/maya",
+          "url_is_template": false,
+          "note": ""
+        },
+        {
+          "kind": "classic_mayan_portal",
+          "url": "https://classicmayan.org/portal/",
+          "url_is_template": false,
+          "note": ""
+        },
+        {
+          "kind": "maya_image_archive",
+          "url": "https://classicmayan.kor.de.dariah.eu/",
+          "url_is_template": false,
+          "note": "Check research-image access and bulk methods"
+        }
+      ],
+      "documentation_url": null,
+      "image_availability": "yes",
+      "access_requirements": "source_specific_review_required",
+      "rights_note": "Check rights at the individual asset and source level.",
+      "integration_state": "needs_api_discovery",
+      "existing_catalogue_id": "maya-bonn",
+      "verification": "official_documentation_checked",
+      "evidence_urls": [
+        "https://digitale-sammlungen.ulb.uni-bonn.de/maya",
+        "https://classicmayan.org/portal/doc/30"
+      ],
+      "notes": "Images and archaeological metadata are available. A bulk API/IIIF endpoint has not yet been confirmed; do not manufacture a manifest URL.",
+      "automatic_download_enabled": false,
+      "catalogue_reference": "pictoglyphml/datasets/acquisition/sources.json"
+    },
+    {
+      "id": "proto-sinaitic",
+      "name": "Proto-Sinaitic lead (British Museum)",
+      "category": "scripts",
+      "priority": "P2",
+      "script_tags": [
+        "proto-sinaitic"
+      ],
+      "content_types": [
+        "object-records",
+        "raster-images"
+      ],
+      "landing_url": "https://www.britishmuseum.org/collection",
+      "access_method": "portal",
+      "endpoints": [],
+      "documentation_url": null,
+      "image_availability": "unknown",
+      "access_requirements": "source_specific_review_required",
+      "rights_note": "Check rights at the individual asset and source level.",
+      "integration_state": "needs_targeted_collection_query",
+      "existing_catalogue_id": "proto-sinaitic",
+      "verification": "existing_repository_catalogue",
+      "evidence_urls": [],
+      "notes": "",
+      "automatic_download_enabled": false,
+      "catalogue_reference": "pictoglyphml/datasets/acquisition/sources.json"
+    },
+    {
+      "id": "sogdian-invisible-east",
+      "name": "Invisible East Digital Corpus",
+      "category": "scripts",
+      "priority": "P1",
+      "script_tags": [
+        "sogdian"
+      ],
+      "content_types": [
+        "metadata",
+        "transcriptions"
+      ],
+      "landing_url": "https://zenodo.org/records/20490171",
+      "access_method": "zenodo",
+      "endpoints": [
+        {
+          "kind": "zenodo_record",
+          "url": "https://zenodo.org/api/records/20490171",
+          "url_is_template": false,
+          "note": "Resolve file URLs from JSON record"
+        }
+      ],
+      "documentation_url": null,
+      "image_availability": "not_guaranteed",
+      "access_requirements": "source_specific_review_required",
+      "rights_note": "Check rights at the individual asset and source level.",
+      "integration_state": "acquired_existing",
+      "existing_catalogue_id": "sogdian-invisible-east",
+      "verification": "existing_repository_catalogue",
+      "evidence_urls": [],
+      "notes": "",
+      "automatic_download_enabled": false,
+      "catalogue_reference": "pictoglyphml/datasets/acquisition/sources.json"
+    },
+    {
+      "id": "proto-elamite-cdli",
+      "name": "CDLI data for Proto-Elamite",
+      "category": "scripts",
+      "priority": "P0",
+      "script_tags": [
+        "proto-elamite"
+      ],
+      "content_types": [
+        "transcriptions",
+        "catalogue"
+      ],
+      "landing_url": "https://github.com/cdli-gh/data",
+      "access_method": "portal",
+      "endpoints": [
+        {
+          "kind": "cdli_catalogue",
+          "url": "https://cdli.earth/docs/api",
+          "url_is_template": false,
+          "note": ""
+        },
+        {
+          "kind": "cdli_image_documentation",
+          "url": "https://cdli.earth/docs/images-acquisition-and-processing",
+          "url_is_template": false,
+          "note": ""
+        }
+      ],
+      "documentation_url": null,
+      "image_availability": "not_guaranteed",
+      "access_requirements": "source_specific_review_required",
+      "rights_note": "Check rights at the individual asset and source level.",
+      "integration_state": "needs_api_discovery",
+      "existing_catalogue_id": "proto-elamite-cdli",
+      "verification": "official_documentation_checked",
+      "evidence_urls": [
+        "https://cdli.earth/docs/api",
+        "https://cdli.earth/docs/images-acquisition-and-processing"
+      ],
+      "notes": "",
+      "automatic_download_enabled": false,
+      "catalogue_reference": "pictoglyphml/datasets/acquisition/sources.json"
+    },
+    {
+      "id": "meroitic",
+      "name": "Meroitic sign corpus lead",
+      "category": "scripts",
+      "priority": "P2",
+      "script_tags": [
+        "meroitic"
+      ],
+      "content_types": [
+        "sign-inventory"
+      ],
+      "landing_url": "https://github.com/Nacryos/ancient-scripts-datasets/blob/master/docs/DATABASE_REFERENCE.md",
+      "access_method": "portal",
+      "endpoints": [],
+      "documentation_url": null,
+      "image_availability": "unknown",
+      "access_requirements": "source_specific_review_required",
+      "rights_note": "Check rights at the individual asset and source level.",
+      "integration_state": "needs_source_review",
+      "existing_catalogue_id": "meroitic",
+      "verification": "existing_repository_catalogue",
+      "evidence_urls": [],
+      "notes": "",
+      "automatic_download_enabled": false,
+      "catalogue_reference": "pictoglyphml/datasets/acquisition/sources.json"
+    },
+    {
+      "id": "byblos",
+      "name": "Byblos script (Mnamon portal)",
+      "category": "scripts",
+      "priority": "P2",
+      "script_tags": [
+        "byblos"
+      ],
+      "content_types": [
+        "sign-inventory",
+        "inscriptions"
+      ],
+      "landing_url": "https://mnamon.sns.it/index.php?id=3&lang=en&page=Scrittura",
+      "access_method": "portal",
+      "endpoints": [],
+      "documentation_url": null,
+      "image_availability": "unknown",
+      "access_requirements": "source_specific_review_required",
+      "rights_note": "Check rights at the individual asset and source level.",
+      "integration_state": "needs_source_review",
+      "existing_catalogue_id": "byblos",
+      "verification": "existing_repository_catalogue",
+      "evidence_urls": [],
+      "notes": "",
+      "automatic_download_enabled": false,
+      "catalogue_reference": "pictoglyphml/datasets/acquisition/sources.json"
+    },
+    {
+      "id": "anatolian-hieroglyphs",
+      "name": "eDiAna Anatolian inscriptions",
+      "category": "scripts",
+      "priority": "P1",
+      "script_tags": [
+        "anatolian-hieroglyphs"
+      ],
+      "content_types": [
+        "transcriptions",
+        "lexicon"
+      ],
+      "landing_url": "https://www.ediana.gwi.uni-muenchen.de/",
+      "access_method": "portal",
+      "endpoints": [],
+      "documentation_url": null,
+      "image_availability": "unknown",
+      "access_requirements": "source_specific_review_required",
+      "rights_note": "Check rights at the individual asset and source level.",
+      "integration_state": "needs_source_review",
+      "existing_catalogue_id": "anatolian-hieroglyphs",
+      "verification": "existing_repository_catalogue",
+      "evidence_urls": [],
+      "notes": "",
+      "automatic_download_enabled": false,
+      "catalogue_reference": "pictoglyphml/datasets/acquisition/sources.json"
+    },
+    {
+      "id": "rosetta-bm",
+      "name": "British Museum Rosetta Stone reference image",
+      "category": "translation_keys",
+      "priority": "P0",
+      "script_tags": [
+        "egyptian-hieroglyphs",
+        "demotic",
+        "ancient-greek"
+      ],
+      "content_types": [
+        "object-images",
+        "translation-key"
+      ],
+      "landing_url": "https://www.britishmuseum.org/collection/image/16456004",
+      "access_method": "portal",
+      "endpoints": [
+        {
+          "kind": "object_image",
+          "url": "https://www.britishmuseum.org/collection/image/16456004",
+          "url_is_template": false,
+          "note": ""
+        }
+      ],
+      "documentation_url": null,
+      "image_availability": "yes",
+      "access_requirements": "source_specific_review_required",
+      "rights_note": "Check rights at the individual asset and source level.",
+      "integration_state": "needs_image_access_review",
+      "existing_catalogue_id": "rosetta-bm",
+      "verification": "existing_repository_catalogue",
+      "evidence_urls": [],
+      "notes": "Single reference object; do not infer a public bulk API.",
+      "automatic_download_enabled": false,
+      "catalogue_reference": "pictoglyphml/datasets/acquisition/sources.json"
+    },
+    {
+      "id": "pleiades-places",
+      "name": "Pleiades ancient places",
+      "category": "context",
+      "priority": "P1",
+      "script_tags": [],
+      "content_types": [
+        "geography",
+        "place-metadata"
+      ],
+      "landing_url": "https://pleiades.stoa.org/downloads",
+      "access_method": "http",
+      "endpoints": [
+        {
+          "kind": "download_json_gzip",
+          "url": "https://atlantides.org/downloads/pleiades/json/pleiades-places-latest.json.gz",
+          "url_is_template": false,
+          "note": ""
+        }
+      ],
+      "documentation_url": null,
+      "image_availability": "no",
+      "access_requirements": "source_specific_review_required",
+      "rights_note": "Check rights at the individual asset and source level.",
+      "integration_state": "acquired_existing",
+      "existing_catalogue_id": "pleiades-places",
+      "verification": "existing_repository_catalogue",
+      "evidence_urls": [],
+      "notes": "",
+      "automatic_download_enabled": false,
+      "catalogue_reference": "pictoglyphml/datasets/acquisition/sources.json"
+    },
+    {
+      "id": "itinere-roads",
+      "name": "Itiner-e roads",
+      "category": "trade",
+      "priority": "P2",
+      "script_tags": [],
+      "content_types": [
+        "road-networks",
+        "geospatial-data"
+      ],
+      "landing_url": "https://www.itiner-e.org/about",
+      "access_method": "http",
+      "endpoints": [
+        {
+          "kind": "ndjson_download",
+          "url": "https://www.itiner-e.org/route-segments/download",
+          "url_is_template": false,
+          "note": ""
+        }
+      ],
+      "documentation_url": null,
+      "image_availability": "no",
+      "access_requirements": "source_specific_review_required",
+      "rights_note": "Check rights at the individual asset and source level.",
+      "integration_state": "acquired_existing",
+      "existing_catalogue_id": "itinere-roads",
+      "verification": "existing_repository_catalogue",
+      "evidence_urls": [],
+      "notes": "",
+      "automatic_download_enabled": false,
+      "catalogue_reference": "pictoglyphml/datasets/acquisition/sources.json"
+    },
+    {
+      "id": "oxrep-shipwrecks",
+      "name": "Oxford Roman Economy shipwreck database",
+      "category": "trade",
+      "priority": "P2",
+      "script_tags": [],
+      "content_types": [
+        "historical-dataset",
+        "geospatial-data"
+      ],
+      "landing_url": "https://oxrep.web.ox.ac.uk/shipwrecks-database",
+      "access_method": "http",
+      "endpoints": [
+        {
+          "kind": "excel_download",
+          "url": "https://oxrep.web.ox.ac.uk/sitefiles/oxrep-shipwrecks-database-2.1-march-2017.xlsx",
+          "url_is_template": false,
+          "note": ""
+        }
+      ],
+      "documentation_url": null,
+      "image_availability": "no",
+      "access_requirements": "source_specific_review_required",
+      "rights_note": "Check rights at the individual asset and source level.",
+      "integration_state": "acquired_existing",
+      "existing_catalogue_id": "oxrep-shipwrecks",
+      "verification": "existing_repository_catalogue",
+      "evidence_urls": [],
+      "notes": "",
+      "automatic_download_enabled": false,
+      "catalogue_reference": "pictoglyphml/datasets/acquisition/sources.json"
+    },
+    {
+      "id": "roman-open-data",
+      "name": "Roman Open Data",
+      "category": "trade",
+      "priority": "P2",
+      "script_tags": [
+        "latin"
+      ],
+      "content_types": [
+        "trade-data",
+        "epigraphy"
+      ],
+      "landing_url": "https://romanopendata.eu/",
+      "access_method": "portal",
+      "endpoints": [],
+      "documentation_url": null,
+      "image_availability": "unknown",
+      "access_requirements": "source_specific_review_required",
+      "rights_note": "Check rights at the individual asset and source level.",
+      "integration_state": "needs_source_review",
+      "existing_catalogue_id": "roman-open-data",
+      "verification": "existing_repository_catalogue",
+      "evidence_urls": [],
+      "notes": "",
+      "automatic_download_enabled": false,
+      "catalogue_reference": "pictoglyphml/datasets/acquisition/sources.json"
+    },
+    {
+      "id": "orbis",
+      "name": "ORBIS Stanford Roman transport model",
+      "category": "trade",
+      "priority": "P2",
+      "script_tags": [
+        "latin"
+      ],
+      "content_types": [
+        "network-geography"
+      ],
+      "landing_url": "https://orbis.stanford.edu/",
+      "access_method": "portal",
+      "endpoints": [],
+      "documentation_url": null,
+      "image_availability": "no",
+      "access_requirements": "source_specific_review_required",
+      "rights_note": "Check rights at the individual asset and source level.",
+      "integration_state": "needs_source_review",
+      "existing_catalogue_id": "orbis",
+      "verification": "existing_repository_catalogue",
+      "evidence_urls": [],
+      "notes": "",
+      "automatic_download_enabled": false,
+      "catalogue_reference": "pictoglyphml/datasets/acquisition/sources.json"
+    },
+    {
+      "id": "elamite-deepscribe",
+      "name": "DeepScribe code and small sample",
+      "category": "scripts",
+      "priority": "P0",
+      "script_tags": [
+        "elamite-cuneiform"
+      ],
+      "content_types": [
+        "sample-images",
+        "code"
+      ],
+      "landing_url": "https://github.com/uchicago-digitalculture-webdev/deepscribe",
+      "access_method": "github",
+      "endpoints": [],
+      "documentation_url": null,
+      "image_availability": "sample_only",
+      "access_requirements": "source_specific_review_required",
+      "rights_note": "Check rights at the individual asset and source level.",
+      "integration_state": "acquired_existing",
+      "existing_catalogue_id": "elamite-deepscribe",
+      "verification": "existing_repository_catalogue",
+      "evidence_urls": [],
+      "notes": "",
+      "automatic_download_enabled": false,
+      "catalogue_reference": "pictoglyphml/datasets/acquisition/sources.json"
+    },
+    {
+      "id": "elamite-deepscribe-pfa-full",
+      "name": "DeepScribe full Persepolis corpus lead",
+      "category": "scripts",
+      "priority": "P0",
+      "script_tags": [
+        "elamite-cuneiform"
+      ],
+      "content_types": [
+        "tablet-images",
+        "annotations"
+      ],
+      "landing_url": "https://github.com/uchicago-digitalculture-webdev/deepscribe#download",
+      "access_method": "portal",
+      "endpoints": [],
+      "documentation_url": null,
+      "image_availability": "unknown",
+      "access_requirements": "source_specific_review_required",
+      "rights_note": "Check rights at the individual asset and source level.",
+      "integration_state": "needs_access_or_method_review",
+      "existing_catalogue_id": "elamite-deepscribe-pfa-full",
+      "verification": "existing_repository_catalogue",
+      "evidence_urls": [],
+      "notes": "",
+      "automatic_download_enabled": false,
+      "catalogue_reference": "pictoglyphml/datasets/acquisition/sources.json"
+    },
+    {
+      "id": "hieratic-papyrus-dataverse",
+      "name": "Hieratic papyrus dataset",
+      "category": "scripts",
+      "priority": "P0",
+      "script_tags": [
+        "egyptian-hieratic"
+      ],
+      "content_types": [
+        "glyph-images",
+        "annotations"
+      ],
+      "landing_url": "https://doi.org/10.7910/DVN/D8CWVZ",
+      "access_method": "dataverse",
+      "endpoints": [],
+      "documentation_url": null,
+      "image_availability": "unknown",
+      "access_requirements": "source_specific_review_required",
+      "rights_note": "Check rights at the individual asset and source level.",
+      "integration_state": "needs_access_or_method_review",
+      "existing_catalogue_id": "hieratic-papyrus-dataverse",
+      "verification": "existing_repository_catalogue",
+      "evidence_urls": [],
+      "notes": "",
+      "automatic_download_enabled": false,
+      "catalogue_reference": "pictoglyphml/datasets/acquisition/sources.json"
+    },
+    {
+      "id": "maya-twkm-huggingface",
+      "name": "TWKM Maya glyph dataset",
+      "category": "scripts",
+      "priority": "P0",
+      "script_tags": [
+        "maya"
+      ],
+      "content_types": [
+        "sign-images",
+        "annotations"
+      ],
+      "landing_url": "https://huggingface.co/datasets/tadad/twkm-maya-glyphs",
+      "access_method": "huggingface",
+      "endpoints": [],
+      "documentation_url": null,
+      "image_availability": "yes",
+      "access_requirements": "source_specific_review_required",
+      "rights_note": "Check rights at the individual asset and source level.",
+      "integration_state": "needs_access_or_method_review",
+      "existing_catalogue_id": "maya-twkm-huggingface",
+      "verification": "existing_repository_catalogue",
+      "evidence_urls": [],
+      "notes": "",
+      "automatic_download_enabled": false,
+      "catalogue_reference": "pictoglyphml/datasets/acquisition/sources.json"
+    },
+    {
+      "id": "cuneiform-sign-annotations-zenodo",
+      "name": "Zenodo OCR Cuneiform Sign annotations",
+      "category": "scripts",
+      "priority": "P0",
+      "script_tags": [
+        "cuneiform"
+      ],
+      "content_types": [
+        "sign-annotations",
+        "metadata"
+      ],
+      "landing_url": "https://zenodo.org/records/17871055",
+      "access_method": "zenodo",
+      "endpoints": [
+        {
+          "kind": "zenodo_record",
+          "url": "https://zenodo.org/api/records/17871055",
+          "url_is_template": false,
+          "note": ""
+        }
+      ],
+      "documentation_url": null,
+      "image_availability": "no_bundled_images_confirmed",
+      "access_requirements": "source_specific_review_required",
+      "rights_note": "Check rights at the individual asset and source level.",
+      "integration_state": "acquired_existing",
+      "existing_catalogue_id": "cuneiform-sign-annotations-zenodo",
+      "verification": "existing_repository_catalogue",
+      "evidence_urls": [],
+      "notes": "",
+      "automatic_download_enabled": false,
+      "catalogue_reference": "pictoglyphml/datasets/acquisition/sources.json"
+    },
+    {
+      "id": "cdli-cts-texts",
+      "name": "CDLI Canonical Text Services",
+      "category": "scripts",
+      "priority": "P1",
+      "script_tags": [
+        "cuneiform"
+      ],
+      "content_types": [
+        "transcriptions",
+        "xml"
+      ],
+      "landing_url": "https://github.com/cdli-gh/cdli-cts",
+      "access_method": "github",
+      "endpoints": [],
+      "documentation_url": null,
+      "image_availability": "no_bundled_images_confirmed",
+      "access_requirements": "source_specific_review_required",
+      "rights_note": "Check rights at the individual asset and source level.",
+      "integration_state": "acquired_existing",
+      "existing_catalogue_id": "cdli-cts-texts",
+      "verification": "existing_repository_catalogue",
+      "evidence_urls": [],
+      "notes": "",
+      "automatic_download_enabled": false,
+      "catalogue_reference": "pictoglyphml/datasets/acquisition/sources.json"
+    },
+    {
+      "id": "lapis-gt-inscription-annotations",
+      "name": "LAPIS GT inscriptions",
+      "category": "scripts",
+      "priority": "P2",
+      "script_tags": [
+        "latin",
+        "ancient-greek"
+      ],
+      "content_types": [
+        "inscriptions",
+        "annotations"
+      ],
+      "landing_url": "https://zenodo.org/records/18711985",
+      "access_method": "zenodo",
+      "endpoints": [],
+      "documentation_url": null,
+      "image_availability": "unknown",
+      "access_requirements": "source_specific_review_required",
+      "rights_note": "Check rights at the individual asset and source level.",
+      "integration_state": "needs_access_or_method_review",
+      "existing_catalogue_id": "lapis-gt-inscription-annotations",
+      "verification": "existing_repository_catalogue",
+      "evidence_urls": [],
+      "notes": "",
+      "automatic_download_enabled": false,
+      "catalogue_reference": "pictoglyphml/datasets/acquisition/sources.json"
+    },
+    {
+      "id": "met-openaccess-metadata",
+      "name": "Metropolitan Museum Open Access",
+      "category": "museum",
+      "priority": "P0",
+      "script_tags": [
+        "egyptian-hieroglyphs",
+        "cuneiform",
+        "ancient-greek",
+        "latin"
+      ],
+      "content_types": [
+        "object-images",
+        "object-metadata"
+      ],
+      "landing_url": "https://metmuseum.github.io/",
+      "access_method": "rest_api",
+      "endpoints": [
+        {
+          "kind": "all_object_ids",
+          "url": "https://collectionapi.metmuseum.org/public/collection/v1/objects",
+          "url_is_template": false,
+          "note": "Best for full ID enumeration"
+        },
+        {
+          "kind": "single_object",
+          "url": "https://collectionapi.metmuseum.org/public/collection/v1/objects/{object_id}",
+          "url_is_template": true,
+          "note": "Read primaryImage and additionalImages, use isPublicDomain flag"
+        },
+        {
+          "kind": "paginated_search",
+          "url": "https://collectionapi.metmuseum.org/public/collection/v1.1/search?hasImages=true&q=egyptian&limit=100&offset=0",
+          "url_is_template": false,
+          "note": "New search API, not old v1 search; 10,000-result ceiling"
+        },
+        {
+          "kind": "bulk_metadata",
+          "url": "https://github.com/metmuseum/openaccess",
+          "url_is_template": false,
+          "note": "Full Open Access CSV preferred over huge search pagination"
+        }
+      ],
+      "documentation_url": "https://metmuseum.github.io/",
+      "image_availability": "yes",
+      "access_requirements": "source_specific_review_required",
+      "rights_note": "Use object.isPublicDomain and image availability; Met CC0 only for eligible public-domain artwork images and open data.",
+      "integration_state": "needs_museum_adapter",
+      "existing_catalogue_id": "met-openaccess-metadata",
+      "verification": "official_documentation_checked",
+      "evidence_urls": [
+        "https://metmuseum.github.io/",
+        "https://www.metmuseum.org/hubs/open-access"
+      ],
+      "notes": "",
+      "automatic_download_enabled": false,
+      "catalogue_reference": "pictoglyphml/datasets/acquisition/sources.json"
+    },
+    {
+      "id": "smithsonian-openaccess-index",
+      "name": "Smithsonian Open Access S3 index",
+      "category": "context",
+      "priority": "P1",
+      "script_tags": [],
+      "content_types": [
+        "index-only"
+      ],
+      "landing_url": "https://github.com/Smithsonian/OpenAccess",
+      "access_method": "http",
+      "endpoints": [
+        {
+          "kind": "s3_holding_unit_index",
+          "url": "https://smithsonian-open-access.s3-us-west-2.amazonaws.com/metadata/edan/index.txt",
+          "url_is_template": false,
+          "note": "An index of unit files; NOT the full image corpus"
+        }
+      ],
+      "documentation_url": null,
+      "image_availability": "no_index_only",
+      "access_requirements": "source_specific_review_required",
+      "rights_note": "Check rights at the individual asset and source level.",
+      "integration_state": "acquired_existing",
+      "existing_catalogue_id": "smithsonian-openaccess-index",
+      "verification": "official_documentation_checked",
+      "evidence_urls": [
+        "https://www.si.edu/openaccess/devtools"
+      ],
+      "notes": "The downloaded index does not constitute harvesting the media or metadata records of all museum objects.",
+      "automatic_download_enabled": false,
+      "catalogue_reference": "pictoglyphml/datasets/acquisition/sources.json"
+    },
+    {
+      "id": "smithsonian-openaccess-records",
+      "name": "Smithsonian Open Access bulk object records",
+      "category": "museum",
+      "priority": "P1",
+      "script_tags": [
+        "ancient-scripts",
+        "symbols"
+      ],
+      "content_types": [
+        "object-images",
+        "metadata"
+      ],
+      "landing_url": "https://registry.opendata.aws/smithsonian-open-access/",
+      "access_method": "s3",
+      "endpoints": [
+        {
+          "kind": "open_access_developer_tools",
+          "url": "https://www.si.edu/openaccess/devtools",
+          "url_is_template": false,
+          "note": ""
+        },
+        {
+          "kind": "bulk_registry",
+          "url": "https://registry.opendata.aws/smithsonian-open-access/",
+          "url_is_template": false,
+          "note": ""
+        },
+        {
+          "kind": "iiif_image_service",
+          "url": "https://ids.si.edu/ids/iiif/{image_identifier}/info.json",
+          "url_is_template": true,
+          "note": "Identifier discovered from object data"
+        }
+      ],
+      "documentation_url": "https://www.si.edu/openaccess/devtools",
+      "image_availability": "yes",
+      "access_requirements": "API key for public API; bulk S3 may be public",
+      "rights_note": "Use only images explicitly designated CC0 or otherwise permitted. Check each item for media availability.",
+      "integration_state": "needs_museum_adapter",
+      "existing_catalogue_id": "smithsonian-openaccess-records",
+      "verification": "official_documentation_checked",
+      "evidence_urls": [
+        "https://www.si.edu/openaccess/devtools",
+        "https://iiif.si.edu/"
+      ],
+      "notes": "",
+      "automatic_download_enabled": false,
+      "catalogue_reference": "pictoglyphml/datasets/acquisition/sources.json"
+    },
+    {
+      "id": "opencontext-archaeology",
+      "name": "Open Context archaeology",
+      "category": "context",
+      "priority": "P0",
+      "script_tags": [
+        "ancient-scripts",
+        "symbols"
+      ],
+      "content_types": [
+        "archaeological-records",
+        "media"
+      ],
+      "landing_url": "https://opencontext.org/about/services",
+      "access_method": "rest_api",
+      "endpoints": [
+        {
+          "kind": "query_subjects",
+          "url": "https://opencontext.org/query/?type=subjects",
+          "url_is_template": false,
+          "note": ""
+        },
+        {
+          "kind": "query_media",
+          "url": "https://opencontext.org/query/?type=media",
+          "url_is_template": false,
+          "note": "Image/media discovery"
+        },
+        {
+          "kind": "oai_pmh",
+          "url": "https://opencontext.org/oai/",
+          "url_is_template": false,
+          "note": "Metadata harvesting"
+        }
+      ],
+      "documentation_url": "https://opencontext.org/about/services",
+      "image_availability": "yes",
+      "access_requirements": "source_specific_review_required",
+      "rights_note": "Dataset/item licence varies; use record licensing and linked media rights.",
+      "integration_state": "needs_museum_adapter",
+      "existing_catalogue_id": "opencontext-archaeology",
+      "verification": "official_documentation_checked",
+      "evidence_urls": [
+        "https://opencontext.org/about/services"
+      ],
+      "notes": "",
+      "automatic_download_enabled": false,
+      "catalogue_reference": "pictoglyphml/datasets/acquisition/sources.json"
+    },
+    {
+      "id": "oxrep-mines",
+      "name": "Oxford Roman Economy mines",
+      "category": "trade",
+      "priority": "P2",
+      "script_tags": [],
+      "content_types": [
+        "mine-locations",
+        "metadata"
+      ],
+      "landing_url": "https://oxrep.web.ox.ac.uk/mines-database",
+      "access_method": "portal",
+      "endpoints": [],
+      "documentation_url": null,
+      "image_availability": "no",
+      "access_requirements": "source_specific_review_required",
+      "rights_note": "Check rights at the individual asset and source level.",
+      "integration_state": "needs_source_review",
+      "existing_catalogue_id": "oxrep-mines",
+      "verification": "existing_repository_catalogue",
+      "evidence_urls": [],
+      "notes": "",
+      "automatic_download_enabled": false,
+      "catalogue_reference": "pictoglyphml/datasets/acquisition/sources.json"
+    },
+    {
+      "id": "fitzwilliam-museum",
+      "name": "Fitzwilliam Museum Collections API",
+      "category": "museum",
+      "priority": "P0",
+      "script_tags": [
+        "egyptian-hieroglyphs",
+        "coptic",
+        "ancient-greek",
+        "latin"
+      ],
+      "content_types": [
+        "object-images",
+        "iiif",
+        "metadata"
+      ],
+      "landing_url": "https://data.fitzmuseum.cam.ac.uk/api",
+      "access_method": "rest_api_iiif",
+      "endpoints": [
+        {
+          "kind": "api_documentation",
+          "url": "https://data.fitzmuseum.cam.ac.uk/api",
+          "url_is_template": false,
+          "note": ""
+        },
+        {
+          "kind": "bulk_objects_json",
+          "url": "https://github.com/FitzwilliamMuseum/fitz-collection-raw-data",
+          "url_is_template": false,
+          "note": "Open CC0 collection metadata; image access separately controlled"
+        }
+      ],
+      "documentation_url": "https://data.fitzmuseum.cam.ac.uk/api",
+      "image_availability": "yes",
+      "access_requirements": "token_or_account_required",
+      "rights_note": "Structured metadata CC0; museum image derivatives generally CC BY-NC-SA 4.0. Record item restrictions.",
+      "integration_state": "needs_museum_adapter",
+      "existing_catalogue_id": null,
+      "verification": "official_documentation_checked",
+      "evidence_urls": [
+        "https://data.fitzmuseum.cam.ac.uk/api",
+        "https://github.com/FitzwilliamMuseum/fitz-collection-raw-data"
+      ],
+      "notes": "Existing PictoGlyph IIIF proof of concept. Bearer auth; rate limits in docs.",
+      "automatic_download_enabled": false
+    },
+    {
+      "id": "getty-museum",
+      "name": "Getty Museum Collection and Provenance APIs",
+      "category": "museum",
+      "priority": "P0",
+      "script_tags": [
+        "egyptian-hieroglyphs",
+        "cuneiform",
+        "ancient-greek",
+        "latin"
+      ],
+      "content_types": [
+        "object-images",
+        "iiif",
+        "linked-art",
+        "provenance"
+      ],
+      "landing_url": "https://data.getty.edu/",
+      "access_method": "linked_data_rest_iiif",
+      "endpoints": [
+        {
+          "kind": "official_api_docs",
+          "url": "https://data.getty.edu/",
+          "url_is_template": false,
+          "note": ""
+        },
+        {
+          "kind": "collections_portal",
+          "url": "https://www.getty.edu/art/collection/",
+          "url_is_template": false,
+          "note": ""
+        },
+        {
+          "kind": "open_data_overview",
+          "url": "https://www.getty.edu/projects/open-data-apis/",
+          "url_is_template": false,
+          "note": ""
+        }
+      ],
+      "documentation_url": "https://data.getty.edu/",
+      "image_availability": "yes",
+      "access_requirements": "source_specific_review_required",
+      "rights_note": "Getty Open Content and item-level restrictions must be checked; API does not imply unrestricted image reuse.",
+      "integration_state": "needs_museum_adapter",
+      "existing_catalogue_id": null,
+      "verification": "official_documentation_checked",
+      "evidence_urls": [
+        "https://data.getty.edu/",
+        "https://www.getty.edu/projects/open-data-apis/"
+      ],
+      "notes": "",
+      "automatic_download_enabled": false
+    },
+    {
+      "id": "walters-art-museum",
+      "name": "Walters Art Museum static Open Data",
+      "category": "museum",
+      "priority": "P1",
+      "script_tags": [
+        "egyptian-hieroglyphs",
+        "ancient-greek",
+        "latin",
+        "near-eastern"
+      ],
+      "content_types": [
+        "object-images",
+        "media-links",
+        "csv-metadata"
+      ],
+      "landing_url": "https://api.thewalters.org/index.html",
+      "access_method": "static_csv",
+      "endpoints": [
+        {
+          "kind": "static_data_github",
+          "url": "https://github.com/WaltersArtMuseum/api-thewalters-org",
+          "url_is_template": false,
+          "note": "art.csv and media.csv; v1 API discontinued in 2023"
+        }
+      ],
+      "documentation_url": "https://api.thewalters.org/index.html",
+      "image_availability": "yes",
+      "access_requirements": "source_specific_review_required",
+      "rights_note": "Walters dataset and available images described as CC0; check individual media references.",
+      "integration_state": "needs_static_file_adapter",
+      "existing_catalogue_id": null,
+      "verification": "official_documentation_checked",
+      "evidence_urls": [
+        "https://api.thewalters.org/index.html",
+        "https://github.com/WaltersArtMuseum/api-thewalters-org"
+      ],
+      "notes": "Do not call old v1 API; it has been shut down.",
+      "automatic_download_enabled": false
+    },
+    {
+      "id": "louvre-collections",
+      "name": "Louvre Collections per-object JSON",
+      "category": "museum",
+      "priority": "P0",
+      "script_tags": [
+        "egyptian-hieroglyphs",
+        "cuneiform",
+        "ancient-greek",
+        "latin"
+      ],
+      "content_types": [
+        "object-images",
+        "inscriptions",
+        "metadata"
+      ],
+      "landing_url": "https://collections.louvre.fr/",
+      "access_method": "record_json",
+      "endpoints": [
+        {
+          "kind": "example_object_json",
+          "url": "https://collections.louvre.fr/ark:/53355/cl010277627.json",
+          "url_is_template": false,
+          "note": ""
+        },
+        {
+          "kind": "object_json_template",
+          "url": "https://collections.louvre.fr/ark:/53355/{object_id}.json",
+          "url_is_template": true,
+          "note": "Replace id with Louvre record ARK; images are in image[].urlImage"
+        }
+      ],
+      "documentation_url": "https://collections.louvre.fr/en/page/documentationJSON",
+      "image_availability": "yes",
+      "access_requirements": "source_specific_review_required",
+      "rights_note": "Each JSON image includes copyright; obey catalogue terms and per-image rights.",
+      "integration_state": "needs_discovery_method",
+      "existing_catalogue_id": null,
+      "verification": "official_documentation_checked",
+      "evidence_urls": [
+        "https://collections.louvre.fr/en/page/documentationJSON"
+      ],
+      "notes": "Per-record JSON verified; collection-wide public API / bulk enumeration not established.",
+      "automatic_download_enabled": false
+    },
+    {
+      "id": "ashmolean-museum",
+      "name": "Ashmolean Museum collections",
+      "category": "museum",
+      "priority": "P1",
+      "script_tags": [
+        "egyptian-hieroglyphs",
+        "linear-a",
+        "linear-b",
+        "ancient-greek",
+        "cuneiform"
+      ],
+      "content_types": [
+        "object-metadata",
+        "object-images"
+      ],
+      "landing_url": "https://www.ashmolean.org/collections-online",
+      "access_method": "museum_portal",
+      "endpoints": [
+        {
+          "kind": "museum_data_service",
+          "url": "https://museumdata.uk/using-data/our-apis/",
+          "url_is_template": false,
+          "note": "Ask for Object Search or Extract API access; confirm Ashmolean coverage"
+        }
+      ],
+      "documentation_url": "https://museumdata.uk/using-data/our-apis/",
+      "image_availability": "unknown",
+      "access_requirements": "source_specific_review_required",
+      "rights_note": "Confirm museum and individual image rights; MDS record licences may differ.",
+      "integration_state": "needs_access_or_method_review",
+      "existing_catalogue_id": null,
+      "verification": "official_documentation_checked",
+      "evidence_urls": [
+        "https://museumdata.uk/using-data/our-apis/"
+      ],
+      "notes": "",
+      "automatic_download_enabled": false
+    },
+    {
+      "id": "ucl-petrie",
+      "name": "UCL Petrie Museum Egyptian and Sudanese Archaeology",
+      "category": "museum",
+      "priority": "P0",
+      "script_tags": [
+        "egyptian-hieroglyphs",
+        "hieratic",
+        "coptic",
+        "meroitic"
+      ],
+      "content_types": [
+        "object-images",
+        "object-metadata"
+      ],
+      "landing_url": "https://collections.ucl.ac.uk/",
+      "access_method": "catalogue_portal",
+      "endpoints": [
+        {
+          "kind": "collections_search",
+          "url": "https://collections.ucl.ac.uk/",
+          "url_is_template": false,
+          "note": ""
+        },
+        {
+          "kind": "research_inquiries",
+          "url": "https://www.ucl.ac.uk/engage/museums-collections/petrie-museum-egyptian-and-sudanese-archaeology/collections-and-research",
+          "url_is_template": false,
+          "note": ""
+        }
+      ],
+      "documentation_url": "https://www.ucl.ac.uk/engage/museums-collections/petrie-museum-egyptian-and-sudanese-archaeology/collections-and-research",
+      "image_availability": "yes",
+      "access_requirements": "source_specific_review_required",
+      "rights_note": "Higher resolution files may require direct museum licensing request; research exception not a guarantee of server permission.",
+      "integration_state": "needs_bulk_image_access",
+      "existing_catalogue_id": null,
+      "verification": "official_documentation_checked",
+      "evidence_urls": [
+        "https://collections.ucl.ac.uk/",
+        "https://www.ucl.ac.uk/engage/museums-collections/petrie-museum-egyptian-and-sudanese-archaeology/collections-and-research"
+      ],
+      "notes": "",
+      "automatic_download_enabled": false
+    },
+    {
+      "id": "durham-oriental",
+      "name": "Durham Oriental Museum / Durham digitised collections",
+      "category": "museum",
+      "priority": "P1",
+      "script_tags": [
+        "egyptian-hieroglyphs",
+        "coptic",
+        "ancient-greek",
+        "near-eastern"
+      ],
+      "content_types": [
+        "object-images",
+        "iiif",
+        "metadata"
+      ],
+      "landing_url": "https://libguides.durham.ac.uk/asc-digitised-collections-online/iiif",
+      "access_method": "iiif_v2_discovery",
+      "endpoints": [
+        {
+          "kind": "durham_iiif_guide",
+          "url": "https://libguides.durham.ac.uk/asc-digitised-collections-online/iiif",
+          "url_is_template": false,
+          "note": ""
+        }
+      ],
+      "documentation_url": "https://libguides.durham.ac.uk/asc-digitised-collections-online/iiif",
+      "image_availability": "yes_partial",
+      "access_requirements": "source_specific_review_required",
+      "rights_note": "Image permissions vary by item and holding institution.",
+      "integration_state": "needs_museum_adapter",
+      "existing_catalogue_id": null,
+      "verification": "official_documentation_checked",
+      "evidence_urls": [
+        "https://libguides.durham.ac.uk/asc-digitised-collections-online/iiif"
+      ],
+      "notes": "Durham documents IIIF v2 for digitised collections and museum objects; not a proven bulk Oriental Museum export.",
+      "automatic_download_enabled": false
+    },
+    {
+      "id": "british-museum",
+      "name": "British Museum collection online",
+      "category": "museum",
+      "priority": "P0",
+      "script_tags": [
+        "egyptian-hieroglyphs",
+        "demotic",
+        "cuneiform",
+        "linear-b",
+        "ancient-greek",
+        "latin"
+      ],
+      "content_types": [
+        "object-images",
+        "object-metadata"
+      ],
+      "landing_url": "https://www.britishmuseum.org/collection",
+      "access_method": "catalogue_portal",
+      "endpoints": [
+        {
+          "kind": "collection",
+          "url": "https://www.britishmuseum.org/collection",
+          "url_is_template": false,
+          "note": ""
+        }
+      ],
+      "documentation_url": null,
+      "image_availability": "yes",
+      "access_requirements": "source_specific_review_required",
+      "rights_note": "Bulk image API not established here; check original object and photograph rights.",
+      "integration_state": "needs_bulk_image_access",
+      "existing_catalogue_id": null,
+      "verification": "official_documentation_checked",
+      "evidence_urls": [
+        "https://www.britishmuseum.org/collection"
+      ],
+      "notes": "Do not assume legacy British Museum RDF/SPARQL endpoints are operational.",
+      "automatic_download_enabled": false
+    },
+    {
+      "id": "vam-collections",
+      "name": "Victoria and Albert Museum Collections API",
+      "category": "museum",
+      "priority": "P1",
+      "script_tags": [
+        "arabic",
+        "latin",
+        "coptic",
+        "historical-scripts"
+      ],
+      "content_types": [
+        "object-images",
+        "iiif",
+        "metadata"
+      ],
+      "landing_url": "https://developers.vam.ac.uk/",
+      "access_method": "rest_api_iiif",
+      "endpoints": [
+        {
+          "kind": "search",
+          "url": "https://api.vam.ac.uk/v2/objects/search?q=inscription&page_size=50",
+          "url_is_template": false,
+          "note": ""
+        },
+        {
+          "kind": "iiif_manifest",
+          "url": "https://iiif.vam.ac.uk/collections/{object_system_number}/manifest.json",
+          "url_is_template": true,
+          "note": "Object systemNumber discovered by API"
+        },
+        {
+          "kind": "iiif_image_info",
+          "url": "https://framemark.vam.ac.uk/collections/{image_id}/info.json",
+          "url_is_template": true,
+          "note": "image_id from object response"
+        }
+      ],
+      "documentation_url": "https://developers.vam.ac.uk/guide/v2/",
+      "image_availability": "yes",
+      "access_requirements": "source_specific_review_required",
+      "rights_note": "Images and records are subject to V&A terms, not blanket CC0.",
+      "integration_state": "needs_museum_adapter",
+      "existing_catalogue_id": null,
+      "verification": "official_documentation_checked",
+      "evidence_urls": [
+        "https://developers.vam.ac.uk/guide/v2/",
+        "https://developers.vam.ac.uk/guide/v2/images/iiif.html"
+      ],
+      "notes": "",
+      "automatic_download_enabled": false
+    },
+    {
+      "id": "cleveland-museum",
+      "name": "Cleveland Museum of Art Open Access API",
+      "category": "museum",
+      "priority": "P1",
+      "script_tags": [
+        "egyptian-hieroglyphs",
+        "cuneiform",
+        "ancient-greek",
+        "arabic"
+      ],
+      "content_types": [
+        "object-images",
+        "metadata",
+        "tiff"
+      ],
+      "landing_url": "https://openaccess-api.clevelandart.org/",
+      "access_method": "rest_api",
+      "endpoints": [
+        {
+          "kind": "api_documentation",
+          "url": "https://openaccess-api.clevelandart.org/",
+          "url_is_template": false,
+          "note": ""
+        },
+        {
+          "kind": "single_tiff",
+          "url": "https://openaccess-api.clevelandart.org/api/collectiononline/tiff/{accession_number}",
+          "url_is_template": true,
+          "note": "CC0 works only"
+        }
+      ],
+      "documentation_url": "https://openaccess-api.clevelandart.org/",
+      "image_availability": "yes",
+      "access_requirements": "source_specific_review_required",
+      "rights_note": "Use artwork CC0 designation for image access and reuse.",
+      "integration_state": "needs_museum_adapter",
+      "existing_catalogue_id": null,
+      "verification": "official_documentation_checked",
+      "evidence_urls": [
+        "https://openaccess-api.clevelandart.org/"
+      ],
+      "notes": "",
+      "automatic_download_enabled": false
+    },
+    {
+      "id": "art-institute-chicago",
+      "name": "Art Institute of Chicago API and IIIF",
+      "category": "museum",
+      "priority": "P1",
+      "script_tags": [
+        "egyptian-hieroglyphs",
+        "ancient-greek",
+        "latin",
+        "near-eastern"
+      ],
+      "content_types": [
+        "object-images",
+        "iiif",
+        "metadata"
+      ],
+      "landing_url": "https://api.artic.edu/docs/",
+      "access_method": "rest_api_iiif",
+      "endpoints": [
+        {
+          "kind": "search",
+          "url": "https://api.artic.edu/api/v1/artworks/search",
+          "url_is_template": false,
+          "note": ""
+        },
+        {
+          "kind": "artwork",
+          "url": "https://api.artic.edu/api/v1/artworks/{artwork_id}",
+          "url_is_template": true,
+          "note": "Find image_id and is_public_domain"
+        },
+        {
+          "kind": "iiif_image",
+          "url": "https://www.artic.edu/iiif/2/{image_id}/full/843,/0/default.jpg",
+          "url_is_template": true,
+          "note": "One image at a time; minimum 1s delay recommended by museum"
+        }
+      ],
+      "documentation_url": "https://api.artic.edu/docs/",
+      "image_availability": "yes",
+      "access_requirements": "source_specific_review_required",
+      "rights_note": "Prefer artworks flagged is_public_domain; follow image rights and scraping policy.",
+      "integration_state": "needs_museum_adapter",
+      "existing_catalogue_id": null,
+      "verification": "official_documentation_checked",
+      "evidence_urls": [
+        "https://api.artic.edu/docs/"
+      ],
+      "notes": "Museum explicitly recommends single-threaded image downloads with ~1 second delay.",
+      "automatic_download_enabled": false
+    },
+    {
+      "id": "europeana",
+      "name": "Europeana cultural heritage aggregator",
+      "category": "aggregator",
+      "priority": "P0",
+      "script_tags": [
+        "ancient-scripts",
+        "symbols"
+      ],
+      "content_types": [
+        "object-images",
+        "iiif",
+        "metadata",
+        "oai-pmh"
+      ],
+      "landing_url": "https://api.europeana.eu/en",
+      "access_method": "search_api_iiif_oai",
+      "endpoints": [
+        {
+          "kind": "api_guide",
+          "url": "https://api.europeana.eu/en",
+          "url_is_template": false,
+          "note": ""
+        },
+        {
+          "kind": "iiif_api_docs",
+          "url": "https://api.europeana.eu/console/index.html?url=docs%2Fv3%2Fiiif.json",
+          "url_is_template": false,
+          "note": ""
+        }
+      ],
+      "documentation_url": "https://api.europeana.eu/en",
+      "image_availability": "yes_varies",
+      "access_requirements": "free_api_key_required_for_search_and_record",
+      "rights_note": "Rights at original providing institution and asset level, not automatically CC0.",
+      "integration_state": "needs_aggregator_adapter",
+      "existing_catalogue_id": null,
+      "verification": "official_documentation_checked",
+      "evidence_urls": [
+        "https://api.europeana.eu/en",
+        "https://www.europeana.eu/en/research"
+      ],
+      "notes": "",
+      "automatic_download_enabled": false
+    },
+    {
+      "id": "wellcome-collection",
+      "name": "Wellcome Collection API and IIIF",
+      "category": "museum",
+      "priority": "P2",
+      "script_tags": [
+        "egyptian",
+        "medical-manuscripts",
+        "historical-scripts"
+      ],
+      "content_types": [
+        "manuscript-images",
+        "iiif",
+        "metadata"
+      ],
+      "landing_url": "https://developers.wellcomecollection.org/docs/iiif",
+      "access_method": "rest_api_iiif",
+      "endpoints": [
+        {
+          "kind": "iiif_image_info",
+          "url": "https://iiif.wellcomecollection.org/image/{identifier}/info.json",
+          "url_is_template": true,
+          "note": "Only open images"
+        },
+        {
+          "kind": "image_api_docs",
+          "url": "https://developers.wellcomecollection.org/api/iiif",
+          "url_is_template": false,
+          "note": ""
+        }
+      ],
+      "documentation_url": "https://developers.wellcomecollection.org/docs/iiif",
+      "image_availability": "yes_partial",
+      "access_requirements": "source_specific_review_required",
+      "rights_note": "The catalogue returns individual image licences; only open IIIF imagery.",
+      "integration_state": "needs_museum_adapter",
+      "existing_catalogue_id": null,
+      "verification": "official_documentation_checked",
+      "evidence_urls": [
+        "https://developers.wellcomecollection.org/api/iiif"
+      ],
+      "notes": "",
+      "automatic_download_enabled": false
+    },
+    {
+      "id": "bavarian-digital-collections",
+      "name": "Bavarian State Library IIIF digital collections",
+      "category": "digital_library",
+      "priority": "P2",
+      "script_tags": [
+        "ancient-greek",
+        "latin",
+        "coptic",
+        "historical-scripts"
+      ],
+      "content_types": [
+        "manuscript-images",
+        "iiif"
+      ],
+      "landing_url": "https://www.digitale-sammlungen.de/en/interfaces",
+      "access_method": "iiif_v2",
+      "endpoints": [
+        {
+          "kind": "top_iiif_collection",
+          "url": "https://api.digitale-sammlungen.de/iiif/presentation/v2/collection/top",
+          "url_is_template": false,
+          "note": ""
+        },
+        {
+          "kind": "iiif_manifest",
+          "url": "https://api.digitale-sammlungen.de/iiif/presentation/v2/{object_id}/manifest",
+          "url_is_template": true,
+          "note": "ID from catalog"
+        },
+        {
+          "kind": "iiif_image",
+          "url": "https://api.digitale-sammlungen.de/iiif/image/v2/{image_id}/full/full/0/default.jpg",
+          "url_is_template": true,
+          "note": "Image ID from manifest"
+        }
+      ],
+      "documentation_url": "https://www.digitale-sammlungen.de/en/interfaces",
+      "image_availability": "yes",
+      "access_requirements": "source_specific_review_required",
+      "rights_note": "Page/item-specific rights; check digitised-item licence.",
+      "integration_state": "needs_library_adapter",
+      "existing_catalogue_id": null,
+      "verification": "official_documentation_checked",
+      "evidence_urls": [
+        "https://www.digitale-sammlungen.de/en/interfaces"
+      ],
+      "notes": "",
+      "automatic_download_enabled": false
+    },
+    {
+      "id": "dumbarton-oaks",
+      "name": "Dumbarton Oaks Pre-Columbian Collections",
+      "category": "museum",
+      "priority": "P1",
+      "script_tags": [
+        "maya"
+      ],
+      "content_types": [
+        "object-images",
+        "iconography",
+        "metadata"
+      ],
+      "landing_url": "https://www.doaks.org/resources/online-collections",
+      "access_method": "catalogue_portal",
+      "endpoints": [
+        {
+          "kind": "online_collections",
+          "url": "https://www.doaks.org/resources/online-collections",
+          "url_is_template": false,
+          "note": ""
+        }
+      ],
+      "documentation_url": null,
+      "image_availability": "yes",
+      "access_requirements": "source_specific_review_required",
+      "rights_note": "Check photograph copyright and collection conditions; no bulk API confirmed.",
+      "integration_state": "needs_bulk_image_access",
+      "existing_catalogue_id": null,
+      "verification": "official_documentation_checked",
+      "evidence_urls": [
+        "https://www.doaks.org/resources/online-collections"
+      ],
+      "notes": "",
+      "automatic_download_enabled": false
+    },
+    {
+      "id": "maya-image-archive",
+      "name": "Bonn Classic Maya 2D Image Archive",
+      "category": "research_archive",
+      "priority": "P0",
+      "script_tags": [
+        "maya"
+      ],
+      "content_types": [
+        "glyph-images",
+        "artifact-photographs"
+      ],
+      "landing_url": "https://classicmayan.kor.de.dariah.eu/",
+      "access_method": "research_portal",
+      "endpoints": [
+        {
+          "kind": "project_portal",
+          "url": "https://classicmayan.org/portal/doc/30",
+          "url_is_template": false,
+          "note": ""
+        },
+        {
+          "kind": "image_archive",
+          "url": "https://classicmayan.kor.de.dariah.eu/",
+          "url_is_template": false,
+          "note": ""
+        }
+      ],
+      "documentation_url": "https://classicmayan.org/portal/doc/30",
+      "image_availability": "yes",
+      "access_requirements": "possible_account_or_research_access",
+      "rights_note": "Image archive may require account/access approval; check each record copyright.",
+      "integration_state": "needs_access_or_method_review",
+      "existing_catalogue_id": null,
+      "verification": "official_documentation_checked",
+      "evidence_urls": [
+        "https://classicmayan.org/portal/doc/30"
+      ],
+      "notes": "",
+      "automatic_download_enabled": false
+    },
+    {
+      "id": "twkm-sign-catalogue",
+      "name": "Bonn Classic Mayan sign catalogue",
+      "category": "research_archive",
+      "priority": "P0",
+      "script_tags": [
+        "maya"
+      ],
+      "content_types": [
+        "sign-inventory",
+        "drawings",
+        "readings"
+      ],
+      "landing_url": "https://classicmayan.org/portal/signcatalog",
+      "access_method": "research_portal",
+      "endpoints": [
+        {
+          "kind": "sign_catalogue",
+          "url": "https://classicmayan.org/portal/signcatalog",
+          "url_is_template": false,
+          "note": ""
+        }
+      ],
+      "documentation_url": "https://classicmayan.org/portal/doc/30",
+      "image_availability": "yes_or_unknown",
+      "access_requirements": "source_specific_review_required",
+      "rights_note": "Verify drawings, sign metadata and attribution terms per item.",
+      "integration_state": "needs_sign_adapter",
+      "existing_catalogue_id": null,
+      "verification": "official_documentation_checked",
+      "evidence_urls": [
+        "https://classicmayan.org/portal/doc/30"
+      ],
+      "notes": "",
+      "automatic_download_enabled": false
+    },
+    {
+      "id": "mayavase-kerr",
+      "name": "Justin Kerr Maya Vase Database",
+      "category": "research_archive",
+      "priority": "P1",
+      "script_tags": [
+        "maya"
+      ],
+      "content_types": [
+        "artifact-photographs",
+        "rollout-images"
+      ],
+      "landing_url": "https://research.mayavase.com/",
+      "access_method": "search_portal",
+      "endpoints": [
+        {
+          "kind": "catalogue",
+          "url": "https://research.mayavase.com/",
+          "url_is_template": false,
+          "note": ""
+        },
+        {
+          "kind": "terms_help",
+          "url": "https://www.mayavase.com/help.html",
+          "url_is_template": false,
+          "note": ""
+        }
+      ],
+      "documentation_url": "https://www.mayavase.com/help.html",
+      "image_availability": "yes",
+      "access_requirements": "source_specific_review_required",
+      "rights_note": "Copyright in Kerr photos; research access and permission for systematic download must be checked.",
+      "integration_state": "requires_rights_and_bulk_access_review",
+      "existing_catalogue_id": null,
+      "verification": "official_documentation_checked",
+      "evidence_urls": [
+        "https://research.mayavase.com/",
+        "https://www.mayavase.com/help.html"
+      ],
+      "notes": "",
+      "automatic_download_enabled": false
+    },
+    {
+      "id": "cdli-live",
+      "name": "Cuneiform Digital Library Initiative live catalogue",
+      "category": "research_archive",
+      "priority": "P0",
+      "script_tags": [
+        "cuneiform",
+        "sumerian",
+        "akkadian",
+        "proto-elamite",
+        "elamite"
+      ],
+      "content_types": [
+        "tablet-photographs",
+        "line-art",
+        "annotations",
+        "transcriptions",
+        "metadata"
+      ],
+      "landing_url": "https://cdli.earth/docs/api",
+      "access_method": "rest_api_media",
+      "endpoints": [
+        {
+          "kind": "rest_docs",
+          "url": "https://cdli.earth/docs/api",
+          "url_is_template": false,
+          "note": ""
+        },
+        {
+          "kind": "artifacts_listing",
+          "url": "https://cdli.earth/artifacts",
+          "url_is_template": false,
+          "note": ""
+        },
+        {
+          "kind": "image_storage_docs",
+          "url": "https://cdli.earth/docs/images-acquisition-and-processing",
+          "url_is_template": false,
+          "note": ""
+        },
+        {
+          "kind": "artifact_assets_api",
+          "url": "https://cdli.earth/artifact-assets/{asset_id}.json",
+          "url_is_template": true,
+          "note": "API pattern documented; use discovered ID"
+        }
+      ],
+      "documentation_url": "https://cdli.earth/docs/api",
+      "image_availability": "yes",
+      "access_requirements": "source_specific_review_required",
+      "rights_note": "Asset images may carry third-party rights. Confirm allowed research copying and record original image ownership.",
+      "integration_state": "needs_museum_adapter",
+      "existing_catalogue_id": null,
+      "verification": "official_documentation_checked",
+      "evidence_urls": [
+        "https://cdli.earth/docs/api",
+        "https://cdli.earth/docs/images-acquisition-and-processing"
+      ],
+      "notes": "",
+      "automatic_download_enabled": false
+    },
+    {
+      "id": "oracc",
+      "name": "Open Richly Annotated Cuneiform Corpus",
+      "category": "research_archive",
+      "priority": "P0",
+      "script_tags": [
+        "sumerian",
+        "akkadian",
+        "cuneiform"
+      ],
+      "content_types": [
+        "corpus-json",
+        "transliteration",
+        "sign-readings"
+      ],
+      "landing_url": "https://oracc.museum.upenn.edu/",
+      "access_method": "bulk_corpus_archives",
+      "endpoints": [
+        {
+          "kind": "oracc_json_download_docs",
+          "url": "https://oracc.museum.upenn.edu/compass/downloads/2_3_Data_Acquisition_ORACC.html",
+          "url_is_template": false,
+          "note": ""
+        },
+        {
+          "kind": "archive_template_historical",
+          "url": "http://oracc.iaas.upenn.edu/json/{project}.zip",
+          "url_is_template": true,
+          "note": "Historical documented scheme; check current HTTPS host and availability"
+        }
+      ],
+      "documentation_url": "https://oracc.museum.upenn.edu/compass/downloads/2_3_Data_Acquisition_ORACC.html",
+      "image_availability": "not_guaranteed",
+      "access_requirements": "source_specific_review_required",
+      "rights_note": "Oracc JSON corpora described as CC0 in documentation; photographs may have separate terms.",
+      "integration_state": "needs_method_verification",
+      "existing_catalogue_id": null,
+      "verification": "official_documentation_checked",
+      "evidence_urls": [
+        "https://oracc.museum.upenn.edu/compass/downloads/2_3_Data_Acquisition_ORACC.html"
+      ],
+      "notes": "",
+      "automatic_download_enabled": false
+    },
+    {
+      "id": "papyri-info",
+      "name": "Papyri.info Greek/Demotic papyrus editions",
+      "category": "research_archive",
+      "priority": "P1",
+      "script_tags": [
+        "ancient-greek",
+        "demotic",
+        "coptic"
+      ],
+      "content_types": [
+        "transcriptions",
+        "papyri-metadata"
+      ],
+      "landing_url": "https://papyri.info/",
+      "access_method": "catalogue_portal",
+      "endpoints": [
+        {
+          "kind": "portal",
+          "url": "https://papyri.info/",
+          "url_is_template": false,
+          "note": ""
+        }
+      ],
+      "documentation_url": null,
+      "image_availability": "not_guaranteed",
+      "access_requirements": "source_specific_review_required",
+      "rights_note": "Per-record editions and digital facsimile source licences differ; image service not verified here.",
+      "integration_state": "needs_source_review",
+      "existing_catalogue_id": null,
+      "verification": "official_documentation_checked",
+      "evidence_urls": [
+        "https://papyri.info/"
+      ],
+      "notes": "",
+      "automatic_download_enabled": false
+    },
+    {
+      "id": "phi-greek-inscriptions",
+      "name": "PHI Greek Inscriptions",
+      "category": "research_archive",
+      "priority": "P1",
+      "script_tags": [
+        "ancient-greek"
+      ],
+      "content_types": [
+        "epigraphic-transcriptions"
+      ],
+      "landing_url": "https://epigraphy.packhum.org/",
+      "access_method": "search_portal",
+      "endpoints": [
+        {
+          "kind": "portal",
+          "url": "https://epigraphy.packhum.org/",
+          "url_is_template": false,
+          "note": ""
+        }
+      ],
+      "documentation_url": null,
+      "image_availability": "no_guarantee",
+      "access_requirements": "source_specific_review_required",
+      "rights_note": "Text and database use policies require review; not an image archive.",
+      "integration_state": "needs_source_review",
+      "existing_catalogue_id": null,
+      "verification": "official_documentation_checked",
+      "evidence_urls": [
+        "https://epigraphy.packhum.org/"
+      ],
+      "notes": "",
+      "automatic_download_enabled": false
+    },
+    {
+      "id": "trismegistos-data-services",
+      "name": "Trismegistos ancient text cross-linking APIs",
+      "category": "research_archive",
+      "priority": "P1",
+      "script_tags": [
+        "ancient-greek",
+        "latin",
+        "coptic",
+        "demotic"
+      ],
+      "content_types": [
+        "record-crosswalk",
+        "places",
+        "metadata"
+      ],
+      "landing_url": "https://www.trismegistos.org/dataservices/",
+      "access_method": "rest_api",
+      "endpoints": [
+        {
+          "kind": "data_services",
+          "url": "https://www.trismegistos.org/dataservices/",
+          "url_is_template": false,
+          "note": ""
+        },
+        {
+          "kind": "texrelations_api",
+          "url": "https://www.trismegistos.org/dataservices/texrelations/{tm_id}",
+          "url_is_template": true,
+          "note": "Cross-links; not images"
+        },
+        {
+          "kind": "georesponder_docs",
+          "url": "https://www.trismegistos.org/dataservices/georesponder/",
+          "url_is_template": false,
+          "note": ""
+        }
+      ],
+      "documentation_url": "https://www.trismegistos.org/dataservices/",
+      "image_availability": "no",
+      "access_requirements": "source_specific_review_required",
+      "rights_note": "API services state CC BY-SA 4.0 for their open data; media held by partners separate.",
+      "integration_state": "needs_context_adapter",
+      "existing_catalogue_id": null,
+      "verification": "official_documentation_checked",
+      "evidence_urls": [
+        "https://www.trismegistos.org/dataservices/",
+        "https://www.trismegistos.org/dataservices/texrelations/documentation/"
+      ],
+      "notes": "",
+      "automatic_download_enabled": false
+    },
+    {
+      "id": "digital-commonwealth",
+      "name": "Digital Commonwealth collections and IIIF",
+      "category": "aggregator",
+      "priority": "P2",
+      "script_tags": [
+        "ancient-scripts",
+        "historical-scripts"
+      ],
+      "content_types": [
+        "iiif",
+        "images",
+        "metadata"
+      ],
+      "landing_url": "https://www.digitalcommonwealth.org/api",
+      "access_method": "iiif_api",
+      "endpoints": [
+        {
+          "kind": "api_docs",
+          "url": "https://www.digitalcommonwealth.org/api",
+          "url_is_template": false,
+          "note": ""
+        },
+        {
+          "kind": "iiif_image",
+          "url": "https://iiif.digitalcommonwealth.org/iiif/2/{image_id}/info.json",
+          "url_is_template": true,
+          "note": "Image ID from item"
+        }
+      ],
+      "documentation_url": "https://www.digitalcommonwealth.org/api",
+      "image_availability": "yes_varies",
+      "access_requirements": "source_specific_review_required",
+      "rights_note": "Per contributing collection/item rights.",
+      "integration_state": "needs_aggregator_adapter",
+      "existing_catalogue_id": null,
+      "verification": "official_documentation_checked",
+      "evidence_urls": [
+        "https://www.digitalcommonwealth.org/api"
+      ],
+      "notes": "",
+      "automatic_download_enabled": false
+    },
+    {
+      "id": "museum-data-service",
+      "name": "Museum Data Service UK Object Search",
+      "category": "aggregator",
+      "priority": "P1",
+      "script_tags": [
+        "ancient-scripts",
+        "symbols"
+      ],
+      "content_types": [
+        "object-metadata",
+        "images_if_referenced"
+      ],
+      "landing_url": "https://museumdata.uk/using-data/our-apis/",
+      "access_method": "rest_api_key",
+      "endpoints": [
+        {
+          "kind": "api_docs",
+          "url": "https://museumdata.uk/using-data/our-apis/",
+          "url_is_template": false,
+          "note": ""
+        }
+      ],
+      "documentation_url": "https://museumdata.uk/using-data/our-apis/",
+      "image_availability": "unknown",
+      "access_requirements": "request_object_search_api_token",
+      "rights_note": "Data and image rights vary per provider.",
+      "integration_state": "needs_api_key_and_adapter",
+      "existing_catalogue_id": null,
+      "verification": "official_documentation_checked",
+      "evidence_urls": [
+        "https://museumdata.uk/using-data/our-apis/"
+      ],
+      "notes": "",
+      "automatic_download_enabled": false
+    },
+    {
+      "id": "harvard-art-museums",
+      "name": "Harvard Art Museums Collections",
+      "category": "museum",
+      "priority": "P2",
+      "script_tags": [
+        "ancient-greek",
+        "egyptian",
+        "near-eastern"
+      ],
+      "content_types": [
+        "object-metadata",
+        "object-images"
+      ],
+      "landing_url": "https://harvardartmuseums.org/collections",
+      "access_method": "museum_portal",
+      "endpoints": [
+        {
+          "kind": "collection_portal",
+          "url": "https://harvardartmuseums.org/collections",
+          "url_is_template": false,
+          "note": ""
+        }
+      ],
+      "documentation_url": null,
+      "image_availability": "unknown",
+      "access_requirements": "source_specific_review_required",
+      "rights_note": "API access and media rights to be verified directly; not marked executable.",
+      "integration_state": "needs_access_or_method_review",
+      "existing_catalogue_id": null,
+      "verification": "portal_or_reference_only",
+      "evidence_urls": [],
+      "notes": "No confirmed current bulk image endpoint in this catalogue.",
+      "automatic_download_enabled": false
+    },
+    {
+      "id": "digital-bodleian",
+      "name": "Digital Bodleian (Oxford)",
+      "category": "digital_library",
+      "priority": "P2",
+      "script_tags": [
+        "ancient-greek",
+        "coptic",
+        "arabic",
+        "historical-scripts"
+      ],
+      "content_types": [
+        "manuscript-images",
+        "metadata"
+      ],
+      "landing_url": "https://digital.bodleian.ox.ac.uk/",
+      "access_method": "library_portal",
+      "endpoints": [
+        {
+          "kind": "library_portal",
+          "url": "https://digital.bodleian.ox.ac.uk/",
+          "url_is_template": false,
+          "note": ""
+        }
+      ],
+      "documentation_url": null,
+      "image_availability": "yes",
+      "access_requirements": "source_specific_review_required",
+      "rights_note": "Check item permissions, IIIF discovery and bulk download terms.",
+      "integration_state": "needs_iiif_discovery",
+      "existing_catalogue_id": null,
+      "verification": "portal_or_reference_only",
+      "evidence_urls": [],
+      "notes": "IIIF pattern intentionally not guessed.",
+      "automatic_download_enabled": false
+    },
+    {
+      "id": "google-fabricius",
+      "name": "Google Arts & Culture Fabricius Egyptian hieroglyph project",
+      "category": "research_project",
+      "priority": "P1",
+      "script_tags": [
+        "egyptian-hieroglyphs"
+      ],
+      "content_types": [
+        "sign-recognition-reference",
+        "research-lead"
+      ],
+      "landing_url": "https://artsandculture.google.com/experiment/fabricius",
+      "access_method": "project_portal",
+      "endpoints": [
+        {
+          "kind": "project_page",
+          "url": "https://artsandculture.google.com/experiment/fabricius",
+          "url_is_template": false,
+          "note": ""
+        }
+      ],
+      "documentation_url": null,
+      "image_availability": "unknown",
+      "access_requirements": "source_specific_review_required",
+      "rights_note": "No public bulk image API verified; project/demo access is not blanket permission to retrieve assets.",
+      "integration_state": "requires_research_partnership_or_public_dataset",
+      "existing_catalogue_id": null,
+      "verification": "portal_or_reference_only",
+      "evidence_urls": [],
+      "notes": "Earlier lead to around 5,000 images in Arts & Culture Workbench remains unverified.",
+      "automatic_download_enabled": false
+    },
+    {
+      "id": "famsi",
+      "name": "Foundation for the Advancement of Mesoamerican Studies",
+      "category": "research_archive",
+      "priority": "P2",
+      "script_tags": [
+        "maya"
+      ],
+      "content_types": [
+        "drawings",
+        "images",
+        "publications"
+      ],
+      "landing_url": "https://www.famsi.org/",
+      "access_method": "archive_portal",
+      "endpoints": [
+        {
+          "kind": "portal",
+          "url": "https://www.famsi.org/",
+          "url_is_template": false,
+          "note": ""
+        }
+      ],
+      "documentation_url": null,
+      "image_availability": "yes_partial",
+      "access_requirements": "source_specific_review_required",
+      "rights_note": "Contributed publication and image rights vary; no bulk API confirmed.",
+      "integration_state": "needs_source_review",
+      "existing_catalogue_id": null,
+      "verification": "portal_or_reference_only",
+      "evidence_urls": [],
+      "notes": "",
+      "automatic_download_enabled": false
+    },
+    {
+      "id": "institute-anthropology-mexico-codices",
+      "name": "INAH Mexican Codices collections",
+      "category": "research_archive",
+      "priority": "P2",
+      "script_tags": [
+        "maya",
+        "mesoamerican"
+      ],
+      "content_types": [
+        "codex-images",
+        "metadata"
+      ],
+      "landing_url": "https://www.inah.gob.mx/",
+      "access_method": "research_portal",
+      "endpoints": [
+        {
+          "kind": "institution",
+          "url": "https://www.inah.gob.mx/",
+          "url_is_template": false,
+          "note": ""
+        }
+      ],
+      "documentation_url": null,
+      "image_availability": "unknown",
+      "access_requirements": "source_specific_review_required",
+      "rights_note": "No confirmed bulk-image API for the codices in this catalogue; institutional rights apply.",
+      "integration_state": "needs_specific_collection_and_access_review",
+      "existing_catalogue_id": null,
+      "verification": "portal_or_reference_only",
+      "evidence_urls": [],
+      "notes": "",
+      "automatic_download_enabled": false
+    },
+    {
+      "id": "ochre-data-service",
+      "name": "University of Chicago OCHRE Data Service",
+      "category": "research_archive",
+      "priority": "P0",
+      "script_tags": [
+        "elamite-cuneiform",
+        "aramaic",
+        "ancient-scripts"
+      ],
+      "content_types": [
+        "artifact-metadata",
+        "published-xml",
+        "image-references"
+      ],
+      "landing_url": "https://ochre.uchicago.edu/",
+      "access_method": "xml_api_by_uuid",
+      "endpoints": [
+        {
+          "kind": "published_record_xml",
+          "url": "https://ochre.lib.uchicago.edu/ochre?uuid={uuid}",
+          "url_is_template": true,
+          "note": "Use a published UUID; XML data returned; this is not a bulk media dump"
+        },
+        {
+          "kind": "project_overview",
+          "url": "https://researchdata.uchicago.edu/services/online-cultural-and-historical-research-environment-ochre/",
+          "url_is_template": false,
+          "note": ""
+        }
+      ],
+      "documentation_url": "https://voices.uchicago.edu/ochre/ochre-introduction/",
+      "image_availability": "records_with_media_to_check",
+      "access_requirements": "source_specific_review_required",
+      "rights_note": "Data belongs to individual OCHRE projects; review visibility and permissions for images.",
+      "integration_state": "needs_discovery_method",
+      "existing_catalogue_id": null,
+      "verification": "official_documentation_checked",
+      "evidence_urls": [
+        "https://researchdata.uchicago.edu/services/online-cultural-and-historical-research-environment-ochre/",
+        "https://voices.uchicago.edu/ochre/ochre-introduction/"
+      ],
+      "notes": "Useful for Persepolis Fortification Archive metadata. Public XML record service and image access are different concerns.",
+      "automatic_download_enabled": false
+    },
+    {
+      "id": "persepolis-fortification-archive",
+      "name": "Persepolis Fortification Archive catalogued tablets",
+      "category": "research_archive",
+      "priority": "P0",
+      "script_tags": [
+        "elamite-cuneiform",
+        "aramaic"
+      ],
+      "content_types": [
+        "tablet-images",
+        "seal-impressions",
+        "metadata"
+      ],
+      "landing_url": "https://cdli.earth/archives/58",
+      "access_method": "archive_catalogue",
+      "endpoints": [
+        {
+          "kind": "cdli_archive_catalogue",
+          "url": "https://cdli.earth/archives/58",
+          "url_is_template": false,
+          "note": ""
+        },
+        {
+          "kind": "ochre_publication",
+          "url": "https://ochre.uchicago.edu/",
+          "url_is_template": false,
+          "note": ""
+        }
+      ],
+      "documentation_url": "https://cdli.earth/docs/api",
+      "image_availability": "yes_partial",
+      "access_requirements": "source_specific_review_required",
+      "rights_note": "Image rights and source institution/project rights vary; do not automatically equate catalogue visibility and full download rights.",
+      "integration_state": "needs_targeted_collection_adapter",
+      "existing_catalogue_id": null,
+      "verification": "official_documentation_checked",
+      "evidence_urls": [
+        "https://cdli.earth/archives/58",
+        "https://cdli.earth/docs/api"
+      ],
+      "notes": "Crosswalk CDLI P-numbers with OCHRE project identifiers where available; obtain exact asset URLs from individual records.",
+      "automatic_download_enabled": false
+    },
+    {
+      "id": "edh-inscriptions",
+      "name": "Epigraphic Database Heidelberg Open Data",
+      "category": "research_archive",
+      "priority": "P1",
+      "script_tags": [
+        "latin",
+        "ancient-greek"
+      ],
+      "content_types": [
+        "inscriptions",
+        "photographs",
+        "epidoc",
+        "geography"
+      ],
+      "landing_url": "https://www.propylaeum.de/en/searching/epigraphic-database-of-roman-inscriptions-edh",
+      "access_method": "open_data_download_api",
+      "endpoints": [
+        {
+          "kind": "official_overview",
+          "url": "https://www.propylaeum.de/en/searching/epigraphic-database-of-roman-inscriptions-edh",
+          "url_is_template": false,
+          "note": ""
+        },
+        {
+          "kind": "historical_api_documentation",
+          "url": "https://edh.ub.uni-heidelberg.de/data/api",
+          "url_is_template": false,
+          "note": "Verify current host/redirects before integration"
+        }
+      ],
+      "documentation_url": "https://www.propylaeum.de/en/searching/epigraphic-database-of-roman-inscriptions-edh",
+      "image_availability": "yes_partial",
+      "access_requirements": "source_specific_review_required",
+      "rights_note": "EDH Open Data repository states CC BY-SA 4.0; verify individual photograph rights and retained attribution.",
+      "integration_state": "needs_epigraphy_adapter",
+      "existing_catalogue_id": null,
+      "verification": "official_documentation_checked",
+      "evidence_urls": [
+        "https://www.propylaeum.de/en/searching/epigraphic-database-of-roman-inscriptions-edh"
+      ],
+      "notes": "",
+      "automatic_download_enabled": false
+    },
+    {
+      "id": "edr-roma-epidoc",
+      "name": "Epigraphic Database Roma EpiDoc export",
+      "category": "research_archive",
+      "priority": "P1",
+      "script_tags": [
+        "latin",
+        "ancient-greek"
+      ],
+      "content_types": [
+        "epidoc",
+        "inscriptions",
+        "metadata"
+      ],
+      "landing_url": "https://zenodo.org/records/10590790",
+      "access_method": "zenodo_files",
+      "endpoints": [
+        {
+          "kind": "archive_record",
+          "url": "https://zenodo.org/records/10590790",
+          "url_is_template": false,
+          "note": "Has newer versions; follow version link"
+        },
+        {
+          "kind": "zenodo_record_api",
+          "url": "https://zenodo.org/api/records/10590790",
+          "url_is_template": false,
+          "note": "Discover ZIP assets from files[]"
+        }
+      ],
+      "documentation_url": "https://zenodo.org/records/10590790",
+      "image_availability": "no_guarantee",
+      "access_requirements": "source_specific_review_required",
+      "rights_note": "Check current Zenodo release and licence; XML editions do not guarantee attached original images.",
+      "integration_state": "needs_metadata_adapter",
+      "existing_catalogue_id": null,
+      "verification": "official_documentation_checked",
+      "evidence_urls": [
+        "https://zenodo.org/records/10590790"
+      ],
+      "notes": "",
+      "automatic_download_enabled": false
+    },
+    {
+      "id": "edcs-clauss-slaby",
+      "name": "EDCS Epigraphy Database Clauss/Slaby",
+      "category": "research_archive",
+      "priority": "P1",
+      "script_tags": [
+        "latin"
+      ],
+      "content_types": [
+        "inscriptions",
+        "places",
+        "dates"
+      ],
+      "landing_url": "https://edcs.hist.uzh.ch/",
+      "access_method": "search_portal",
+      "endpoints": [
+        {
+          "kind": "search_portal",
+          "url": "https://edcs.hist.uzh.ch/",
+          "url_is_template": false,
+          "note": ""
+        }
+      ],
+      "documentation_url": null,
+      "image_availability": "no_guarantee",
+      "access_requirements": "source_specific_review_required",
+      "rights_note": "No verified public bulk/API export in this catalogue; respect host permissions.",
+      "integration_state": "needs_access_or_method_review",
+      "existing_catalogue_id": null,
+      "verification": "official_documentation_checked",
+      "evidence_urls": [
+        "https://edcs.hist.uzh.ch/"
+      ],
+      "notes": "",
+      "automatic_download_enabled": false
+    },
+    {
+      "id": "damos-linear-b",
+      "name": "DĀMOS Mycenaean Linear B database",
+      "category": "research_archive",
+      "priority": "P0",
+      "script_tags": [
+        "linear-b",
+        "mycenaean-greek"
+      ],
+      "content_types": [
+        "inscriptions",
+        "transliterations",
+        "text-metadata"
+      ],
+      "landing_url": "https://damos.hf.uio.no/about/database/",
+      "access_method": "catalogue_portal",
+      "endpoints": [
+        {
+          "kind": "database_overview",
+          "url": "https://damos.hf.uio.no/about/database/",
+          "url_is_template": false,
+          "note": ""
+        },
+        {
+          "kind": "texts",
+          "url": "https://damos.hf.uio.no/about/texts/",
+          "url_is_template": false,
+          "note": ""
+        }
+      ],
+      "documentation_url": "https://damos.hf.uio.no/about/database/",
+      "image_availability": "unknown",
+      "access_requirements": "source_specific_review_required",
+      "rights_note": "Transcriptions and database rights to verify; no bulk image API established.",
+      "integration_state": "needs_download_method",
+      "existing_catalogue_id": null,
+      "verification": "official_documentation_checked",
+      "evidence_urls": [
+        "https://damos.hf.uio.no/about/database/"
+      ],
+      "notes": "",
+      "automatic_download_enabled": false
+    },
+    {
+      "id": "vesuvius-challenge-data",
+      "name": "Vesuvius Challenge Herculaneum papyrus scan datasets",
+      "category": "research_archive",
+      "priority": "P1",
+      "script_tags": [
+        "ancient-greek"
+      ],
+      "content_types": [
+        "3d-volumes",
+        "image-segments",
+        "ink-masks",
+        "metadata"
+      ],
+      "landing_url": "https://scrollprize.org/data",
+      "access_method": "public_s3_omezarr",
+      "endpoints": [
+        {
+          "kind": "data_docs",
+          "url": "https://scrollprize.org/data",
+          "url_is_template": false,
+          "note": ""
+        },
+        {
+          "kind": "data_browser",
+          "url": "https://scrollprize.org/data_browser",
+          "url_is_template": false,
+          "note": ""
+        },
+        {
+          "kind": "curated_datasets",
+          "url": "https://scrollprize.org/data_datasets",
+          "url_is_template": false,
+          "note": ""
+        },
+        {
+          "kind": "s3_bucket",
+          "url": "s3://vesuvius-challenge-open-data/",
+          "url_is_template": false,
+          "note": "Open data bucket; use S3 or zarr clients"
+        }
+      ],
+      "documentation_url": "https://scrollprize.org/data",
+      "image_availability": "yes_derived_images",
+      "access_requirements": "source_specific_review_required",
+      "rights_note": "CC BY-NC 4.0 unless asset-specific terms differ. Data can be enormous; fetch curated regions not whole 3D scan volumes by default.",
+      "integration_state": "needs_specialized_ml_adapter",
+      "existing_catalogue_id": null,
+      "verification": "official_documentation_checked",
+      "evidence_urls": [
+        "https://scrollprize.org/data",
+        "https://scrollprize.org/data_datasets"
+      ],
+      "notes": "Not ordinary 2D ancient sign photographs; valuable comparison for restoration/ink segmentation and provenance.",
+      "automatic_download_enabled": false
+    },
+    {
+      "id": "harvard-library-iiif",
+      "name": "Harvard Library IIIF image service",
+      "category": "digital_library",
+      "priority": "P2",
+      "script_tags": [
+        "ancient-greek",
+        "latin",
+        "coptic",
+        "arabic"
+      ],
+      "content_types": [
+        "iiif",
+        "manuscripts"
+      ],
+      "landing_url": "https://iiif.harvard.edu/about-iiif/",
+      "access_method": "iiif_image_api",
+      "endpoints": [
+        {
+          "kind": "iiif_image",
+          "url": "https://ids.lib.harvard.edu/ids/iiif/{image_identifier}/info.json",
+          "url_is_template": true,
+          "note": "Image ID comes from published catalogue records"
+        }
+      ],
+      "documentation_url": "https://iiif.harvard.edu/about-iiif/",
+      "image_availability": "yes",
+      "access_requirements": "source_specific_review_required",
+      "rights_note": "Per-item access and usage rights apply.",
+      "integration_state": "needs_library_adapter",
+      "existing_catalogue_id": null,
+      "verification": "official_documentation_checked",
+      "evidence_urls": [
+        "https://iiif.harvard.edu/about-iiif/"
+      ],
+      "notes": "",
+      "automatic_download_enabled": false
+    }
+  ]
+}
